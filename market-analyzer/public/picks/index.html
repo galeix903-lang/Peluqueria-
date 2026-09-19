@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Handpicked Bets</title>
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .pick-card { padding: 18px 0; border-top: 1px solid var(--border); }
+  .pick-card:first-child { border-top: none; padding-top: 0; }
+  .pick-card__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+  <div data-app-shell></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    mountShell({ page: 'picks', title: 'Handpicked Bets' }).then(async (ctx) => {
+      if (!ctx) return;
+      ctx.contentEl.innerHTML = `<div class="panel" data-picks-list><p class="empty-state">Cargando picks…</p></div>`;
+      const listEl = ctx.contentEl.querySelector('[data-picks-list]');
+      try {
+        const { picks } = await api('/picks');
+        if (!picks.length) {
+          listEl.innerHTML = '<p class="empty-state">Todavía no hay picks disponibles.</p>';
+          return;
+        }
+        listEl.innerHTML = picks.map((p) => `
+          <div class="pick-card">
+            <div class="pick-card__head">
+              <strong>${p.symbol}</strong>
+              <span style="color:var(--text-dim); font-size:.8125rem;">${new Date(p.createdAt).toLocaleDateString('es-ES')}</span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <span class="badge badge--${p.trend}">${p.trend}</span>
+              <span class="badge badge--${p.bias}">${p.bias}</span>
+              ${p.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
+              <span class="badge" style="background:var(--bg); color:var(--text-dim);">Confianza ${p.confidence}%</span>
+            </div>
+            <p style="margin:0; line-height:1.5;">${p.summary}</p>
+            <p class="disclaimer">${p.disclaimer}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = `<p class="empty-state">${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>

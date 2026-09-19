@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Iniciar sesión</title>
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .auth-card { width: 380px; }
+  .auth-logo { width: 46px; height: 46px; border-radius: 12px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; margin: 0 auto 18px; }
+  .auth-title { text-align: center; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+  .auth-sub { text-align: center; color: var(--text-dim); font-size: .875rem; margin-bottom: 22px; }
+  .tabs { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 20px; }
+  .tabs button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); }
+  .tabs button.is-active { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="panel auth-card">
+    <div class="auth-logo">V</div>
+    <div class="auth-title">Bienvenido a Vantex</div>
+    <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
+
+    <div class="tabs">
+      <button type="button" data-tab="login" class="is-active">Iniciar sesión</button>
+      <button type="button" data-tab="signup">Crear cuenta</button>
+    </div>
+
+    <form data-form="login">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input id="login-email" name="email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password">Contraseña</label>
+        <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" type="submit" style="width:100%">Entrar</button>
+      <p class="error-msg" data-error="login"></p>
+    </form>
+
+    <form data-form="signup" hidden>
+      <div class="field">
+        <label for="signup-name">Nombre</label>
+        <input id="signup-name" name="name" type="text" autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="signup-email">Email</label>
+        <input id="signup-email" name="email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="signup-password">Contraseña</label>
+        <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+      </div>
+      <button class="btn-primary" type="submit" style="width:100%">Crear cuenta</button>
+      <p class="error-msg" data-error="signup"></p>
+    </form>
+  </div>
+
+  <script src="/shared/api.js"></script>
+  <script>
+    const tabs = document.querySelectorAll('[data-tab]');
+    const forms = { login: document.querySelector('[data-form="login"]'), signup: document.querySelector('[data-form="signup"]') };
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      Object.entries(forms).forEach(([name, form]) => { form.hidden = name !== tab.dataset.tab; });
+    }));
+
+    async function handleSubmit(formName, endpoint) {
+      const form = forms[formName];
+      const errorEl = form.querySelector(`[data-error="${formName}"]`);
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorEl.textContent = '';
+        const payload = Object.fromEntries(new FormData(form).entries());
+        try {
+          await api(`/auth/${endpoint}`, { method: 'POST', body: JSON.stringify(payload) });
+          window.location.href = '/dashboard';
+        } catch (err) {
+          errorEl.textContent = err.message;
+        }
+      });
+    }
+    handleSubmit('login', 'login');
+    handleSubmit('signup', 'signup');
+
+    // Si ya hay sesión activa, saltar directo al dashboard.
+    api('/auth/me').then(() => { window.location.href = '/dashboard'; }).catch(() => {});
+  </script>
+</body>
+</html>

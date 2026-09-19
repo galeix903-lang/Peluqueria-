@@ -1,0 +1,171 @@
+/* Vantex — dashboard de análisis de mercado con IA. Estilo propio: fondo
+   claro, acentos índigo, tarjetas con borde suave. */
+
+:root {
+  --bg: #f5f6fb;
+  --surface: #ffffff;
+  --border: #e4e7f0;
+  --text: #14162b;
+  --text-dim: #6b6f8a;
+  --accent: #4f46e5;
+  --accent-dim: #eef0fd;
+  --green: #16a34a;
+  --green-bg: #eafbef;
+  --red: #dc2626;
+  --red-bg: #fdecec;
+  --amber: #b45309;
+  --amber-bg: #fef3e0;
+  --radius: 14px;
+  --sidebar-w: 76px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+body { min-height: 100vh; }
+a { color: inherit; }
+button { font: inherit; cursor: pointer; }
+
+/* ---------- Layout con sidebar ---------- */
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 28px;
+}
+.sidebar__logo {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.05rem;
+  text-decoration: none;
+}
+.sidebar__nav { display: flex; flex-direction: column; gap: 6px; }
+.sidebar__link {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.sidebar__link:hover { background: var(--accent-dim); color: var(--accent); }
+.sidebar__link.is-active { background: var(--accent-dim); color: var(--accent); }
+.sidebar__link svg { width: 22px; height: 22px; }
+
+.main { flex: 1; min-width: 0; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 32px;
+}
+.topbar h1 { font-size: 1.3rem; margin: 0; }
+.topbar__user {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-dim); font-size: .875rem;
+}
+.btn-logout {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-size: .8125rem;
+  color: var(--text-dim);
+}
+.btn-logout:hover { color: var(--text); border-color: var(--accent); }
+
+.content { padding: 0 32px 40px; max-width: 1100px; }
+
+/* ---------- Tarjetas del dashboard ---------- */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card-grid--three { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 720px) { .card-grid, .card-grid--three { grid-template-columns: 1fr; } }
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color .15s, transform .15s;
+}
+.feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.feature-card.is-disabled { opacity: .55; pointer-events: none; }
+.feature-card__icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px; font-size: 1.3rem;
+}
+.feature-card__title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+.feature-card__desc { color: var(--text-dim); font-size: .875rem; line-height: 1.4; }
+.badge-soon {
+  display: inline-block; margin-top: 10px;
+  font-size: .6875rem; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--text-dim);
+  background: var(--bg); padding: 3px 9px; border-radius: 999px;
+}
+
+/* ---------- Formularios ---------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: .8125rem; font-weight: 600; margin-bottom: 6px; color: var(--text-dim); }
+.field input, .field select {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 9px;
+  font-size: .9375rem; background: var(--bg);
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn-primary {
+  background: var(--accent); color: #fff; border: none;
+  padding: 11px 20px; border-radius: 9px; font-weight: 700; font-size: .9375rem;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-secondary {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 9px 16px; border-radius: 9px; font-weight: 600; font-size: .8125rem;
+}
+.error-msg { color: var(--red); font-size: .8125rem; margin-top: 8px; min-height: 1em; }
+
+/* ---------- Badges de estado ---------- */
+.badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.badge--alcista, .badge--compra, .badge--long { background: var(--green-bg); color: var(--green); }
+.badge--bajista, .badge--venta, .badge--short { background: var(--red-bg); color: var(--red); }
+.badge--lateral, .badge--esperar { background: var(--amber-bg); color: var(--amber); }
+.badge--mock { background: var(--bg); color: var(--text-dim); }
+
+/* ---------- Tablas ---------- */
+table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+th { text-align: left; color: var(--text-dim); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; padding-bottom: 10px; }
+td { padding: 12px 0; border-top: 1px solid var(--border); }
+.pnl-pos { color: var(--green); font-weight: 700; }
+.pnl-neg { color: var(--red); font-weight: 700; }
+
+.stat-row { display: flex; gap: 32px; margin-bottom: 20px; }
+.stat-row__item .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); }
+.stat-row__item .value { font-size: 1.6rem; font-weight: 800; margin-top: 4px; }
+
+.empty-state { color: var(--text-dim); text-align: center; padding: 40px 0; font-size: .9375rem; }
+
+.disclaimer {
+  font-size: .75rem; color: var(--text-dim);
+  border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 14px;
+}

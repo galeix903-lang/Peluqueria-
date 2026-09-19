@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — AI Analyzer</title>
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 32px; text-align: center; cursor: pointer;
+    background: var(--bg); transition: border-color .15s;
+  }
+  .dropzone.is-dragover { border-color: var(--accent); }
+  .dropzone img { max-width: 100%; max-height: 220px; border-radius: 10px; margin-top: 14px; }
+  .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+  .result-grid .label { font-size: .75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: .03em; }
+  .result-grid .value { font-weight: 700; margin-top: 2px; }
+  .confidence-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 6px; }
+  .confidence-bar span { display: block; height: 100%; background: var(--accent); }
+  .history-item { padding: 14px 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+</style>
+</head>
+<body>
+  <div data-app-shell></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    mountShell({ page: 'analyzer', title: 'AI Analyzer' }).then((ctx) => {
+      if (!ctx) return;
+      ctx.contentEl.innerHTML = `
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="dropzone" data-dropzone>
+            <p style="margin:0; font-weight:600;">Arrastra una captura del gráfico aquí, o haz clic para elegirla</p>
+            <p style="margin:6px 0 0; color:var(--text-dim); font-size:.8125rem;">PNG o JPG, hasta 8 MB</p>
+            <input type="file" accept="image/*" data-file-input hidden />
+            <img data-preview hidden />
+          </div>
+          <button class="btn-primary" style="margin-top:16px;" data-analyze-btn disabled>Analizar gráfico</button>
+          <p class="error-msg" data-error></p>
+        </div>
+
+        <div class="panel" data-result hidden></div>
+
+        <h2 style="font-size:1rem; margin: 28px 0 4px;">Historial reciente</h2>
+        <div class="panel" data-history>
+          <p class="empty-state">Todavía no has analizado ningún gráfico.</p>
+        </div>
+      `;
+
+      const dropzone = ctx.contentEl.querySelector('[data-dropzone]');
+      const fileInput = ctx.contentEl.querySelector('[data-file-input]');
+      const preview = ctx.contentEl.querySelector('[data-preview]');
+      const analyzeBtn = ctx.contentEl.querySelector('[data-analyze-btn]');
+      const errorEl = ctx.contentEl.querySelector('[data-error]');
+      const resultEl = ctx.contentEl.querySelector('[data-result]');
+      const historyEl = ctx.contentEl.querySelector('[data-history]');
+      let selectedFile = null;
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      ['dragover', 'dragleave', 'drop'].forEach((evt) => {
+        dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropzone.classList.toggle('is-dragover', evt === 'dragover');
+        });
+      });
+      dropzone.addEventListener('drop', (e) => setFile(e.dataTransfer.files[0]));
+      fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+
+      function setFile(file) {
+        if (!file) return;
+        selectedFile = file;
+        preview.src = URL.createObjectURL(file);
+        preview.hidden = false;
+        analyzeBtn.disabled = false;
+      }
+
+      function renderAnalysis(a) {
+        resultEl.hidden = false;
+        resultEl.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="font-weight:800; font-size:1.1rem;">${a.asset}</div>
+              <div style="margin-top:6px; display:flex; gap:8px;">
+                <span class="badge badge--${a.trend}">${a.trend}</span>
+                <span class="badge badge--${a.bias}">${a.bias}</span>
+                ${a.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
+              </div>
+            </div>
+          </div>
+          <p style="margin:16px 0 6px; color:var(--text-dim);">Confianza del análisis: ${a.confidence}%</p>
+          <div class="confidence-bar"><span style="width:${a.confidence}%"></span></div>
+          <div class="result-grid">
+            <div>
+              <div class="label">Soportes</div>
+              <div class="value">${(a.support || []).join(' · ') || '—'}</div>
+            </div>
+            <div>
+              <div class="label">Resistencias</div>
+              <div class="value">${(a.resistance || []).join(' · ') || '—'}</div>
+            </div>
+          </div>
+          <p style="line-height:1.5;">${a.summary}</p>
+          <p class="disclaimer">${a.disclaimer}</p>
+        `;
+      }
+
+      function renderHistory(analyses) {
+        if (!analyses.length) return;
+        historyEl.innerHTML = analyses.map((a) => `
+          <div class="history-item">
+            <div>
+              <strong>${a.asset}</strong>
+              <span class="badge badge--${a.bias}" style="margin-left:8px;">${a.bias}</span>
+            </div>
+            <span style="color:var(--text-dim); font-size:.8125rem;">${new Date(a.createdAt).toLocaleString('es-ES')}</span>
+          </div>
+        `).join('');
+      }
+
+      analyzeBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+        errorEl.textContent = '';
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = 'Analizando…';
+        try {
+          const formData = new FormData();
+          formData.append('image', selectedFile);
+          const { analysis } = await api('/analyzer', { method: 'POST', body: formData });
+          renderAnalysis(analysis);
+          loadHistory();
+        } catch (err) {
+          errorEl.textContent = err.message;
+        } finally {
+          analyzeBtn.disabled = false;
+          analyzeBtn.textContent = 'Analizar gráfico';
+        }
+      });
+
+      async function loadHistory() {
+        const { analyses } = await api('/analyzer/history');
+        renderHistory(analyses);
+      }
+      loadHistory();
+    });
+  </script>
+</body>
+</html>

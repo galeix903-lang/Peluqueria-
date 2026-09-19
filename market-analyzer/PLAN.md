@@ -4,42 +4,30 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
-## Estado actual (WIP — pausado a petición del usuario)
+## Estado actual — Fase 1 COMPLETA y verificada
 
-Hecho:
-- [x] `package.json`, `.env.example`
-- [x] `server/store.js` (persistencia JSON)
-- [x] `server/middleware/requireAuth.js`
-- [x] `server/routes/auth.js` (signup/login/logout/me)
-- [x] `server/services/claude.js` (análisis real vía Claude + modo mock)
+Todo lo listado en "Estructura de archivos objetivo" está implementado:
+backend completo (auth, analyzer, trading, picks, servicios), frontend
+completo (login/dashboard/analyzer/trading/picks + shared), README.md.
 
-Pendiente (siguiente en la lista, en este orden):
-- [ ] `server/routes/analyzer.js` (endpoint `POST /api/analyzer`: multer +
-      `services/claude.js`, guarda el resultado con `store.addAnalysis`)
-- [ ] `server/services/market.js` (precios desde CoinGecko `/simple/price`,
-      caché en memoria ~30s, símbolos: BTC, ETH, SOL, BNB, XRP)
-- [ ] `server/routes/trading.js` (listar/abrir/cerrar posiciones de paper
-      trading, recalcular P&L contra `market.js`, actualizar
-      `store.updateUserBalance`)
-- [ ] `server/services/picksJob.js` + `server/routes/picks.js` (1-2 picks/
-      día generados con `claude.js` sobre símbolos fijos, guardados con
-      `store.addPick`; cron ligero con `node-cron`)
-- [ ] `server/index.js` (bootstrap: Express, `express-session`, sirve
-      `public/`, monta todas las rutas anteriores bajo `/api/...`)
-- [ ] `public/shared/` — CSS común (sidebar, cards, tema oscuro/claro a
-      elegir), `api.js` (fetch helper con manejo de 401), `auth-guard.js`
-      (redirige a `/login` si `GET /api/auth/me` da 401)
-- [ ] `public/login/index.html` (login + registro con tabs)
-- [ ] `public/dashboard/index.html` (home: tarjetas AI Analyzer / Paper
-      Trading / Handpicked Bets; Wallet Tracker y Copy Trading como
-      "Próximamente")
-- [ ] `public/analyzer/index.html` (subir imagen, ver resultado + aviso de
-      modo mock, historial simple)
-- [ ] `public/trading/index.html` (saldo, formulario "Enter Trade", tabla
-      de posiciones con P&L en vivo)
-- [ ] `public/picks/index.html` (feed de picks)
-- [ ] `README.md` del proyecto (cómo arrancar, cómo pasar de mock a real)
-- [ ] `npm install` + probar el flujo completo end-to-end
+Verificado end-to-end con Playwright (registro → analizador en modo mock →
+abrir y cerrar posición de paper trading → ver picks → logout → guard de
+sesión), sin errores de consola reales. Dependencias sin vulnerabilidades
+conocidas (`multer@2.x`, `node-cron@4.x`, `npm audit` limpio).
+
+Nota de entorno: `server/services/market.js` intenta CoinGecko primero y,
+si la red no es alcanzable (pasó en el sandbox de desarrollo por política
+de proxy, pero funcionará normal en un hosting real), cae a un pequeño
+generador de precios simulados para que el paper trading siga siendo
+usable sin depender de esa API externa.
+
+Marca elegida para no clonar la identidad de Polifly: **"Vantex"** (logo
+"V" en índigo). Cámbialo libremente en `public/shared/sidebar.js` (logo)
+y en los `<title>`/textos de cada página si quieres otro nombre.
+
+Siguiente trabajo posible (no iniciado, ver "Fases siguientes" más abajo):
+Fase 2 (Stripe, DB real, historial/export) y Fase 3 (Wallet Tracker, Copy
+Trading).
 
 ## Contexto original
 
