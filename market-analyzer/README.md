@@ -32,6 +32,31 @@ sin gastar nada. Para activar el análisis real con Claude:
 desarrollo para no gastar créditos) o `live` (forzar real; falla si no hay
 key configurada).
 
+## Ponerlo online (Render, gratis)
+
+1. Entra en <https://render.com> y crea una cuenta (puedes usar tu GitHub).
+2. Dale acceso a Render a este repositorio de GitHub.
+3. En el panel de Render: **New +** → **Blueprint** → elige este
+   repositorio. Render detecta solo el fichero `market-analyzer/render.yaml`
+   y te propone crear el servicio "vantex" con los datos ya rellenados.
+4. Antes de confirmar, si quieres análisis real (no modo ejemplo), añade la
+   variable de entorno `ANTHROPIC_API_KEY` con tu clave de
+   <https://console.anthropic.com/settings/keys> — si la dejas vacía,
+   arranca igual en modo mock.
+5. Pulsa **Apply** / **Create**. La primera build tarda 2-3 minutos. Al
+   terminar, Render te da una URL pública tipo
+   `https://vantex-xxxx.onrender.com` — esa es la que abres en cualquier
+   navegador, móvil incluido.
+
+**Aviso del plan gratuito**: no tiene disco persistente, así que las
+cuentas y operaciones guardadas en `data/db.json` se reinician cada vez
+que el servicio se redepliega o "despierta" tras estar dormido por
+inactividad (los servicios gratuitos de Render se duermen a los 15 min sin
+tráfico y tardan ~30-60s en volver a arrancar la primera vez que alguien
+entra). Perfecto para probar y enseñar la app; si más adelante quieres que
+los datos sobrevivan a los redeploys, hay que pasar a un disco de pago o a
+una base de datos real (ver "Fase 2" en `PLAN.md`).
+
 ## Estructura
 
 ```
