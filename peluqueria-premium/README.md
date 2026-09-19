@@ -204,36 +204,64 @@ Embed de la dirección del negocio.
 El enlace del asistente de reserva ("política de privacidad") apunta a
 `#` y debe enlazar a la página legal real del negocio.
 
-### 9. Introducción 3D ("Entrar en la peluquería")
-Al entrar por primera vez aparece una intro a pantalla completa: un busto
-estilizado con cabello y unas tijeras (geometría 3D generada por código,
-sin modelos ni texturas), que el usuario "corta" con un clic, arrastre,
-scroll o toque — y la web hace una transición al Hero. No vuelve a
-aparecer en visitas siguientes (se recuerda en `localStorage`), tiene un
-botón **"Saltar introducción"** siempre visible y responde a `Esc`, y hay
-un enlace discreto **"Ver introducción"** en el footer para repetirla. Con
-`prefers-reduced-motion` activado, la intro no se muestra en absoluto y la
-web arranca directamente en el Hero.
+### 9. Introducción 3D — "THE PERFECT CUT"
+Al entrar por primera vez aparece una intro cinematográfica a pantalla
+completa, pensada específicamente para una marca de peluquería premium (no
+un genérico "cargando..."): sobre negro aparece un pequeño mechón de
+cabello flotando con un balanceo sutil; unas tijeras metálicas entran desde
+un lateral; el usuario mueve el cursor (o arrastra el dedo en táctil) en
+horizontal para acercarlas — al llegar al punto de corte, cortan solas con
+un golpe seco (con su propio sonido sintetizado) y salen despedidas
+partículas de cabello; esas partículas se agrupan un instante formando el
+nombre del negocio (dato real desde `business.name`, nunca hardcodeado) y
+luego se dispersan mientras la escena da paso al Hero. Toda la geometría es
+procedural (curvas + tubos para el cabello, formas extruidas + toros para
+las tijeras) — no hay modelos ni texturas externas que sustituir.
 
-En **móvil, dispositivos táctiles o de gama más modesta** se sustituye
-automáticamente por una versión ligera en SVG + CSS con la misma idea
-(mismo busto, mismo cabello, mismas tijeras cortando), sin cargar Three.js
-en absoluto. La lógica de decisión está al principio de `js/intro.js`
-(`shouldUseThree()`): ajusta ahí los umbrales si quieres ser más o menos
-exigente.
+No vuelve a aparecer en visitas siguientes (se recuerda en `localStorage`),
+tiene un botón **"Saltar intro"** siempre visible arriba a la derecha y
+responde a `Esc`, y hay un enlace discreto **"Ver introducción"** en el
+footer para repetirla. Con `prefers-reduced-motion` activado, la escena 3D
+no se reproduce en absoluto: se ve el nombre del negocio un instante y se
+pasa directo al Hero.
+
+En **dispositivos sin WebGL o de gama realmente baja** (poca CPU/memoria)
+se sustituye automáticamente por una versión ligera en SVG + CSS con la
+misma idea e interacción (arrastrar para acercar las tijeras y cortar), sin
+cargar Three.js en absoluto. En móvil normal o gama media la escena 3D sí
+se usa, pero con menos partículas y sin antialiasing para no generar lag.
+La lógica de decisión está en `js/intro.js` (`deviceTier()`): ajusta ahí
+los umbrales si quieres ser más o menos exigente.
+
+Para probarla en desarrollo sin esperar a que expire el `localStorage`:
+añade `?intro=force` a la URL para forzarla siempre, o `?intro=skip` para
+desactivarla temporalmente.
 
 Qué tocar para personalizarla:
 - **Colores**: la escena 3D (`js/intro-scene.js`, constantes
-  `COLOR_HEAD`/`COLOR_HAIR`/`COLOR_METAL`/`COLOR_KEY_LIGHT`/
+  `COLOR_HAIR`/`COLOR_METAL`/`COLOR_PARTICLE`/`COLOR_KEY_LIGHT`/
   `COLOR_FILL_LIGHT`/`COLOR_RIM_LIGHT`) y la versión ligera (el `<svg>`
-  dentro de `#intro` en `index.html`) usan los mismos tonos que el resto
-  de la web. Si cambias la paleta en `css/variables.css`, actualiza
-  también los códigos de color hexadecimales de esos dos sitios (el
-  `<canvas>`/`<svg>` no leen variables CSS).
+  dentro de `#intro` en `index.html`) usan tonos neutros (negro, blanco,
+  gris metálico) con un único acento cálido; si quieres que ese acento use
+  el color de marca configurado en `css/variables.css`, actualiza esas
+  constantes hexadecimales a mano (el `<canvas>`/`<svg>` no leen variables
+  CSS).
 - **Nombre del negocio**: se rellena solo desde `business.name` en
-  `data/content.js` (`<p class="intro__logo" data-bind="business.name">`).
-- **Duración**: `MAX_WAIT_MS` (tiempo máximo de espera sin interactuar) y
-  los tiempos de las transiciones están al principio de `js/intro.js`.
+  `data/content.js` — tanto en las partículas de la escena 3D
+  (`sampleTextPositions`) como en el `<p class="intro__logo"
+  data-bind="business.name">` de la versión ligera y del modo
+  "solo marca" de `prefers-reduced-motion`.
+- **Duración y sensibilidad del corte**: `MAX_WAIT_MS` (tiempo máximo de
+  espera sin interactuar) está en `js/intro.js`; la duración de cada fase
+  narrativa (aproximación, corte, partículas, formación del nombre,
+  dispersión) y el umbral de arrastre que dispara el corte están al
+  principio de `js/intro-scene.js` (`READY_X`, `CUT_X`, `CUT_T` y los
+  divisores de tiempo dentro de `animate()`).
+- **Sonido**: el "clack" del corte es sintetizado con Web Audio (sin
+  ficheros de audio que mantener) y solo suena tras el gesto del usuario,
+  nunca en autoplay; si falla o el navegador lo bloquea, se ignora sin
+  afectar a la parte visual. Para quitarlo del todo, vacía la función
+  `playClack()` en `js/intro-scene.js`.
 - **Desactivarla del todo**: borra o comenta el bloque `<div class="intro" ...>`
   en `index.html` y su `<script src="js/intro.js">`; el resto de la web
   no depende de ella.
