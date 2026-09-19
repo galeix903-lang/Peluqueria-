@@ -49,6 +49,9 @@ async function mountShell({ page, title }) {
         <div class="topbar">
           <h1>${title}</h1>
           <div class="topbar__user">
+            ${user.plan === 'pro'
+              ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ PRO</span>'
+              : '<button class="btn-secondary" data-upgrade-btn>Hazte Pro</button>'}
             <span>${user.name}</span>
             <button class="btn-logout" data-logout>Cerrar sesión</button>
           </div>
@@ -62,6 +65,29 @@ async function mountShell({ page, title }) {
     await api('/auth/logout', { method: 'POST' });
     window.location.href = '/login';
   });
+
+  const upgradeBtn = root.querySelector('[data-upgrade-btn]');
+  if (upgradeBtn) {
+    upgradeBtn.addEventListener('click', async () => {
+      upgradeBtn.disabled = true;
+      upgradeBtn.textContent = 'Un momento…';
+      try {
+        const { url } = await api('/billing/checkout', { method: 'POST' });
+        window.location.href = url;
+      } catch (e) {
+        upgradeBtn.disabled = false;
+        upgradeBtn.textContent = 'Hazte Pro';
+      }
+    });
+  }
+  const planBadge = root.querySelector('[data-plan-badge]');
+  if (planBadge) {
+    planBadge.style.cursor = 'pointer';
+    planBadge.addEventListener('click', async () => {
+      const { url } = await api('/billing/portal', { method: 'POST' });
+      window.location.href = url;
+    });
+  }
 
   return { user, contentEl: root.querySelector('[data-shell-content]') };
 }

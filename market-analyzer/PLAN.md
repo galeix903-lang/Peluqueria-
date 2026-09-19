@@ -4,6 +4,20 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## Fase 2 — Suscripción de pago (Vantex Pro) COMPLETA y verificada
+
+AI Analyzer limitado a 3 análisis/día en el plan gratuito; botón "Hazte
+Pro" (4,99€/mes) lo quita. Stripe integrado con el mismo patrón mock/live
+que el analizador (`BILLING_MODE`, ver README sección "Cobrar con
+Stripe"): sin claves de Stripe, "Hazte Pro" marca al usuario como Pro al
+instante para poder probar todo el paywall. Nuevo:
+`server/services/billing.js`, `server/routes/billing.js`, campos
+`plan`/`stripeCustomerId` en `store.js`, badge "PRO"/botón "Hazte Pro" en
+`shared/sidebar.js`, bloque de upsell en `public/analyzer/`. Verificado
+end-to-end con Playwright: 3 análisis gratis → bloqueo con upsell →
+upgrade mock → análisis ilimitados → downgrade mock → límite vuelve a
+aplicarse. Sin errores de consola nuevos.
+
 ## Estado actual — Fase 1 COMPLETA y verificada
 
 Todo lo listado en "Estructura de archivos objetivo" está implementado:

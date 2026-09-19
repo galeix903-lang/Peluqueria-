@@ -3,6 +3,8 @@ const multer = require('multer');
 const store = require('../store');
 const { analyzeChart } = require('../services/claude');
 
+const FREE_DAILY_LIMIT = 3;
+
 const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -19,6 +21,13 @@ router.post('/', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Sube una imagen del gráfico.' });
   }
+  const user = store.findUserById(req.session.userId);
+  if (user.plan !== 'pro' && store.countAnalysesToday(user.id) >= FREE_DAILY_LIMIT) {
+    return res.status(402).json({
+      error: `Has usado tus ${FREE_DAILY_LIMIT} análisis gratuitos de hoy.`,
+      limitReached: true,
+    });
+  }
   try {
     const analysis = await analyzeChart(req.file.buffer, req.file.mimetype);
     const record = store.addAnalysis({
@@ -34,7 +43,13 @@ router.post('/', upload.single('image'), async (req, res) => {
 });
 
 router.get('/history', (req, res) => {
-  res.json({ analyses: store.listAnalyses(req.session.userId) });
+  const user = store.findUserById(req.session.userId);
+  const usedToday = store.countAnalysesToday(user.id);
+  res.json({
+    analyses: store.listAnalyses(req.session.userId),
+    plan: user.plan,
+    remainingToday: user.plan === 'pro' ? null : Math.max(0, FREE_DAILY_LIMIT - usedToday),
+  });
 });
 
 module.exports = router;

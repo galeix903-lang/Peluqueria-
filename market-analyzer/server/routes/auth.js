@@ -5,7 +5,7 @@ const store = require('../store');
 const router = express.Router();
 
 function publicUser(user) {
-  return { id: user.id, email: user.email, name: user.name, balance: user.balance };
+  return { id: user.id, email: user.email, name: user.name, balance: user.balance, plan: user.plan };
 }
 
 router.post('/signup', async (req, res) => {

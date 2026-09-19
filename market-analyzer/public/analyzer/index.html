@@ -47,8 +47,16 @@
             <input type="file" accept="image/*" data-file-input hidden />
             <img data-preview hidden />
           </div>
-          <button class="btn-primary" style="margin-top:16px;" data-analyze-btn disabled>${vantexIcon('bolt', { size: 16 })} Analizar gráfico</button>
+          <div style="display:flex; align-items:center; gap:14px; margin-top:16px; flex-wrap:wrap;">
+            <button class="btn-primary" data-analyze-btn disabled>${vantexIcon('bolt', { size: 16 })} Analizar gráfico</button>
+            <span style="color:var(--text-dim); font-size:.8125rem;" data-quota></span>
+          </div>
           <p class="error-msg" data-error></p>
+          <div class="panel reveal-pop" data-upsell hidden style="margin-top:14px; background:var(--accent-dim); border-color:var(--accent);">
+            <strong>Has usado tus 3 análisis gratuitos de hoy.</strong>
+            <p style="margin:6px 0 14px; color:var(--text-dim);">Hazte Pro y analiza todos los gráficos que quieras, sin límite diario.</p>
+            <button class="btn-primary" data-upsell-btn>Hazte Pro por 4,99€/mes</button>
+          </div>
         </div>
 
         <div class="panel" data-result hidden></div>
@@ -69,7 +77,36 @@
       const errorEl = ctx.contentEl.querySelector('[data-error]');
       const resultEl = ctx.contentEl.querySelector('[data-result]');
       const historyEl = ctx.contentEl.querySelector('[data-history]');
+      const quotaEl = ctx.contentEl.querySelector('[data-quota]');
+      const upsellEl = ctx.contentEl.querySelector('[data-upsell]');
+      const upsellBtn = ctx.contentEl.querySelector('[data-upsell-btn]');
       let selectedFile = null;
+      let quotaExhausted = false;
+
+      upsellBtn.addEventListener('click', async () => {
+        upsellBtn.disabled = true;
+        upsellBtn.innerHTML = '<span class="spinner"></span> Un momento…';
+        try {
+          const { url } = await api('/billing/checkout', { method: 'POST' });
+          window.location.href = url;
+        } catch (e) {
+          upsellBtn.disabled = false;
+          upsellBtn.textContent = 'Hazte Pro por 4,99€/mes';
+        }
+      });
+
+      function applyQuota(plan, remainingToday) {
+        if (plan === 'pro') {
+          quotaEl.textContent = '★ Análisis ilimitados (Pro)';
+          quotaExhausted = false;
+          upsellEl.hidden = true;
+          return;
+        }
+        quotaEl.textContent = `${remainingToday} de 3 análisis gratis hoy`;
+        quotaExhausted = remainingToday <= 0;
+        upsellEl.hidden = !quotaExhausted;
+        analyzeBtn.disabled = quotaExhausted || !selectedFile;
+      }
 
       dropzone.addEventListener('click', () => fileInput.click());
       ['dragover', 'dragleave', 'drop'].forEach((evt) => {
@@ -86,7 +123,7 @@
         selectedFile = file;
         preview.src = URL.createObjectURL(file);
         preview.hidden = false;
-        analyzeBtn.disabled = false;
+        analyzeBtn.disabled = quotaExhausted;
       }
 
       function renderAnalysis(a) {
@@ -151,18 +188,23 @@
           formData.append('image', selectedFile);
           const { analysis } = await api('/analyzer', { method: 'POST', body: formData });
           renderAnalysis(analysis);
-          loadHistory();
+          await loadHistory();
         } catch (err) {
-          errorEl.textContent = err.message;
+          if (err.data && err.data.limitReached) {
+            applyQuota('free', 0);
+          } else {
+            errorEl.textContent = err.message;
+          }
         } finally {
-          analyzeBtn.disabled = false;
           analyzeBtn.innerHTML = `${vantexIcon('bolt', { size: 16 })} Analizar gráfico`;
+          analyzeBtn.disabled = quotaExhausted || !selectedFile;
         }
       });
 
       async function loadHistory() {
-        const { analyses } = await api('/analyzer/history');
+        const { analyses, plan, remainingToday } = await api('/analyzer/history');
         renderHistory(analyses);
+        applyQuota(plan, remainingToday);
       }
       loadHistory();
     });

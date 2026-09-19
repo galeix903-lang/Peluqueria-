@@ -15,7 +15,18 @@
   <script>
     mountShell({ page: 'dashboard', title: 'Bienvenido de nuevo 👋' }).then((ctx) => {
       if (!ctx) return;
+
+      const params = new URLSearchParams(location.search);
+      let banner = '';
+      if (params.get('upgraded')) {
+        banner = '<div class="panel reveal-pop" style="margin-bottom:20px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Pro!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
+      } else if (params.get('downgraded')) {
+        banner = '<div class="panel reveal-pop" style="margin-bottom:20px;">Has vuelto al plan gratuito (3 análisis al día).</div>';
+      }
+      if (banner) history.replaceState(null, '', location.pathname);
+
       ctx.contentEl.innerHTML = `
+        ${banner}
         <div class="card-grid" style="margin-bottom: 20px;">
           <a class="feature-card reveal" style="animation-delay:.02s" href="/analyzer">
             <div class="feature-card__icon" style="background:var(--accent-dim); color:var(--accent);">${vantexIcon('brain')}</div>

@@ -52,6 +52,8 @@ function createUser({ email, passwordHash, name }) {
     passwordHash,
     name: name || email.split('@')[0],
     balance: 100000, // saldo virtual inicial de paper trading
+    plan: 'free', // 'free' | 'pro'
+    stripeCustomerId: null,
     createdAt: new Date().toISOString(),
   };
   db.users.push(user);
@@ -64,6 +66,21 @@ function updateUserBalance(userId, newBalance) {
   const user = db.users.find((u) => u.id === userId);
   if (!user) return null;
   user.balance = newBalance;
+  save(db);
+  return user;
+}
+
+function findUserByStripeCustomerId(customerId) {
+  const db = load();
+  return db.users.find((u) => u.stripeCustomerId === customerId) || null;
+}
+
+function setUserPlan(userId, plan, extra = {}) {
+  const db = load();
+  const user = db.users.find((u) => u.id === userId);
+  if (!user) return null;
+  user.plan = plan;
+  Object.assign(user, extra);
   save(db);
   return user;
 }
@@ -111,6 +128,15 @@ function listAnalyses(userId, limit = 20) {
     .slice(0, limit);
 }
 
+// Cuenta los análisis de hoy para aplicar el límite del plan gratuito.
+// Reutiliza los mismos registros que guarda addAnalysis — no hace falta
+// ningún contador aparte.
+function countAnalysesToday(userId) {
+  const db = load();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  return db.analyses.filter((a) => a.userId === userId && a.createdAt.slice(0, 10) === today).length;
+}
+
 // ---------- Picks (Handpicked Bets) ----------
 function listPicks(limit = 20) {
   const db = load();
@@ -128,13 +154,16 @@ function addPick(pick) {
 module.exports = {
   findUserByEmail,
   findUserById,
+  findUserByStripeCustomerId,
   createUser,
   updateUserBalance,
+  setUserPlan,
   listPositions,
   createPosition,
   closePosition,
   addAnalysis,
   listAnalyses,
+  countAnalysesToday,
   listPicks,
   addPick,
 };

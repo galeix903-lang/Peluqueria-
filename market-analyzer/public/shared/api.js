@@ -10,6 +10,7 @@ async function api(path, options = {}) {
   if (!res.ok) {
     const error = new Error((data && data.error) || 'Ha ocurrido un error.');
     error.status = res.status;
+    error.data = data;
     throw error;
   }
   return data;

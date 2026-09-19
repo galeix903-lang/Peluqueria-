@@ -32,6 +32,44 @@ sin gastar nada. Para activar el análisis real con Claude:
 desarrollo para no gastar créditos) o `live` (forzar real; falla si no hay
 key configurada).
 
+## Cobrar con Stripe (Vantex Pro)
+
+El plan gratuito limita el AI Analyzer a **3 análisis al día** (Paper
+Trading y Handpicked Bets no tienen límite). El botón "Hazte Pro" quita
+ese límite por 4,99€/mes. Sin claves de Stripe configuradas, funciona en
+**modo mock**: al pulsar "Hazte Pro" el usuario pasa a Pro al instante,
+sin ningún pago real ni tarjeta de por medio — así se puede probar todo el
+paywall (límite, bloqueo, aviso de upgrade, badge PRO, "portal" para
+volver a free) sin tener todavía cuenta de Stripe.
+
+Para cobrar de verdad:
+
+1. Crea una cuenta en <https://dashboard.stripe.com/register> (es gratis
+   abrirla; Stripe se queda una comisión solo sobre lo que cobres).
+2. En el modo **Test** del panel de Stripe (interruptor arriba a la
+   derecha), ve a **Product catalog** → crea un producto (ej. "Vantex
+   Pro") con un precio **recurrente** de 4,99€/mes. Copia el `price_id`
+   (empieza por `price_...`).
+3. En **Developers → API keys**, copia la **Secret key** de test
+   (`sk_test_...`).
+4. En **Developers → Webhooks**, añade un endpoint apuntando a
+   `https://tu-dominio/api/billing/webhook`, con los eventos
+   `checkout.session.completed`, `customer.subscription.updated` y
+   `customer.subscription.deleted`. Copia el **Signing secret**
+   (`whsec_...`).
+5. Añade `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` y `STRIPE_WEBHOOK_SECRET`
+   a tu `.env` (o a las variables de entorno de Render). Con
+   `BILLING_MODE=auto` (el valor por defecto), en cuanto detecta esas
+   claves pasa a modo real solo.
+6. Prueba el flujo completo con la tarjeta de prueba de Stripe
+   `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC, antes de
+   cambiar a las claves **live** (modo real, sin el prefijo `test`) de
+   Stripe para cobrar dinero de verdad.
+
+`BILLING_MODE` acepta también `mock` (forzar siempre el modo de ejemplo,
+para desarrollar sin tocar Stripe) o `live` (forzar real; falla si faltan
+las claves).
+
 ## Ponerlo online (Render, gratis)
 
 1. Entra en <https://render.com> y crea una cuenta (puedes usar tu GitHub).
@@ -93,13 +131,15 @@ server/
   middleware/requireAuth.js
   routes/
     auth.js               signup / login / logout / me
-    analyzer.js            sube una imagen y devuelve el análisis
+    analyzer.js            sube una imagen, aplica el límite gratuito y devuelve el análisis
     trading.js              abrir/cerrar posiciones de paper trading
     picks.js                 lista de picks diarios
+    billing.js                checkout / portal / webhook de Stripe (Vantex Pro)
   services/
     claude.js               llamada a Claude con visión (tool use) + modo mock
     market.js                precios en vivo (CoinGecko) con caché de 30s
     picksJob.js              genera los picks diarios (cron a las 08:00)
+    billing.js                Stripe Checkout/Portal/webhooks + modo mock
 public/
   shared/                   CSS común, helper de fetch, sidebar + guardia de sesión
   login/ dashboard/ analyzer/ trading/ picks/
