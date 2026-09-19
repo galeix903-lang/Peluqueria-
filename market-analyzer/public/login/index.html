@@ -7,17 +7,38 @@
 <meta name="description" content="Vantex: analiza gráficos de mercado con IA, practica con paper trading y descubre picks diarios. Crea tu cuenta gratis." />
 <link rel="stylesheet" href="/shared/style.css" />
 <style>
-  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-  .auth-card { width: 380px; }
-  .auth-logo { width: 46px; height: 46px; border-radius: 12px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; margin: 0 auto 18px; }
+  body {
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    position: relative; overflow: hidden;
+  }
+  /* Un par de formas suaves flotando de fondo: dan vida sin distraer del
+     formulario, y refuerzan la sensación de producto cuidado. */
+  .bg-blob {
+    position: absolute; border-radius: 50%; filter: blur(60px); opacity: .35;
+    animation: floatSlow 9s ease-in-out infinite; z-index: 0;
+  }
+  .bg-blob--1 { width: 340px; height: 340px; background: #7c72f0; top: -80px; left: -100px; }
+  .bg-blob--2 { width: 300px; height: 300px; background: #4f46e5; bottom: -100px; right: -80px; animation-delay: -4s; }
+
+  .auth-card { width: 380px; position: relative; z-index: 1; animation: fadeInUp .5s cubic-bezier(.16,.84,.44,1) both; }
+  .auth-logo {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #7c72f0);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.2rem; margin: 0 auto 18px;
+    box-shadow: 0 8px 20px -8px rgba(79, 70, 229, .6);
+    animation: popIn .55s cubic-bezier(.34,1.56,.64,1) both;
+  }
   .auth-title { text-align: center; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
   .auth-sub { text-align: center; color: var(--text-dim); font-size: .875rem; margin-bottom: 22px; }
   .tabs { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 20px; }
-  .tabs button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); }
+  .tabs button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .15s, color .15s; }
   .tabs button.is-active { background: var(--accent); color: #fff; }
 </style>
 </head>
 <body>
+  <div class="bg-blob bg-blob--1"></div>
+  <div class="bg-blob bg-blob--2"></div>
   <div class="panel auth-card">
     <div class="auth-logo">V</div>
     <div class="auth-title">Bienvenido a Vantex</div>
@@ -72,15 +93,21 @@
     async function handleSubmit(formName, endpoint) {
       const form = forms[formName];
       const errorEl = form.querySelector(`[data-error="${formName}"]`);
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const defaultLabel = submitBtn.textContent;
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorEl.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Un momento…';
         const payload = Object.fromEntries(new FormData(form).entries());
         try {
           await api(`/auth/${endpoint}`, { method: 'POST', body: JSON.stringify(payload) });
           window.location.href = '/dashboard';
         } catch (err) {
           errorEl.textContent = err.message;
+          submitBtn.disabled = false;
+          submitBtn.textContent = defaultLabel;
         }
       });
     }

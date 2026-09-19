@@ -10,37 +10,38 @@
   <div data-app-shell></div>
 
   <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
     mountShell({ page: 'dashboard', title: 'Bienvenido de nuevo 👋' }).then((ctx) => {
       if (!ctx) return;
       ctx.contentEl.innerHTML = `
         <div class="card-grid" style="margin-bottom: 20px;">
-          <a class="feature-card" href="/analyzer">
-            <div class="feature-card__icon" style="background:var(--accent-dim); color:var(--accent);">🧠</div>
+          <a class="feature-card reveal" style="animation-delay:.02s" href="/analyzer">
+            <div class="feature-card__icon" style="background:var(--accent-dim); color:var(--accent);">${vantexIcon('brain')}</div>
             <div class="feature-card__title">AI Analyzer</div>
             <div class="feature-card__desc">Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.</div>
           </a>
-          <a class="feature-card" href="/trading">
-            <div class="feature-card__icon" style="background:var(--red-bg); color:var(--red);">📊</div>
+          <a class="feature-card reveal" style="animation-delay:.08s" href="/trading">
+            <div class="feature-card__icon" style="background:var(--red-bg); color:var(--red);">${vantexIcon('chartBar')}</div>
             <div class="feature-card__title">Paper Trading</div>
             <div class="feature-card__desc">Opera con dinero virtual y pon a prueba tus estrategias sin ningún riesgo real.</div>
           </a>
         </div>
         <div class="card-grid card-grid--three">
-          <a class="feature-card" href="/picks">
-            <div class="feature-card__icon" style="background:var(--amber-bg); color:var(--amber);">⭐</div>
+          <a class="feature-card reveal" style="animation-delay:.14s" href="/picks">
+            <div class="feature-card__icon" style="background:var(--amber-bg); color:var(--amber);">${vantexIcon('star')}</div>
             <div class="feature-card__title">Handpicked Bets</div>
             <div class="feature-card__desc">Picks frescos generados por IA cada día para ayudarte a decidir.</div>
           </a>
-          <div class="feature-card is-disabled">
-            <div class="feature-card__icon" style="background:var(--bg); color:var(--text-dim);">👛</div>
+          <div class="feature-card reveal is-disabled" style="animation-delay:.2s">
+            <div class="feature-card__icon" style="background:var(--bg); color:var(--text-dim);">${vantexIcon('wallet')}</div>
             <div class="feature-card__title">Wallet Tracker</div>
             <div class="feature-card__desc">Sigue en tiempo real lo que compran las wallets más certeras.</div>
             <span class="badge-soon">Próximamente</span>
           </div>
-          <div class="feature-card is-disabled">
-            <div class="feature-card__icon" style="background:var(--bg); color:var(--text-dim);">🔁</div>
+          <div class="feature-card reveal is-disabled" style="animation-delay:.26s">
+            <div class="feature-card__icon" style="background:var(--bg); color:var(--text-dim);">${vantexIcon('refresh')}</div>
             <div class="feature-card__title">Copy Trading</div>
             <div class="feature-card__desc">Replica automáticamente los movimientos de los mejores traders.</div>
             <span class="badge-soon">Próximamente</span>

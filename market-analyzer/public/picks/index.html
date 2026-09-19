@@ -6,8 +6,9 @@
 <title>Vantex — Handpicked Bets</title>
 <link rel="stylesheet" href="/shared/style.css" />
 <style>
-  .pick-card { padding: 18px 0; border-top: 1px solid var(--border); }
+  .pick-card { padding: 18px 0; border-top: 1px solid var(--border); animation: fadeInUp .45s cubic-bezier(.16,.84,.44,1) both; transition: background .15s; }
   .pick-card:first-child { border-top: none; padding-top: 0; }
+  .pick-card:hover { background: var(--bg); border-radius: 10px; }
   .pick-card__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 </style>
 </head>
@@ -15,20 +16,33 @@
   <div data-app-shell></div>
 
   <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
     mountShell({ page: 'picks', title: 'Handpicked Bets' }).then(async (ctx) => {
       if (!ctx) return;
-      ctx.contentEl.innerHTML = `<div class="panel" data-picks-list><p class="empty-state">Cargando picks…</p></div>`;
+      ctx.contentEl.innerHTML = `
+        <div class="panel reveal" data-picks-list>
+          <div class="empty-state">
+            <div class="empty-state__icon"><span class="spinner" style="border-color:var(--accent-dim); border-top-color:var(--accent); width:20px; height:20px;"></span></div>
+            Cargando picks…
+          </div>
+        </div>
+      `;
       const listEl = ctx.contentEl.querySelector('[data-picks-list]');
       try {
         const { picks } = await api('/picks');
         if (!picks.length) {
-          listEl.innerHTML = '<p class="empty-state">Todavía no hay picks disponibles.</p>';
+          listEl.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state__icon">${vantexIcon('star', { size: 26 })}</div>
+              Todavía no hay picks disponibles.
+            </div>
+          `;
           return;
         }
-        listEl.innerHTML = picks.map((p) => `
-          <div class="pick-card">
+        listEl.innerHTML = picks.map((p, i) => `
+          <div class="pick-card" style="animation-delay:${i * 0.06}s">
             <div class="pick-card__head">
               <strong>${p.symbol}</strong>
               <span style="color:var(--text-dim); font-size:.8125rem;">${new Date(p.createdAt).toLocaleDateString('es-ES')}</span>
