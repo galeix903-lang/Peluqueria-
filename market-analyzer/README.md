@@ -57,6 +57,32 @@ entra). Perfecto para probar y enseñar la app; si más adelante quieres que
 los datos sobrevivan a los redeploys, hay que pasar a un disco de pago o a
 una base de datos real (ver "Fase 2" en `PLAN.md`).
 
+## Aparecer en Google
+
+Por defecto una web nueva no aparece en buscadores hasta que alguien la
+"descubre" (por enlaces entrantes, o porque tú la das de alta). El
+proyecto ya trae lo necesario del lado del código (`robots.txt` permisivo,
+`sitemap.xml`, meta descripción en `/login`); lo que falta es darla de
+alta en Google:
+
+1. Entra en <https://search.google.com/search-console> con tu cuenta de
+   Google.
+2. Añade una propiedad de tipo **"Prefijo de URL"** con tu URL de Render
+   (ej. `https://vantex.onrender.com`).
+3. Verifica la propiedad con el método **"Archivo HTML"**: Google te da un
+   fichero tipo `google1234567890abcdef.html` — pídeme que lo añada a
+   `public/` (con exactamente ese nombre y contenido) y haz redeploy antes
+   de pulsar "Verificar" en Search Console.
+4. Una vez verificada, en el menú **Sitemaps** añade `sitemap.xml`.
+5. En **Inspección de URLs**, pega la URL de `/login` y pulsa **"Solicitar
+   indexación"** — esto acelera bastante el primer rastreo (normalmente
+   días, no meses).
+
+Aviso realista: que Google la indexe no significa que aparezca arriba en
+búsquedas genéricas como "análisis de mercado" — para eso compites con
+sitios ya establecidos. Sí aparecerá con bastante fiabilidad para
+búsquedas de tu marca (`Vantex`) o con `site:vantex.onrender.com`.
+
 ## Estructura
 
 ```

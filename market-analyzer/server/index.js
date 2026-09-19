@@ -12,6 +12,10 @@ const { scheduleDailyPicks } = require('./services/picksJob');
 const app = express();
 const PORT = process.env.PORT || 3100;
 
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://vantex.onrender.com/sitemap.xml\n');
+});
+
 app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dev-secret-cambia-esto',
