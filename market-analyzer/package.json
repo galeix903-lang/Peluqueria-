@@ -1,0 +1,19 @@
+{
+  "name": "market-analyzer",
+  "version": "1.0.0",
+  "description": "Dashboard de análisis de mercado con IA: sube una captura de un gráfico y recibe un análisis, más paper trading y picks diarios.",
+  "private": true,
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3"
+  }
+}
