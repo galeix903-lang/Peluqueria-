@@ -37,6 +37,11 @@ async function createCheckoutSession(user, baseUrl) {
     customer_email: user.email,
     success_url: `${baseUrl}/dashboard?upgraded=1`,
     cancel_url: `${baseUrl}/dashboard`,
+    // Las cuentas nuevas de Stripe traen "Managed Payments" activado por
+    // defecto, que exige un código de impuesto por producto (pensado para
+    // marketplaces). Para una suscripción digital simple como esta, se
+    // desactiva por sesión en vez de mantener códigos de impuesto en Stripe.
+    managed_payments: { enabled: false },
   });
   return { url: session.url };
 }
