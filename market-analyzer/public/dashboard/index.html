@@ -31,11 +31,13 @@
       }
       if (banner) history.replaceState(null, '', location.pathname);
 
-      const card = ({ href, icon, gradient, name, title, desc, primary, disabled, delay }) => `
-        <${href ? 'a href="' + href + '"' : 'div'} class="feature-card reveal ${primary ? 'feature-card--primary' : ''} ${disabled ? 'is-disabled' : ''}" style="animation-delay:${delay}s">
+      const card = ({ href, icon, gradient, name, title, desc, disabled, delay }) => `
+        <${href ? 'a href="' + href + '"' : 'div'} class="feature-card reveal ${disabled ? 'is-disabled' : ''}" style="animation-delay:${delay}s">
           <div class="feature-card__visual">
-            <div class="feature-card__icon-lg" style="background:${gradient};">${vantexIcon(icon)}</div>
-            <div class="feature-card__name">${name}</div>
+            <div class="feature-card__pill">
+              <div class="feature-card__icon-lg" style="background:${gradient};">${vantexIcon(icon)}</div>
+              <div class="feature-card__name">${name}</div>
+            </div>
           </div>
           <div class="feature-card__info">
             <div class="feature-card__title">${title}</div>
@@ -47,36 +49,38 @@
 
       ctx.contentEl.innerHTML = `
         ${banner}
-        <div class="card-grid" style="margin-bottom: 22px;">
-          ${card({
-            href: '/analyzer', icon: 'brain', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)',
-            name: 'AI ANALYZER', title: 'AI Market Analyzer',
-            desc: 'Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.',
-            primary: true, delay: 0.02,
-          })}
-          ${card({
-            href: '/trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)',
-            name: 'PAPER TRADING', title: 'Paper Trading',
-            desc: 'Opera con dinero virtual y pon a prueba tus estrategias sin ningún riesgo real.',
-            primary: true, delay: 0.08,
-          })}
+        <div class="primary-group">
+          <div class="card-grid">
+            ${card({
+              href: '/analyzer', icon: 'brain', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)',
+              name: 'AI Analyzer', title: 'AI Market Analyzer',
+              desc: 'Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.',
+              delay: 0.02,
+            })}
+            ${card({
+              href: '/trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)',
+              name: 'Paper Trading', title: 'Paper Trading',
+              desc: 'Opera con dinero virtual y pon a prueba tus estrategias sin ningún riesgo real.',
+              delay: 0.08,
+            })}
+          </div>
         </div>
         <div class="card-grid card-grid--three">
           ${card({
             href: '/picks', icon: 'star', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)',
-            name: 'HANDPICKED BETS', title: 'Handpicked Bets',
+            name: 'Handpicked Bets', title: 'Handpicked Bets',
             desc: 'Picks frescos generados por IA cada día para ayudarte a decidir.',
             delay: 0.14,
           })}
           ${card({
             icon: 'wallet', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)',
-            name: 'WALLET TRACKER', title: 'Wallet Tracker',
+            name: 'Wallet Tracker', title: 'Wallet Tracker',
             desc: 'Sigue en tiempo real lo que compran las wallets más certeras.',
             disabled: true, delay: 0.2,
           })}
           ${card({
             icon: 'refresh', gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
-            name: 'COPY TRADING', title: 'Copy Trading',
+            name: 'Copy Trading', title: 'Copy Trading',
             desc: 'Replica automáticamente los movimientos de los mejores traders.',
             disabled: true, delay: 0.26,
           })}

@@ -4,6 +4,21 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## Ajuste de layout de tarjetas (píldora + grupo azul compartido) COMPLETA
+
+A partir de la captura real de referencia, se corrigió el rediseño: el
+icono y el nombre de cada tarjeta ahora van en horizontal dentro de una
+píldora blanca redondeada (antes iban apilados verticalmente), mucho más
+grande y legible. Las dos tarjetas principales (AI Analyzer, Paper
+Trading) ya no llevan cada una su propio borde azul: comparten un único
+contenedor `.primary-group` con halo/fondo azul sutil que las envuelve a
+ambas. Nombres en mayúsculas pasan a texto normal ("AI Analyzer" en vez
+de "AI ANALYZER"). Añadido ajuste responsive específico (`.primary-group`
+en `max-width:640px`) para que el texto de la píldora no se corte en
+móvil. Verificado con Playwright en 1366px y 390px (sin overflow
+horizontal) y regresión funcional completa (signup, analyzer con cuota,
+trading abrir/cerrar posición, picks, upgrade a Pro) sin errores nuevos.
+
 ## Rediseño visual "SaaS premium blanco" COMPLETA y verificada
 
 A petición del usuario, reestructuración visual completa del dashboard

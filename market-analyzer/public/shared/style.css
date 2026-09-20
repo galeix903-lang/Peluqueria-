@@ -124,6 +124,13 @@ button { font: inherit; cursor: pointer; }
   .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 22px 20px 18px; }
   .topbar__user { flex-wrap: wrap; row-gap: 8px; }
   .content { padding: 4px 20px 40px; }
+  /* En móvil la píldora de las tarjetas principales usa el mismo tamaño
+     reducido que ya llevan las tarjetas secundarias, para que "AI Analyzer"
+     y "Paper Trading" quepan sin cortarse. */
+  .primary-group .feature-card__name { font-size: 1.1875rem; }
+  .primary-group .feature-card__icon-lg { width: 46px; height: 46px; border-radius: 13px; }
+  .primary-group .feature-card__icon-lg svg { width: 22px; height: 22px; }
+  .primary-group .feature-card__pill { gap: 12px; padding: 9px 20px 9px 9px; }
 }
 
 /* ---------- Tarjetas del dashboard ---------- */
@@ -153,23 +160,27 @@ button { font: inherit; cursor: pointer; }
 .feature-card.is-disabled:hover { transform: none; box-shadow: var(--shadow-xs); border-color: var(--border); }
 .feature-card.is-disabled:hover .feature-card__icon-lg { transform: none; }
 
-/* Las dos herramientas principales llevan un halo azul discreto, para que
-   se lean como el centro de la aplicación sin caer en un efecto neón. */
-.feature-card--primary {
-  border-color: rgba(79, 70, 229, .28);
-  box-shadow: 0 0 0 1px rgba(79, 70, 229, .07), 0 10px 28px -16px rgba(79, 70, 229, .25);
+/* Las dos herramientas principales comparten un único contenedor con halo
+   azul, en vez de que cada tarjeta lleve su propio borde de color. */
+.primary-group {
+  background: linear-gradient(180deg, rgba(79, 70, 229, .07), rgba(79, 70, 229, .02));
+  border: 1px solid rgba(79, 70, 229, .22);
+  border-radius: calc(var(--radius) + 8px);
+  padding: 14px;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, .05), 0 18px 40px -22px rgba(79, 70, 229, .32);
+  margin-bottom: 22px;
 }
-.feature-card--primary:hover {
-  border-color: rgba(79, 70, 229, .4);
-  box-shadow: 0 0 0 1px rgba(79, 70, 229, .1), 0 20px 44px -18px rgba(79, 70, 229, .35);
+.primary-group .card-grid { margin-bottom: 0; }
+.primary-group .feature-card:hover {
+  border-color: rgba(79, 70, 229, .35);
 }
 
-/* Zona visual superior: icono grande + nombre, sobre un patrón de
-   cuadrícula extremadamente sutil (estilo papel milimetrado). */
+/* Zona visual superior: una "píldora" blanca con el icono y el nombre en
+   horizontal, flotando sobre un patrón de cuadrícula extremadamente sutil
+   (estilo papel milimetrado). */
 .feature-card__visual {
-  padding: 40px 24px 34px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center;
+  padding: 40px 24px;
+  display: flex; align-items: center; justify-content: center;
   background-color: var(--surface);
   background-image:
     linear-gradient(to right, rgba(20, 22, 43, .035) 1px, transparent 1px),
@@ -177,25 +188,34 @@ button { font: inherit; cursor: pointer; }
   background-size: 22px 22px;
   background-position: center;
 }
-.card-grid--three .feature-card__visual { padding: 30px 20px 26px; }
+.card-grid--three .feature-card__visual { padding: 30px 20px; }
+
+.feature-card__pill {
+  display: inline-flex; align-items: center; gap: 16px;
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 12px 26px 12px 12px;
+  box-shadow: var(--shadow-sm);
+  max-width: 100%;
+}
+.card-grid--three .feature-card__pill { gap: 12px; padding: 9px 20px 9px 9px; }
 
 .feature-card__icon-lg {
-  width: 64px; height: 64px; border-radius: 18px;
+  width: 60px; height: 60px; border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
-  color: #fff;
+  color: #fff; flex-shrink: 0;
   box-shadow: 0 10px 22px -8px rgba(20, 22, 43, .28);
   transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.feature-card__icon-lg svg { width: 30px; height: 30px; }
-.card-grid--three .feature-card__icon-lg { width: 52px; height: 52px; border-radius: 15px; }
-.card-grid--three .feature-card__icon-lg svg { width: 24px; height: 24px; }
+.feature-card__icon-lg svg { width: 28px; height: 28px; }
+.card-grid--three .feature-card__icon-lg { width: 46px; height: 46px; border-radius: 13px; }
+.card-grid--three .feature-card__icon-lg svg { width: 22px; height: 22px; }
 
 .feature-card__name {
-  margin-top: 16px;
-  font-weight: 800; font-size: 1.375rem; letter-spacing: -.01em;
-  color: var(--text);
+  font-weight: 800; font-size: 1.625rem; letter-spacing: -.015em;
+  color: var(--text); white-space: nowrap;
 }
-.card-grid--three .feature-card__name { margin-top: 14px; font-size: 1.0625rem; }
+.card-grid--three .feature-card__name { font-size: 1.1875rem; }
 
 /* Zona inferior: nombre pequeño + descripción, separada por una línea fina. */
 .feature-card__info {
