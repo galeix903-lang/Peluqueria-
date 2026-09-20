@@ -1,0 +1,148 @@
+/*
+  Introducción premium de Vantex — overlay a pantalla completa que se
+  muestra una única vez (se recuerda en localStorage, ver intro.js).
+  Arquitectura calcada del patrón ya probado en peluqueria-premium/
+  (device-tier, Three.js perezoso, fallback ligero, skip/ESC, límites de
+  espera), con una escena propia: el icono de marca se ensambla a partir
+  de partículas, con brillo índigo sutil, y da paso al wordmark + tagline.
+*/
+
+html[data-intro-active],
+html[data-intro-active] body {
+  overflow: hidden;
+  height: 100%;
+}
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 38%, #171a35 0%, #0c0e22 58%, #060713 100%);
+  transition: opacity .8s var(--ease-out), transform .8s var(--ease-out);
+}
+
+.intro__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s var(--ease-out);
+}
+.intro__canvas[data-ready] { opacity: 1; }
+
+/* ---------- Fallback ligero (sin WebGL / gama baja) ---------- */
+.intro__lite {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+/* Un selector de clase y uno de atributo empatan en especificidad, y el
+   CSS de autor gana igualmente al UA aunque el elemento lleve `hidden` —
+   sin esto, el badge ligero se pintaría encima del canvas 3D. */
+.intro__lite[hidden] { display: none; }
+.intro__lite-badge {
+  width: 96px; height: 96px; border-radius: 26px;
+  background: linear-gradient(135deg, #6d63f5, #4f46e5);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px rgba(124, 114, 240, .3), 0 20px 60px -12px rgba(99, 91, 232, .75);
+  opacity: 0; transform: scale(.6);
+  animation: intro-lite-badge 1s var(--ease-spring) forwards;
+  animation-delay: .25s;
+}
+.intro__lite-badge svg { width: 46px; height: 46px; }
+@keyframes intro-lite-badge {
+  0% { opacity: 0; transform: scale(.6); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+.intro__lite-dot {
+  position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(160, 155, 255, .6);
+  animation: floatSlow 4s ease-in-out infinite;
+  opacity: 0;
+  animation: intro-dot-in .6s ease-out forwards, floatSlow 5s ease-in-out infinite 1s;
+}
+@keyframes intro-dot-in { to { opacity: 1; } }
+
+/* ---------- Wordmark + tagline (comunes a 3D, lite y branding-only) ---------- */
+.intro__brand {
+  position: absolute;
+  left: 50%; bottom: 30%;
+  transform: translateX(-50%);
+  z-index: 2;
+  text-align: center;
+  pointer-events: none;
+}
+.intro__wordmark {
+  font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+  font-weight: 800; letter-spacing: -.02em;
+  color: #fff; margin: 0;
+  opacity: 0; transform: translateY(10px);
+  animation: intro-brand-in .8s var(--ease-out) forwards;
+  animation-delay: 1.9s;
+}
+.intro__tagline {
+  font-size: .875rem; font-weight: 500; letter-spacing: .01em;
+  color: rgba(199, 199, 235, .68);
+  margin: 8px 0 0;
+  opacity: 0; transform: translateY(8px);
+  animation: intro-brand-in .8s var(--ease-out) forwards;
+  animation-delay: 2.15s;
+}
+@keyframes intro-brand-in { to { opacity: 1; transform: none; } }
+
+.intro.is-branding-only .intro__brand { position: static; transform: none; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+.intro.is-branding-only .intro__wordmark,
+.intro.is-branding-only .intro__tagline { animation-delay: 0s; animation-duration: .5s; }
+.intro.is-branding-only .intro__canvas,
+.intro.is-branding-only .intro__lite { display: none; }
+
+.intro.is-cutting .intro__brand,
+.intro.is-exit .intro__brand,
+.intro.is-skip .intro__brand {
+  opacity: 0;
+  transition: opacity .3s var(--ease-out);
+}
+
+/* ---------- Saltar intro ---------- */
+.intro__skip {
+  position: absolute;
+  top: clamp(1rem, 3vw, 1.75rem);
+  right: clamp(1rem, 3vw, 1.75rem);
+  z-index: 3;
+  display: inline-flex; align-items: center; gap: 7px;
+  color: #fff; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.22);
+  padding: 9px 14px; border-radius: 999px;
+  font-size: .8125rem; font-weight: 600;
+  opacity: 0;
+  animation: intro-brand-in .6s var(--ease-out) forwards;
+  animation-delay: .3s;
+  transition: background .18s, border-color .18s;
+}
+.intro__skip:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.4); }
+.intro__skip svg { width: 13px; height: 13px; }
+
+/* ---------- Salida ---------- */
+.intro.is-exit,
+.intro.is-skip { pointer-events: none; }
+.intro.is-exit {
+  opacity: 0;
+  transform: scale(1.035);
+  filter: blur(2px);
+  transition: opacity .8s var(--ease-out), transform .8s var(--ease-out), filter .8s var(--ease-out);
+}
+.intro.is-skip {
+  opacity: 0;
+  transition: opacity .32s var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro, .intro__wordmark, .intro__tagline, .intro__skip, .intro__lite-badge {
+    animation: none !important;
+    opacity: 1; transform: none; filter: none;
+  }
+}

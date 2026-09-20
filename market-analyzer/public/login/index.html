@@ -3,95 +3,235 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vantex — Iniciar sesión</title>
-<meta name="description" content="Vantex: analiza gráficos de mercado con IA, practica con paper trading y descubre picks diarios. Crea tu cuenta gratis." />
+<title>Vantex — Analiza. Practica. Sigue.</title>
+<meta name="description" content="Vantex: analiza gráficos de mercado con IA, practica con paper trading y sigue wallets y traders — sin arriesgar dinero real. Crea tu cuenta gratis." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/shared/style.css" />
+<link rel="stylesheet" href="/shared/intro.css" />
 <style>
   body {
     display: flex; align-items: center; justify-content: center; min-height: 100vh;
-    position: relative; overflow: hidden;
+    position: relative;
   }
-  /* Un par de formas suaves flotando de fondo: dan vida sin distraer del
-     formulario, y refuerzan la sensación de producto cuidado. */
   .bg-blob {
-    position: absolute; border-radius: 50%; filter: blur(60px); opacity: .35;
-    animation: floatSlow 9s ease-in-out infinite; z-index: 0;
+    position: absolute; border-radius: 50%; filter: blur(60px); opacity: .3;
+    animation: floatSlow 9s ease-in-out infinite; z-index: 0; pointer-events: none;
   }
-  .bg-blob--1 { width: 340px; height: 340px; background: #7c72f0; top: -80px; left: -100px; }
-  .bg-blob--2 { width: 300px; height: 300px; background: #4f46e5; bottom: -100px; right: -80px; animation-delay: -4s; }
+  .bg-blob--1 { width: 420px; height: 420px; background: #7c72f0; top: -140px; left: -140px; }
+  .bg-blob--2 { width: 380px; height: 380px; background: #4f46e5; bottom: -160px; right: -120px; animation-delay: -4s; }
 
-  .auth-card { width: 380px; position: relative; z-index: 1; animation: fadeInUp .5s cubic-bezier(.16,.84,.44,1) both; }
+  /* ---------- Landing de dos columnas: hero + acceso ---------- */
+  .landing {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 40px;
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    align-items: center;
+    gap: 64px;
+  }
+  .landing__hero { max-width: 520px; }
+  .landing__eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim);
+    padding: 6px 13px; border-radius: 999px; margin-bottom: 22px;
+  }
+  .landing__title {
+    font-size: clamp(2.25rem, 1.7rem + 2.2vw, 3.25rem);
+    font-weight: 800; letter-spacing: -.025em; line-height: 1.06;
+    margin: 0 0 20px;
+  }
+  .landing__title em { color: var(--accent); font-style: normal; }
+  .landing__lead {
+    font-size: 1.0625rem; line-height: 1.6; color: var(--text-dim);
+    margin: 0 0 36px; max-width: 460px;
+  }
+  .landing__bullets { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+  .landing__bullet { display: flex; align-items: center; gap: 14px; }
+  .landing__bullet-icon {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 8px 18px -8px rgba(20, 22, 43, .3);
+  }
+  .landing__bullet-icon svg { width: 20px; height: 20px; }
+  .landing__bullet-text { font-weight: 700; font-size: .9375rem; }
+  .landing__bullet-desc { color: var(--text-dim); font-size: .8125rem; font-weight: 500; margin-top: 1px; }
+  .landing__cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .landing__cta-row .btn-primary { padding: 14px 26px; font-size: 1rem; }
+  .landing__cta-secondary {
+    appearance: none; background: none; border: none; border-bottom: 2px solid transparent;
+    font-weight: 700; font-size: .9375rem; color: var(--text); font-family: inherit;
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 2px;
+    transition: border-color .15s;
+  }
+  .landing__cta-secondary:hover { border-color: var(--accent); }
+
+  .auth-card { width: 100%; max-width: 380px; justify-self: end; position: relative; z-index: 1; }
   .auth-logo {
     width: 46px; height: 46px; border-radius: 12px;
     background: linear-gradient(135deg, var(--accent), #7c72f0);
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 1.2rem; margin: 0 auto 18px;
     box-shadow: 0 8px 20px -8px rgba(79, 70, 229, .6);
-    animation: popIn .55s cubic-bezier(.34,1.56,.64,1) both;
   }
+  .auth-logo svg { width: 24px; height: 24px; }
   .auth-title { text-align: center; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
   .auth-sub { text-align: center; color: var(--text-dim); font-size: .875rem; margin-bottom: 22px; }
   .tabs { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 20px; }
   .tabs button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .15s, color .15s; }
   .tabs button.is-active { background: var(--accent); color: #fff; }
+
+  @media (max-width: 980px) {
+    .landing { grid-template-columns: 1fr; gap: 44px; padding: 40px 24px; }
+    .landing__hero { max-width: 560px; margin: 0 auto; text-align: center; }
+    .landing__lead { margin-left: auto; margin-right: auto; }
+    .landing__bullets { align-items: center; }
+    .landing__bullet { max-width: 340px; }
+    .landing__cta-row { justify-content: center; }
+    .auth-card { justify-self: center; }
+  }
+  @media (max-width: 480px) {
+    .landing { padding: 32px 20px; }
+    .landing__cta-row { flex-direction: column; align-items: center; }
+    .landing__cta-row .btn-primary { width: 100%; justify-content: center; }
+  }
 </style>
 </head>
 <body>
-  <div class="bg-blob bg-blob--1"></div>
-  <div class="bg-blob bg-blob--2"></div>
-  <div class="panel auth-card">
-    <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" /></svg></div>
-    <div class="auth-title">Bienvenido a Vantex</div>
-    <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
-
-    <div class="tabs">
-      <button type="button" data-tab="login" class="is-active">Iniciar sesión</button>
-      <button type="button" data-tab="signup">Crear cuenta</button>
+  <!-- ============ INTRODUCCIÓN 3D ============ -->
+  <div class="intro" id="intro" data-intro role="dialog" aria-modal="true" aria-label="Introducción de Vantex" hidden>
+    <canvas class="intro__canvas" data-intro-canvas aria-hidden="true"></canvas>
+    <div class="intro__lite" data-intro-lite hidden aria-hidden="true">
+      <div class="intro__lite-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" /></svg>
+      </div>
+      <div class="intro__lite-dot" style="top:28%; left:32%; animation-delay:.1s, 1s;"></div>
+      <div class="intro__lite-dot" style="top:64%; left:26%; animation-delay:.25s, 1.4s;"></div>
+      <div class="intro__lite-dot" style="top:22%; left:68%; animation-delay:.4s, 1.1s;"></div>
+      <div class="intro__lite-dot" style="top:70%; left:70%; animation-delay:.15s, 1.7s;"></div>
+      <div class="intro__lite-dot" style="top:50%; left:16%; animation-delay:.3s, .9s;"></div>
+      <div class="intro__lite-dot" style="top:44%; left:84%; animation-delay:.35s, 1.3s;"></div>
     </div>
-
-    <form data-form="login">
-      <div class="field">
-        <label for="login-email">Email</label>
-        <input id="login-email" name="email" type="email" required autocomplete="email" />
-      </div>
-      <div class="field">
-        <label for="login-password">Contraseña</label>
-        <input id="login-password" name="password" type="password" required autocomplete="current-password" />
-      </div>
-      <button class="btn-primary" type="submit" style="width:100%">Entrar</button>
-      <p class="error-msg" data-error="login"></p>
-    </form>
-
-    <form data-form="signup" hidden>
-      <div class="field">
-        <label for="signup-name">Nombre</label>
-        <input id="signup-name" name="name" type="text" autocomplete="name" />
-      </div>
-      <div class="field">
-        <label for="signup-email">Email</label>
-        <input id="signup-email" name="email" type="email" required autocomplete="email" />
-      </div>
-      <div class="field">
-        <label for="signup-password">Contraseña</label>
-        <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
-      </div>
-      <button class="btn-primary" type="submit" style="width:100%">Crear cuenta</button>
-      <p class="error-msg" data-error="signup"></p>
-    </form>
+    <div class="intro__brand">
+      <p class="intro__wordmark">Vantex</p>
+      <p class="intro__tagline">Analiza. Practica. Sigue.</p>
+    </div>
+    <button class="intro__skip" data-intro-skip type="button">
+      <span>Saltar intro</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+    </button>
   </div>
 
+  <div class="bg-blob bg-blob--1"></div>
+  <div class="bg-blob bg-blob--2"></div>
+
+  <div class="landing" data-hero-entrance>
+    <div class="landing__hero">
+      <span class="landing__eyebrow reveal">Nuevo · Gratis para empezar</span>
+      <h1 class="landing__title reveal" style="animation-delay:.04s">Analiza el mercado con IA.<br>Practica sin riesgo. <em>Sigue a los mejores.</em></h1>
+      <p class="landing__lead reveal" style="animation-delay:.08s">Vantex reúne un analizador de gráficos con IA, un simulador de trading realista y seguimiento de wallets y traders — todo en un solo sitio, sin arriesgar un euro mientras aprendes.</p>
+
+      <div class="landing__bullets">
+        <div class="landing__bullet reveal" style="animation-delay:.12s">
+          <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #4f46e5, #7c72f0);"></div>
+          <div>
+            <div class="landing__bullet-text">AI Market Analyzer</div>
+            <div class="landing__bullet-desc">Sube una captura de un gráfico y recibe un análisis técnico al instante.</div>
+          </div>
+        </div>
+        <div class="landing__bullet reveal" style="animation-delay:.17s">
+          <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #f97316, #ef4444);"></div>
+          <div>
+            <div class="landing__bullet-text">Paper Trading</div>
+            <div class="landing__bullet-desc">Opera con saldo virtual y pon a prueba tu estrategia sin riesgo real.</div>
+          </div>
+        </div>
+        <div class="landing__bullet reveal" style="animation-delay:.22s">
+          <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #0ea5e9, #22d3ee);"></div>
+          <div>
+            <div class="landing__bullet-text">Wallet &amp; Copy Trading</div>
+            <div class="landing__bullet-desc">Sigue wallets y traders modelo (modo simulado) dentro del mismo simulador.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="landing__cta-row reveal" style="animation-delay:.28s">
+        <button class="btn-primary" type="button" data-cta-signup>Crear cuenta gratis</button>
+        <button class="landing__cta-secondary" type="button" data-cta-login>Ya tengo cuenta →</button>
+      </div>
+    </div>
+
+    <div class="panel auth-card reveal-pop" style="animation-delay:.1s">
+      <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" /></svg></div>
+      <div class="auth-title">Bienvenido a Vantex</div>
+      <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
+
+      <div class="tabs">
+        <button type="button" data-tab="login" class="is-active">Iniciar sesión</button>
+        <button type="button" data-tab="signup">Crear cuenta</button>
+      </div>
+
+      <form data-form="login">
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="login-password">Contraseña</label>
+          <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+        </div>
+        <button class="btn-primary" type="submit" style="width:100%">Entrar</button>
+        <p class="error-msg" data-error="login"></p>
+      </form>
+
+      <form data-form="signup" hidden>
+        <div class="field">
+          <label for="signup-name">Nombre</label>
+          <input id="signup-name" name="name" type="text" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="signup-email">Email</label>
+          <input id="signup-email" name="email" type="email" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="signup-password">Contraseña</label>
+          <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+        </div>
+        <button class="btn-primary" type="submit" style="width:100%">Crear cuenta</button>
+        <p class="error-msg" data-error="signup"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="/shared/icons.js"></script>
   <script src="/shared/api.js"></script>
   <script>
+    // Rellena los iconos de los 3 bullets (evita repetir el SVG a mano).
+    document.querySelectorAll('.landing__bullet-icon').forEach((el, i) => {
+      el.innerHTML = vantexIcon(['brain', 'chartBar', 'wallet'][i], { size: 20 });
+    });
+
     const tabs = document.querySelectorAll('[data-tab]');
     const forms = { login: document.querySelector('[data-form="login"]'), signup: document.querySelector('[data-form="signup"]') };
-    tabs.forEach((tab) => tab.addEventListener('click', () => {
-      tabs.forEach((t) => t.classList.remove('is-active'));
-      tab.classList.add('is-active');
-      Object.entries(forms).forEach(([name, form]) => { form.hidden = name !== tab.dataset.tab; });
-    }));
+    function activateTab(name) {
+      tabs.forEach((t) => t.classList.toggle('is-active', t.dataset.tab === name));
+      Object.entries(forms).forEach(([n, form]) => { form.hidden = n !== name; });
+    }
+    tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
+    document.querySelector('[data-cta-signup]').addEventListener('click', () => {
+      activateTab('signup');
+      document.getElementById('signup-name').focus({ preventScroll: false });
+      document.querySelector('.auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    document.querySelector('[data-cta-login]').addEventListener('click', () => {
+      activateTab('login');
+      document.getElementById('login-email').focus({ preventScroll: false });
+      document.querySelector('.auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 
     async function handleSubmit(formName, endpoint) {
       const form = forms[formName];
@@ -120,5 +260,6 @@
     // Si ya hay sesión activa, saltar directo al dashboard.
     api('/auth/me').then(() => { window.location.href = '/dashboard'; }).catch(() => {});
   </script>
+  <script type="module" src="/shared/intro.js"></script>
 </body>
 </html>

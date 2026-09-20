@@ -12,21 +12,13 @@ const NAV_ITEMS = [
   { page: 'dashboard', href: '/dashboard', label: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)' },
   { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', icon: 'wand', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)' },
   { page: 'picks', href: '/picks', label: 'Handpicked Bets', icon: 'star', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)' },
-  { page: 'trading', href: '/trading', label: 'Paper Trading', icon: 'chart', gradient: 'linear-gradient(135deg, #f97316, #ef4444)' },
+  { page: 'trading', href: '/trading', label: 'Paper Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)' },
 ];
 
-const ICONS = {
-  home: '<path d="M4 11.5 12 4l8 7.5" /><path d="M6 10v9h12v-9" />',
-  wand: '<path d="M15 4l5 5" /><path d="M4 20l9.5-9.5" /><path d="M14 3l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z" />',
-  star: '<path d="M12 3l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6-4.6-4.1 6.1-.6L12 3z" />',
-  chart: '<path d="M4 20V10" /><path d="M11 20V4" /><path d="M18 20v-7" />',
-  // Marca: una línea de tendencia alcista — icono, no una letra, como pide
-  // el rediseño ("cuadrado redondeado con un icono de trading/mercados").
-  trend: '<path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" />',
-};
-
+// El set de iconos vive en shared/icons.js (vantexIcon) — antes había un
+// set duplicado aquí, unificado en el rediseño de producto.
 function icon(name) {
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+  return vantexIcon(name, { size: 24 });
 }
 
 async function mountShell({ page, title }) {

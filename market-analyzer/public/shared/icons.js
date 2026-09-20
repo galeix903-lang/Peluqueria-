@@ -10,6 +10,24 @@ const VANTEX_ICON_PATHS = {
   upload: '<path d="M12 15V4" /><path d="M8 8l4-4 4 4" /><path d="M4.5 15v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3" />',
   inbox: '<path d="M4 12l2.2-6.6A1.5 1.5 0 0 1 7.6 4.5h8.8a1.5 1.5 0 0 1 1.4.9L20 12" /><rect x="4" y="12" width="16" height="7" rx="1.5" /><path d="M4 15h4a2.5 2.5 0 0 0 5 0h4" />',
   bolt: '<path d="M12.5 3.5 6 13h4.5l-1 7.5L18 11h-4.5l-1-7.5z" />',
+  // Añadidos en el rediseño de producto: navegación, ajustes, feedback y
+  // las nuevas herramientas (Wallet Tracker, Copy Trading). Consolidan
+  // aquí el set que antes vivía duplicado en shared/sidebar.js.
+  home: '<path d="M4 11.5 12 4l8 7.5" /><path d="M6 10v9h12v-9" />',
+  wand: '<path d="M15 4l5 5" /><path d="M4 20l9.5-9.5" /><path d="M14 3l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z" />',
+  trend: '<path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" />',
+  settings: '<circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />',
+  close: '<path d="M6 6l12 12" /><path d="M18 6 6 18" />',
+  check: '<path d="M5 12.5 9.5 17 19 7" />',
+  alertTriangle: '<path d="M12 9v4.5" /><path d="M12 16.7v.1" /><path d="M10.3 3.9 2.5 18a1.8 1.8 0 0 0 1.6 2.7h15.8a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0z" />',
+  arrowUp: '<path d="M12 19V5" /><path d="M6 11l6-6 6 6" />',
+  arrowDown: '<path d="M12 5v14" /><path d="M18 13l-6 6-6-6" />',
+  users: '<circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><circle cx="17.5" cy="9" r="2.6" /><path d="M15 13.8c2.7.2 4.7 2.2 4.7 5.2" />',
+  search: '<circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.3-4.3" />',
+  clock: '<circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" />',
+  shieldCheck: '<path d="M12 3.5l7 3v5.2c0 4.6-3 7.8-7 8.8-4-1-7-4.2-7-8.8V6.5l7-3z" /><path d="M9 12l2.2 2.2L15.5 9.5" />',
+  chevronRight: '<path d="M9 6l6 6-6 6" />',
+  more: '<circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" />',
 };
 
 function vantexIcon(name, { size = 22 } = {}) {

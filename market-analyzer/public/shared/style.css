@@ -19,14 +19,29 @@
   --amber-bg: #fef3e0;
   --radius: 18px;
   --sidebar-w: 104px;
+  --bottomnav-h: 64px;
   --shadow-xs: 0 1px 2px rgba(20, 22, 43, .04);
   --shadow-sm: 0 1px 2px rgba(20, 22, 43, .03), 0 8px 24px -18px rgba(20, 22, 43, .12);
   --shadow-md: 0 2px 6px rgba(20, 22, 43, .04), 0 16px 36px -16px rgba(20, 22, 43, .16);
+  --shadow-lg: 0 4px 10px rgba(20, 22, 43, .05), 0 28px 56px -22px rgba(20, 22, 43, .22);
+  --ease-out: cubic-bezier(.16, .84, .44, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  /* Escala tipográfica — un único lugar del que cuelgan H1/H2/H3/body/
+     caption/meta en toda la app, en vez de tamaños sueltos por página. */
+  --fs-h1: clamp(1.875rem, 1.55rem + 1.4vw, 2.75rem);
+  --fs-h2: clamp(1.375rem, 1.22rem + .6vw, 1.75rem);
+  --fs-h3: 1.125rem;
+  --fs-body: .9375rem;
+  --fs-caption: .8125rem;
+  --fs-meta: .75rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+/* overflow-x en html (no solo en body) es lo que de verdad evita el
+   scroll horizontal accidental en toda la app — body por sí solo depende
+   de una propagación al viewport que no siempre se aplica. */
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
 body { min-height: 100vh; }
 a { color: inherit; }
 button { font: inherit; cursor: pointer; }
@@ -367,4 +382,118 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
 .disclaimer {
   font-size: .75rem; color: var(--text-dim);
   border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 14px;
+}
+
+/* ---------- Jerarquía tipográfica ---------- */
+.text-h1 { font-size: var(--fs-h1); font-weight: 800; letter-spacing: -.02em; line-height: 1.08; margin: 0; }
+.text-h2 { font-size: var(--fs-h2); font-weight: 800; letter-spacing: -.015em; line-height: 1.16; margin: 0; }
+.text-h3 { font-size: var(--fs-h3); font-weight: 700; letter-spacing: -.008em; margin: 0; }
+.text-body { font-size: var(--fs-body); line-height: 1.6; color: var(--text); }
+.text-caption { font-size: var(--fs-caption); color: var(--text-dim); line-height: 1.5; }
+.text-meta { font-size: var(--fs-meta); color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+
+/* ---------- Niveles de tarjeta ----------
+   No todo el contenido pesa igual: .stat-card para métricas, .action-card
+   para accesos rápidos clicables, .data-card para elementos de una lista
+   (historial, holdings, traders...). Comparten esquina/sombra/transición
+   con el resto del sistema pero con menos presencia que .feature-card. */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow-xs);
+  display: flex; flex-direction: column; gap: 6px;
+  min-width: 0;
+}
+.stat-card__label { display: flex; align-items: center; gap: 6px; }
+.stat-card__value { font-size: 1.5rem; font-weight: 800; letter-spacing: -.01em; transition: color .2s; }
+.stat-card__delta { font-size: .8125rem; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+.stat-card__delta svg { width: 13px; height: 13px; }
+
+.action-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-decoration: none; color: inherit;
+  transition: border-color .18s, transform .18s var(--ease-out), box-shadow .18s;
+}
+.action-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.action-card__icon {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim); color: var(--accent);
+}
+.action-card__icon svg { width: 18px; height: 18px; }
+.action-card__title { font-weight: 700; font-size: .875rem; }
+.action-card__desc { color: var(--text-dim); font-size: .8125rem; margin-top: 1px; }
+
+.data-card {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-decoration: none; color: inherit;
+  transition: border-color .18s, transform .18s var(--ease-out), box-shadow .18s;
+  animation: fadeInUp .4s var(--ease-out) both;
+}
+.data-card:is(a, button) { cursor: pointer; width: 100%; text-align: left; }
+.data-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+
+/* ---------- Skeletons ----------
+   Sustituyen los "Cargando…" sueltos por una silueta del contenido real
+   mientras llega la respuesta. Reutilizan el keyframe `shimmer` que ya
+   existía en el sistema pero no se usaba en ningún sitio. */
+.skeleton {
+  position: relative; overflow: hidden;
+  background: var(--field-bg);
+  border-radius: 8px;
+}
+.skeleton::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent);
+  background-size: 200px 100%; background-repeat: no-repeat;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skeleton-text { height: .85em; border-radius: 5px; margin-bottom: 10px; }
+.skeleton-text:last-child { margin-bottom: 0; }
+.skeleton-text--sm { width: 45%; }
+.skeleton-text--md { width: 70%; }
+.skeleton-card { height: 130px; border-radius: var(--radius); }
+.skeleton-chart { height: 150px; border-radius: 12px; }
+.skeleton-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+.skeleton-avatar { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; }
+
+/* ---------- Toasts ---------- */
+.toast-region {
+  position: fixed; right: 20px; bottom: 20px; z-index: 900;
+  display: flex; flex-direction: column-reverse; gap: 10px;
+  max-width: min(360px, calc(100vw - 40px));
+}
+.toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--text); color: #fff;
+  padding: 13px 14px; border-radius: 13px;
+  box-shadow: var(--shadow-lg);
+  font-size: .8125rem; font-weight: 600; line-height: 1.4;
+  opacity: 0; transform: translateY(10px) scale(.97);
+  transition: opacity .22s var(--ease-out), transform .22s var(--ease-out);
+}
+.toast.is-in { opacity: 1; transform: none; }
+.toast.is-out { opacity: 0; transform: translateY(6px) scale(.97); }
+.toast__icon { flex-shrink: 0; margin-top: 1px; }
+.toast--success .toast__icon { color: #4ade80; }
+.toast--error .toast__icon { color: #f87171; }
+.toast--info .toast__icon { color: #a5b4fc; }
+.toast__msg { flex: 1; word-break: break-word; }
+.toast__close {
+  flex-shrink: 0; background: none; border: none; color: rgba(255,255,255,.55);
+  padding: 2px; display: flex; transition: color .15s;
+}
+.toast__close:hover { color: #fff; }
+@media (max-width: 640px) {
+  .toast-region { right: 12px; left: 12px; bottom: calc(var(--bottomnav-h) + 16px); max-width: none; }
 }

@@ -4,6 +4,41 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## Rediseño completo "producto real" — en curso (ver plan detallado)
+
+El usuario pidió una revisión y rediseño completo de la app (no solo
+estético): primera pantalla mucho más potente, intro 3D premium, cero
+funciones "Próximamente", jerarquía visual real, estados de carga/vacío/
+error en todas partes, gráficos, confirmaciones, toasts, navegación móvil
+propia y motion design coherente. Se ejecuta en 5 fases con checkpoint
+tras cada una (plan completo en la sesión de Claude Code, resumen aquí).
+
+**Fase 1 — Sistema de diseño + intro 3D + login/landing — COMPLETA y
+verificada.** Ampliados los tokens (tipografía, spacing, sombra lg),
+nuevos niveles de tarjeta (`.stat-card`/`.action-card`/`.data-card`),
+skeletons (`.skeleton*`), sistema de toasts (`shared/toast.js`) y helpers
+de formato/animación numérica (`shared/format.js`). Unificado el set de
+iconos duplicado (`shared/icons.js` es ahora la única fuente; `sidebar.js`
+ya no tiene su propio `ICONS`). Nueva introducción 3D premium
+(`shared/intro.js` + `shared/intro-scene.js` + `shared/intro.css`),
+arquitectura calcada del patrón ya probado en `peluqueria-premium/`
+(nunca modificado, solo leído como referencia): partículas que ensamblan
+el icono de marca en 3D con Three.js (vendor local copiado a
+`public/vendor/`), gate por `localStorage`, botón "Saltar intro" + ESC,
+`deviceTier()` con fallback ligero en CSS puro para gama baja/sin WebGL,
+`prefers-reduced-motion` respetado, límites de espera para no bloquear
+nunca la app. Login rediseñado a landing de dos columnas (hero grande +
+3 bullets + CTA, tarjeta de auth intacta funcionalmente). Bug encontrado
+y corregido durante la verificación: el overlay `.intro__lite` se pintaba
+encima del canvas 3D porque una regla de autor con `display:flex` ganaba
+al atributo `hidden` (mismo empate de especificidad, origen de autor
+gana); corregido con `.intro__lite[hidden]{display:none}`. Verificado con
+Playwright: intro aparece solo la primera vez, skip/ESC/`?intro=force`
+funcionan, cero peticiones a Three.js con `reduced-motion`, sin overflow
+horizontal en 1920/1440/1366/820/390, regresión funcional completa
+(signup/login/dashboard/analyzer/trading/picks/billing) sin errores
+nuevos.
+
 ## Ajuste de layout de tarjetas (píldora + grupo azul compartido) COMPLETA
 
 A partir de la captura real de referencia, se corrigió el rediseño: el
