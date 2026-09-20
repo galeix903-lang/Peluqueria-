@@ -137,7 +137,22 @@ function setupClock(root) {
     el.textContent = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   }
   render();
-  setInterval(render, 30000);
+  // Un setInterval fijo se desincroniza: los navegadores ralentizan los
+  // temporizadores en pestañas en segundo plano, así que al volver el
+  // reloj podía quedarse atrasado hasta el siguiente tick. En vez de eso,
+  // cada tick se programa justo para el próximo cambio de minuto exacto
+  // (autocorrección continua, sin arrastrar retraso), y además se
+  // refresca al instante en cuanto la pestaña vuelve a primer plano.
+  let timer;
+  function scheduleNextTick() {
+    const msToNextMinute = 60000 - (Date.now() % 60000);
+    timer = setTimeout(() => { render(); scheduleNextTick(); }, msToNextMinute);
+  }
+  scheduleNextTick();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { clearTimeout(timer); render(); scheduleNextTick(); }
+  });
+  window.addEventListener('focus', render);
 }
 
 function openSettingsModal(user, root) {
