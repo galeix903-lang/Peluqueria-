@@ -61,16 +61,24 @@ const MOCK_TEMPLATES = [
   },
 ];
 
-function mockAnalysis() {
+function mockAnalysis({ symbolHint } = {}) {
   const base = MOCK_TEMPLATES[Math.floor(Math.random() * MOCK_TEMPLATES.length)];
-  return { ...base };
+  // Si el usuario indicó el activo, se respeta en vez del de la plantilla
+  // — así la respuesta de ejemplo se siente coherente con lo que pidió.
+  const asset = symbolHint ? `${symbolHint.toUpperCase()}/USDT` : base.asset;
+  return { ...base, asset };
 }
 
-async function callClaudeVision(imageBuffer, mimeType) {
+async function callClaudeVision(imageBuffer, mimeType, { symbolHint, timeframe } = {}) {
   // Import diferido: si no hay API key no hace falta que el SDK esté
   // configurado ni que falle nada en modo mock.
   const Anthropic = require('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const hints = [
+    symbolHint ? `El usuario indica que el activo es "${symbolHint}".` : null,
+    timeframe ? `El usuario indica que el gráfico está en temporalidad "${timeframe}".` : null,
+  ].filter(Boolean).join(' ');
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-5',
@@ -87,7 +95,7 @@ async function callClaudeVision(imageBuffer, mimeType) {
           },
           {
             type: 'text',
-            text: 'Analiza este gráfico de mercado (velas/precio) como lo haría un analista técnico. Identifica el activo si es visible, la tendencia, niveles de soporte/resistencia visibles, y da un sesgo (compra/venta/esperar) con tu nivel de confianza. Registra el resultado con la herramienta record_chart_analysis.',
+            text: `Analiza este gráfico de mercado (velas/precio) como lo haría un analista técnico. Identifica el activo si es visible, la tendencia, niveles de soporte/resistencia visibles, y da un sesgo (compra/venta/esperar) con tu nivel de confianza. ${hints} Registra el resultado con la herramienta record_chart_analysis.`,
           },
         ],
       },
@@ -99,9 +107,9 @@ async function callClaudeVision(imageBuffer, mimeType) {
   return toolUse.input;
 }
 
-async function analyzeChart(imageBuffer, mimeType) {
+async function analyzeChart(imageBuffer, mimeType, context = {}) {
   const mode = resolveMode();
-  const result = mode === 'live' ? await callClaudeVision(imageBuffer, mimeType) : mockAnalysis();
+  const result = mode === 'live' ? await callClaudeVision(imageBuffer, mimeType, context) : mockAnalysis(context);
   return { ...result, mock: mode !== 'live', disclaimer: DISCLAIMER };
 }
 

@@ -13,6 +13,28 @@ error en todas partes, gráficos, confirmaciones, toasts, navegación móvil
 propia y motion design coherente. Se ejecuta en 5 fases con checkpoint
 tras cada una (plan completo en la sesión de Claude Code, resumen aquí).
 
+**Fase 3 — AI Analyzer — COMPLETA y verificada.** Backend: `POST /api/
+analyzer` acepta ahora `symbolHint`/`timeframe` opcionales (junto a la
+imagen), se pasan al prompt de Claude en modo live y se reflejan en las
+plantillas mock; se guardan en el registro del análisis. Frontend
+reconstruido: cabecera con icono propio, selector de activo (chips
+BTC/ETH/SOL/BNB/XRP) y de temporalidad (15m/1H/4H/1D/1W), dropzone más
+grande, animación de procesamiento por pasos ("Leyendo gráfico…" →
+"Detectando patrones…" → "Generando análisis…") que avanza por tiempo
+pero el último paso espera a la respuesta real, barra visual de
+soporte/resistencia sobre una escala (SVG/CSS, sin librería), historial
+convertido en tarjetas clicables (`.data-card`) que reabren el análisis
+completo en el panel de resultado en vez de una lista plana, y toasts de
+éxito/error. Bug encontrado y corregido: el aviso de "todavía no has
+analizado nada" usaba un `style="display:flex"` en línea que ganaba al
+atributo `hidden` (mismo patrón de bug que el badge de la intro en la
+Fase 1) — pasado a una clase con `.empty-hint-panel[hidden]{display:none}`
+explícito. Verificado con Playwright: selección de activo/temporalidad
+viaja al backend, animación de procesamiento visible durante la petición,
+historial reabre análisis antiguos, cuota/upsell del plan gratuito sigue
+funcionando, sin overflow en móvil, regresión completa sin errores
+nuevos.
+
 **Fase 2 — Dashboard + navegación — COMPLETA y verificada.** Backend:
 `PATCH /api/auth/me` para editar el nombre (`store.updateUserName`).
 Cabecera enriquecida: indicador de conexión real (reacciona a

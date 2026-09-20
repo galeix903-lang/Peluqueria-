@@ -29,10 +29,13 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
   }
   try {
-    const analysis = await analyzeChart(req.file.buffer, req.file.mimetype);
+    const symbolHint = (req.body.symbolHint || '').trim().slice(0, 20) || undefined;
+    const timeframe = (req.body.timeframe || '').trim().slice(0, 10) || undefined;
+    const analysis = await analyzeChart(req.file.buffer, req.file.mimetype, { symbolHint, timeframe });
     const record = store.addAnalysis({
       userId: req.session.userId,
       createdAt: new Date().toISOString(),
+      timeframe: timeframe || null,
       ...analysis,
     });
     res.json({ analysis: record });

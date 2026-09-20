@@ -9,27 +9,77 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/shared/style.css" />
 <style>
+  .analyzer-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .analyzer-head__icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #4f46e5, #7c72f0); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 22px -8px rgba(79, 70, 229, .45);
+  }
+  .analyzer-head__icon svg { width: 22px; height: 22px; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--field-bg); color: var(--text-dim);
+    padding: 7px 14px; border-radius: 999px; font-size: .8125rem; font-weight: 600;
+    transition: border-color .15s, color .15s, background .15s, transform .12s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip:active { transform: scale(.95); }
+
   .dropzone {
     border: 2px dashed var(--border); border-radius: var(--radius);
-    padding: 32px; text-align: center; cursor: pointer;
+    padding: 40px 32px; text-align: center; cursor: pointer;
     background: var(--field-bg); transition: border-color .2s, transform .15s, background .2s;
   }
   .dropzone:hover { border-color: var(--accent); background: var(--accent-dim); }
   .dropzone.is-dragover { border-color: var(--accent); transform: scale(1.01); background: var(--accent-dim); }
   .dropzone__icon {
-    width: 48px; height: 48px; margin: 0 auto 10px; border-radius: 50%;
+    width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 50%;
     background: var(--accent-dim); color: var(--accent);
     display: flex; align-items: center; justify-content: center;
     transition: transform .2s;
   }
   .dropzone:hover .dropzone__icon { transform: translateY(-3px) scale(1.05); }
-  .dropzone img { max-width: 100%; max-height: 220px; border-radius: 10px; margin-top: 14px; animation: popIn .35s cubic-bezier(.34,1.56,.64,1); }
+  .dropzone img { max-width: 100%; max-height: 240px; border-radius: 10px; margin-top: 16px; animation: popIn .35s cubic-bezier(.34,1.56,.64,1); }
+
+  /* Animación de procesamiento por pasos, sincronizada con la petición real. */
+  .processing { display: none; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .processing.is-active { display: flex; }
+  .processing__step { display: flex; align-items: center; gap: 10px; color: var(--text-dim); font-size: .875rem; font-weight: 600; opacity: .45; transition: opacity .25s, color .25s; }
+  .processing__step.is-active { opacity: 1; color: var(--text); }
+  .processing__step.is-done { opacity: 1; color: var(--green); }
+  .processing__dot {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+    transition: border-color .25s, background .25s;
+  }
+  .processing__step.is-active .processing__dot { border-color: var(--accent); }
+  .processing__step.is-active .processing__dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulseSoft 1s ease-in-out infinite; }
+  .processing__step.is-done .processing__dot { border-color: var(--green); background: var(--green); }
+  .processing__step.is-done .processing__dot svg { width: 11px; height: 11px; color: #fff; }
+
   .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
   .result-grid .label { font-size: .75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: .03em; }
   .result-grid .value { font-weight: 700; margin-top: 2px; }
   .confidence-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 6px; }
   .confidence-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #7c72f0); width: 0; transition: width 1s cubic-bezier(.16,.84,.44,1); }
-  .history-item { padding: 14px 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; animation: fadeInUp .4s cubic-bezier(.16,.84,.44,1) both; }
+
+  /* Barra visual de soporte/resistencia sobre una escala simple. */
+  .levels-scale { position: relative; height: 34px; margin: 10px 0 6px; }
+  .levels-scale__track { position: absolute; top: 15px; left: 0; right: 0; height: 4px; border-radius: 999px; background: linear-gradient(90deg, var(--red-bg), var(--field-bg), var(--green-bg)); }
+  .levels-scale__mark { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .levels-scale__mark-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(20,22,43,.08); }
+  .levels-scale__mark--support .levels-scale__mark-dot { background: var(--red); }
+  .levels-scale__mark--resistance .levels-scale__mark-dot { background: var(--green); }
+  .levels-scale__mark-label { font-size: .625rem; font-weight: 700; color: var(--text-dim); white-space: nowrap; margin-top: 18px; }
+
+  .history-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; }
+
+  .empty-hint-panel { margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
+  .empty-hint-panel[hidden] { display: none; }
+  .history-item__meta { color: var(--text-dim); font-size: .75rem; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -42,21 +92,59 @@
   <script src="/shared/toast.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
+    const SUPPORTED_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];
+    const TIMEFRAMES = ['15m', '1H', '4H', '1D', '1W'];
+    const STEPS = ['Leyendo gráfico…', 'Detectando patrones…', 'Generando análisis…'];
+
     mountShell({ page: 'analyzer', title: 'AI Analyzer' }).then((ctx) => {
       if (!ctx) return;
       ctx.contentEl.innerHTML = `
         <div class="panel reveal" style="margin-bottom:20px;">
+          <div class="analyzer-head">
+            <div class="analyzer-head__icon">${vantexIcon('brain', { size: 22 })}</div>
+            <div>
+              <div class="text-h3">AI Market Analyzer</div>
+              <div class="text-caption">Sube la captura de un gráfico y recibe una lectura técnica al instante.</div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; gap:22px; margin-bottom:18px;">
+            <div>
+              <div class="text-meta" style="margin-bottom:8px;">Activo (opcional)</div>
+              <div class="chip-row" data-symbol-chips>
+                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip" data-symbol="${s}">${s}</button>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div class="text-meta" style="margin-bottom:8px;">Temporalidad</div>
+              <div class="chip-row" data-timeframe-chips>
+                ${TIMEFRAMES.map((t, i) => `<button type="button" class="chip ${i === 3 ? 'is-active' : ''}" data-timeframe="${t}">${t}</button>`).join('')}
+              </div>
+            </div>
+          </div>
+
           <div class="dropzone" data-dropzone>
-            <div class="dropzone__icon">${vantexIcon('upload')}</div>
-            <p style="margin:0; font-weight:600;">Arrastra una captura del gráfico aquí, o haz clic para elegirla</p>
+            <div class="dropzone__icon">${vantexIcon('upload', { size: 24 })}</div>
+            <p style="margin:0; font-weight:700;">Arrastra una captura del gráfico aquí, o haz clic para elegirla</p>
             <p style="margin:6px 0 0; color:var(--text-dim); font-size:.8125rem;">PNG o JPG, hasta 8 MB</p>
             <input type="file" accept="image/*" data-file-input hidden />
             <img data-preview hidden />
           </div>
+
           <div style="display:flex; align-items:center; gap:14px; margin-top:16px; flex-wrap:wrap;">
             <button class="btn-primary" data-analyze-btn disabled>${vantexIcon('bolt', { size: 16 })} Analizar gráfico</button>
             <span style="color:var(--text-dim); font-size:.8125rem;" data-quota></span>
           </div>
+
+          <div class="processing" data-processing>
+            ${STEPS.map((label, i) => `
+              <div class="processing__step" data-step="${i}">
+                <span class="processing__dot"></span>
+                <span>${label}</span>
+              </div>
+            `).join('')}
+          </div>
+
           <p class="error-msg" data-error></p>
           <div class="panel reveal-pop" data-upsell hidden style="margin-top:14px; background:var(--accent-dim); border-color:var(--accent);">
             <strong>Has usado tus 3 análisis gratuitos de hoy.</strong>
@@ -66,14 +154,16 @@
         </div>
 
         <div class="panel" data-result hidden></div>
-
-        <h2 style="font-size:1rem; margin: 28px 0 4px;">Historial reciente</h2>
-        <div class="panel reveal" style="animation-delay:.1s" data-history>
-          <div class="empty-state">
-            <div class="empty-state__icon">${vantexIcon('inbox', { size: 26 })}</div>
-            Todavía no has analizado ningún gráfico.
+        <div class="panel reveal-pop empty-hint-panel" data-empty-hint>
+          <div class="empty-state__icon" style="flex-shrink:0; margin:0;">${vantexIcon('inbox', { size: 24 })}</div>
+          <div>
+            <div style="font-weight:700;">Todavía no has analizado ningún gráfico</div>
+            <div class="text-caption">Sube una captura arriba y en segundos tendrás tendencia, niveles clave y un sesgo claro.</div>
           </div>
         </div>
+
+        <h2 class="text-h3" style="margin: 8px 0 12px;">Historial reciente</h2>
+        <div data-history></div>
       `;
 
       const dropzone = ctx.contentEl.querySelector('[data-dropzone]');
@@ -82,12 +172,28 @@
       const analyzeBtn = ctx.contentEl.querySelector('[data-analyze-btn]');
       const errorEl = ctx.contentEl.querySelector('[data-error]');
       const resultEl = ctx.contentEl.querySelector('[data-result]');
+      const emptyHintEl = ctx.contentEl.querySelector('[data-empty-hint]');
       const historyEl = ctx.contentEl.querySelector('[data-history]');
       const quotaEl = ctx.contentEl.querySelector('[data-quota]');
       const upsellEl = ctx.contentEl.querySelector('[data-upsell]');
       const upsellBtn = ctx.contentEl.querySelector('[data-upsell-btn]');
+      const processingEl = ctx.contentEl.querySelector('[data-processing]');
       let selectedFile = null;
       let quotaExhausted = false;
+      let selectedSymbol = null;
+      let selectedTimeframe = '1D';
+
+      ctx.contentEl.querySelectorAll('[data-symbol]').forEach((btn) => btn.addEventListener('click', () => {
+        const isSame = btn.classList.contains('is-active');
+        ctx.contentEl.querySelectorAll('[data-symbol]').forEach((b) => b.classList.remove('is-active'));
+        selectedSymbol = isSame ? null : btn.dataset.symbol;
+        if (!isSame) btn.classList.add('is-active');
+      }));
+      ctx.contentEl.querySelectorAll('[data-timeframe]').forEach((btn) => btn.addEventListener('click', () => {
+        ctx.contentEl.querySelectorAll('[data-timeframe]').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        selectedTimeframe = btn.dataset.timeframe;
+      }));
 
       upsellBtn.addEventListener('click', async () => {
         upsellBtn.disabled = true;
@@ -132,22 +238,74 @@
         analyzeBtn.disabled = quotaExhausted;
       }
 
+      // Recorre los 3 pasos por tiempo, pero el último se queda "activo"
+      // hasta que llega la respuesta real — nunca finge más tiempo del
+      // que de verdad tarda la petición.
+      function runProcessingSteps() {
+        processingEl.classList.add('is-active');
+        const steps = [...processingEl.querySelectorAll('.processing__step')];
+        steps.forEach((s) => s.classList.remove('is-active', 'is-done'));
+        let i = 0;
+        const check = vantexIcon('check', { size: 11 });
+        function activate(idx) {
+          steps.forEach((s, si) => {
+            s.classList.toggle('is-active', si === idx);
+            if (si < idx) { s.classList.add('is-done'); s.querySelector('.processing__dot').innerHTML = check; }
+          });
+        }
+        activate(0);
+        const timer = setInterval(() => {
+          i++;
+          if (i >= steps.length - 1) { activate(steps.length - 1); clearInterval(timer); return; }
+          activate(i);
+        }, 900);
+        return () => {
+          clearInterval(timer);
+          steps.forEach((s) => { s.classList.remove('is-active'); s.classList.add('is-done'); s.querySelector('.processing__dot').innerHTML = check; });
+          setTimeout(() => processingEl.classList.remove('is-active'), 400);
+        };
+      }
+
+      function levelsScale(support, resistance) {
+        const levels = [
+          ...(support || []).map((v) => ({ v, type: 'support' })),
+          ...(resistance || []).map((v) => ({ v, type: 'resistance' })),
+        ];
+        if (!levels.length) return '';
+        const values = levels.map((l) => l.v);
+        const min = Math.min(...values), max = Math.max(...values);
+        const span = max - min || 1;
+        const marks = levels.map((l) => {
+          const pct = ((l.v - min) / span) * 100;
+          return `
+            <div class="levels-scale__mark levels-scale__mark--${l.type}" style="left:${pct}%;">
+              <div class="levels-scale__mark-dot"></div>
+              <div class="levels-scale__mark-label">${l.v.toLocaleString('es-ES')}</div>
+            </div>
+          `;
+        }).join('');
+        return `<div class="levels-scale">${marks}<div class="levels-scale__track"></div></div>`;
+      }
+
       function renderAnalysis(a) {
+        emptyHintEl.hidden = true;
         resultEl.hidden = false;
         resultEl.classList.remove('reveal-pop');
         resultEl.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
             <div>
               <div style="font-weight:800; font-size:1.1rem;">${a.asset}</div>
-              <div style="margin-top:6px; display:flex; gap:8px;">
+              <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                 <span class="badge badge--${a.trend}">${a.trend}</span>
                 <span class="badge badge--${a.bias}">${a.bias}</span>
+                ${a.timeframe ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${a.timeframe}</span>` : ''}
                 ${a.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
               </div>
             </div>
           </div>
           <p style="margin:16px 0 6px; color:var(--text-dim);">Confianza del análisis: ${a.confidence}%</p>
           <div class="confidence-bar"><span data-confidence-fill></span></div>
+          ${levelsScale(a.support, a.resistance)}
           <div class="result-grid">
             <div>
               <div class="label">Soportes</div>
@@ -161,27 +319,39 @@
           <p style="line-height:1.5;">${a.summary}</p>
           <p class="disclaimer">${a.disclaimer}</p>
         `;
-        // Fuerza reflow para que la transición de ancho se vea (si ya
-        // estaba en 0 desde el render anterior, un cambio inmediato no
-        // animaría) y reengancha la animación de entrada del panel.
         void resultEl.offsetWidth;
         resultEl.classList.add('reveal-pop');
         requestAnimationFrame(() => {
           resultEl.querySelector('[data-confidence-fill]').style.width = `${a.confidence}%`;
         });
+        resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
       function renderHistory(analyses) {
-        if (!analyses.length) return;
-        historyEl.innerHTML = analyses.map((a, i) => `
-          <div class="history-item" style="animation-delay:${i * 0.05}s">
-            <div>
-              <strong>${a.asset}</strong>
-              <span class="badge badge--${a.bias}" style="margin-left:8px;">${a.bias}</span>
-            </div>
-            <span style="color:var(--text-dim); font-size:.8125rem;">${new Date(a.createdAt).toLocaleString('es-ES')}</span>
+        emptyHintEl.hidden = analyses.length > 0;
+        if (!analyses.length) { historyEl.innerHTML = ''; return; }
+        historyEl.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${analyses.map((a, i) => `
+              <button type="button" class="data-card" data-history-item="${a.id}" style="animation-delay:${i * 0.04}s;">
+                <div class="history-item">
+                  <div>
+                    <strong>${a.asset}</strong>
+                    <span class="badge badge--${a.bias}" style="margin-left:8px;">${a.bias}</span>
+                    <div class="history-item__meta">${new Date(a.createdAt).toLocaleString('es-ES')}${a.timeframe ? ' · ' + a.timeframe : ''}</div>
+                  </div>
+                  ${vantexIcon('chevronRight', { size: 16 })}
+                </div>
+              </button>
+            `).join('')}
           </div>
-        `).join('');
+        `;
+        historyEl.querySelectorAll('[data-history-item]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const a = analyses.find((x) => x.id === btn.dataset.historyItem);
+            if (a) renderAnalysis(a);
+          });
+        });
       }
 
       analyzeBtn.addEventListener('click', async () => {
@@ -189,17 +359,24 @@
         errorEl.textContent = '';
         analyzeBtn.disabled = true;
         analyzeBtn.innerHTML = '<span class="spinner"></span> Analizando…';
+        const finishSteps = runProcessingSteps();
         try {
           const formData = new FormData();
           formData.append('image', selectedFile);
+          if (selectedSymbol) formData.append('symbolHint', selectedSymbol);
+          if (selectedTimeframe) formData.append('timeframe', selectedTimeframe);
           const { analysis } = await api('/analyzer', { method: 'POST', body: formData });
+          finishSteps();
           renderAnalysis(analysis);
           await loadHistory();
+          showToast({ type: 'success', message: 'Análisis completado.' });
         } catch (err) {
+          finishSteps();
           if (err.data && err.data.limitReached) {
             applyQuota('free', 0);
           } else {
             errorEl.textContent = err.message;
+            showToast({ type: 'error', message: 'No se pudo completar el análisis.' });
           }
         } finally {
           analyzeBtn.innerHTML = `${vantexIcon('bolt', { size: 16 })} Analizar gráfico`;
