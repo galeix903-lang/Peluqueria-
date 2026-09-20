@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vantex — Inicio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/shared/style.css" />
 </head>
 <body>
@@ -16,47 +19,67 @@
     mountShell({ page: 'dashboard', title: 'Bienvenido de nuevo 👋' }).then((ctx) => {
       if (!ctx) return;
 
+      // Personaliza el título ahora que ya conocemos al usuario.
+      document.querySelector('.topbar h1').textContent = `Bienvenido de nuevo, ${ctx.user.name} 👋`;
+
       const params = new URLSearchParams(location.search);
       let banner = '';
       if (params.get('upgraded')) {
-        banner = '<div class="panel reveal-pop" style="margin-bottom:20px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Pro!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
+        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Pro!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
       } else if (params.get('downgraded')) {
-        banner = '<div class="panel reveal-pop" style="margin-bottom:20px;">Has vuelto al plan gratuito (3 análisis al día).</div>';
+        banner = '<div class="panel reveal-pop" style="margin-bottom:24px;">Has vuelto al plan gratuito (3 análisis al día).</div>';
       }
       if (banner) history.replaceState(null, '', location.pathname);
 
+      const card = ({ href, icon, gradient, name, title, desc, primary, disabled, delay }) => `
+        <${href ? 'a href="' + href + '"' : 'div'} class="feature-card reveal ${primary ? 'feature-card--primary' : ''} ${disabled ? 'is-disabled' : ''}" style="animation-delay:${delay}s">
+          <div class="feature-card__visual">
+            <div class="feature-card__icon-lg" style="background:${gradient};">${vantexIcon(icon)}</div>
+            <div class="feature-card__name">${name}</div>
+          </div>
+          <div class="feature-card__info">
+            <div class="feature-card__title">${title}</div>
+            <div class="feature-card__desc">${desc}</div>
+            ${disabled ? '<span class="badge-soon">Próximamente</span>' : ''}
+          </div>
+        </${href ? 'a' : 'div'}>
+      `;
+
       ctx.contentEl.innerHTML = `
         ${banner}
-        <div class="card-grid" style="margin-bottom: 20px;">
-          <a class="feature-card reveal" style="animation-delay:.02s" href="/analyzer">
-            <div class="feature-card__icon" style="background:var(--accent-dim); color:var(--accent);">${vantexIcon('brain')}</div>
-            <div class="feature-card__title">AI Analyzer</div>
-            <div class="feature-card__desc">Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.</div>
-          </a>
-          <a class="feature-card reveal" style="animation-delay:.08s" href="/trading">
-            <div class="feature-card__icon" style="background:var(--red-bg); color:var(--red);">${vantexIcon('chartBar')}</div>
-            <div class="feature-card__title">Paper Trading</div>
-            <div class="feature-card__desc">Opera con dinero virtual y pon a prueba tus estrategias sin ningún riesgo real.</div>
-          </a>
+        <div class="card-grid" style="margin-bottom: 22px;">
+          ${card({
+            href: '/analyzer', icon: 'brain', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)',
+            name: 'AI ANALYZER', title: 'AI Market Analyzer',
+            desc: 'Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.',
+            primary: true, delay: 0.02,
+          })}
+          ${card({
+            href: '/trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)',
+            name: 'PAPER TRADING', title: 'Paper Trading',
+            desc: 'Opera con dinero virtual y pon a prueba tus estrategias sin ningún riesgo real.',
+            primary: true, delay: 0.08,
+          })}
         </div>
         <div class="card-grid card-grid--three">
-          <a class="feature-card reveal" style="animation-delay:.14s" href="/picks">
-            <div class="feature-card__icon" style="background:var(--amber-bg); color:var(--amber);">${vantexIcon('star')}</div>
-            <div class="feature-card__title">Handpicked Bets</div>
-            <div class="feature-card__desc">Picks frescos generados por IA cada día para ayudarte a decidir.</div>
-          </a>
-          <div class="feature-card reveal is-disabled" style="animation-delay:.2s">
-            <div class="feature-card__icon" style="background:var(--bg); color:var(--text-dim);">${vantexIcon('wallet')}</div>
-            <div class="feature-card__title">Wallet Tracker</div>
-            <div class="feature-card__desc">Sigue en tiempo real lo que compran las wallets más certeras.</div>
-            <span class="badge-soon">Próximamente</span>
-          </div>
-          <div class="feature-card reveal is-disabled" style="animation-delay:.26s">
-            <div class="feature-card__icon" style="background:var(--bg); color:var(--text-dim);">${vantexIcon('refresh')}</div>
-            <div class="feature-card__title">Copy Trading</div>
-            <div class="feature-card__desc">Replica automáticamente los movimientos de los mejores traders.</div>
-            <span class="badge-soon">Próximamente</span>
-          </div>
+          ${card({
+            href: '/picks', icon: 'star', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)',
+            name: 'HANDPICKED BETS', title: 'Handpicked Bets',
+            desc: 'Picks frescos generados por IA cada día para ayudarte a decidir.',
+            delay: 0.14,
+          })}
+          ${card({
+            icon: 'wallet', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)',
+            name: 'WALLET TRACKER', title: 'Wallet Tracker',
+            desc: 'Sigue en tiempo real lo que compran las wallets más certeras.',
+            disabled: true, delay: 0.2,
+          })}
+          ${card({
+            icon: 'refresh', gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+            name: 'COPY TRADING', title: 'Copy Trading',
+            desc: 'Replica automáticamente los movimientos de los mejores traders.',
+            disabled: true, delay: 0.26,
+          })}
         </div>
       `;
     });

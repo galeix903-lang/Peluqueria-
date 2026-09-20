@@ -4,11 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vantex — Handpicked Bets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/shared/style.css" />
 <style>
   .pick-card { padding: 18px 0; border-top: 1px solid var(--border); animation: fadeInUp .45s cubic-bezier(.16,.84,.44,1) both; transition: background .15s; }
   .pick-card:first-child { border-top: none; padding-top: 0; }
-  .pick-card:hover { background: var(--bg); border-radius: 10px; }
+  .pick-card:hover { background: var(--field-bg); border-radius: 10px; }
   .pick-card__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 </style>
 </head>
@@ -51,7 +54,7 @@
               <span class="badge badge--${p.trend}">${p.trend}</span>
               <span class="badge badge--${p.bias}">${p.bias}</span>
               ${p.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
-              <span class="badge" style="background:var(--bg); color:var(--text-dim);">Confianza ${p.confidence}%</span>
+              <span class="badge" style="background:var(--field-bg); color:var(--text-dim);">Confianza ${p.confidence}%</span>
             </div>
             <p style="margin:0; line-height:1.5;">${p.summary}</p>
             <p class="disclaimer">${p.disclaimer}</p>

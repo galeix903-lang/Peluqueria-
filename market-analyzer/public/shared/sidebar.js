@@ -17,6 +17,9 @@ const ICONS = {
   wand: '<path d="M15 4l5 5" /><path d="M4 20l9.5-9.5" /><path d="M14 3l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z" />',
   star: '<path d="M12 3l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6-4.6-4.1 6.1-.6L12 3z" />',
   chart: '<path d="M4 20V10" /><path d="M11 20V4" /><path d="M18 20v-7" />',
+  // Marca: una línea de tendencia alcista — icono, no una letra, como pide
+  // el rediseño ("cuadrado redondeado con un icono de trading/mercados").
+  trend: '<path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" />',
 };
 
 function icon(name) {
@@ -36,7 +39,7 @@ async function mountShell({ page, title }) {
   root.innerHTML = `
     <div class="app">
       <aside class="sidebar">
-        <a class="sidebar__logo" href="/dashboard">V</a>
+        <a class="sidebar__logo" href="/dashboard" title="Vantex">${icon('trend')}</a>
         <nav class="sidebar__nav">
           ${NAV_ITEMS.map((item) => `
             <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" title="${item.label}">
@@ -51,8 +54,9 @@ async function mountShell({ page, title }) {
           <div class="topbar__user">
             ${user.plan === 'pro'
               ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ PRO</span>'
-              : '<button class="btn-secondary" data-upgrade-btn>Hazte Pro</button>'}
-            <span>${user.name}</span>
+              : '<button class="btn-primary" data-upgrade-btn>Upgrade!</button>'}
+            <span class="topbar__name">${user.name}</span>
+            <span class="avatar" title="${user.name}">${user.name.charAt(0).toUpperCase()}</span>
             <button class="btn-logout" data-logout>Cerrar sesión</button>
           </div>
         </div>
@@ -70,13 +74,13 @@ async function mountShell({ page, title }) {
   if (upgradeBtn) {
     upgradeBtn.addEventListener('click', async () => {
       upgradeBtn.disabled = true;
-      upgradeBtn.textContent = 'Un momento…';
+      upgradeBtn.innerHTML = '<span class="spinner"></span> Un momento…';
       try {
         const { url } = await api('/billing/checkout', { method: 'POST' });
         window.location.href = url;
       } catch (e) {
         upgradeBtn.disabled = false;
-        upgradeBtn.textContent = 'Hazte Pro';
+        upgradeBtn.textContent = 'Upgrade!';
       }
     });
   }

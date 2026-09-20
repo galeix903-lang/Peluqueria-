@@ -4,6 +4,22 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## Rediseño visual "SaaS premium blanco" COMPLETA y verificada
+
+A petición del usuario, reestructuración visual completa del dashboard
+(sin tocar funcionalidad/rutas): fondo blanco puro, sidebar con logo-icono
+(tendencia alcista) en vez de letra, header con nombre + avatar + botón
+"Upgrade!", tarjetas grandes con zona visual (icono grande de color propio
+por herramienta + patrón de cuadrícula sutil tipo papel milimetrado +
+nombre en mayúsculas) y zona inferior (título pequeño + descripción), las
+dos herramientas principales (AI Analyzer, Paper Trading) con halo azul
+sutil, tipografía Inter cargada en todas las páginas, hover con elevación
+suave. Nuevo token `--field-bg` para inputs/badges/hovers grises ahora que
+`--bg` es blanco puro. Fix de responsive: el topbar pasa a columna por
+debajo de 640px (si no, desbordaba en móvil). Verificado con Playwright en
+1366/768/390px sin overflow horizontal, y regresión funcional completa
+(auth, analyzer, trading, picks, billing) sin errores nuevos.
+
 ## Fase 2 — Suscripción de pago (Vantex Pro) COMPLETA y verificada
 
 AI Analyzer limitado a 3 análisis/día en el plan gratuito; botón "Hazte

@@ -2,11 +2,13 @@
    claro, acentos índigo, tarjetas con borde suave. */
 
 :root {
-  --bg: #f5f6fb;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --border: #e4e7f0;
+  --field-bg: #f6f6fa; /* gris muy suave para inputs/badges/hovers sobre fondo blanco */
+  --border: #ececf1;
+  --border-strong: #e0e0e8;
   --text: #14162b;
-  --text-dim: #6b6f8a;
+  --text-dim: #71758d;
   --accent: #4f46e5;
   --accent-dim: #eef0fd;
   --green: #16a34a;
@@ -15,8 +17,11 @@
   --red-bg: #fdecec;
   --amber: #b45309;
   --amber-bg: #fef3e0;
-  --radius: 14px;
+  --radius: 18px;
   --sidebar-w: 76px;
+  --shadow-xs: 0 1px 2px rgba(20, 22, 43, .04);
+  --shadow-sm: 0 1px 2px rgba(20, 22, 43, .03), 0 8px 24px -18px rgba(20, 22, 43, .12);
+  --shadow-md: 0 2px 6px rgba(20, 22, 43, .04), 0 16px 36px -16px rgba(20, 22, 43, .16);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -55,44 +60,52 @@ button { font: inherit; cursor: pointer; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0;
-  gap: 28px;
+  padding: 24px 0;
+  gap: 36px;
 }
 .sidebar__logo {
-  width: 40px; height: 40px;
-  border-radius: 11px;
+  width: 46px; height: 46px;
+  border-radius: 13px;
   background: linear-gradient(135deg, var(--accent), #7c72f0);
   color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 1.05rem;
   text-decoration: none;
-  box-shadow: 0 6px 16px -6px rgba(79, 70, 229, .55);
+  box-shadow: 0 8px 18px -6px rgba(79, 70, 229, .5);
   animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;
   transition: transform .2s;
 }
+.sidebar__logo svg { width: 24px; height: 24px; }
 .sidebar__logo:hover { transform: scale(1.08) rotate(-4deg); }
-.sidebar__nav { display: flex; flex-direction: column; gap: 6px; }
+.sidebar__nav { display: flex; flex-direction: column; gap: 16px; }
 .sidebar__link {
   width: 44px; height: 44px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-dim);
   text-decoration: none;
-  transition: background .15s, color .15s, transform .15s;
+  transition: background .18s, color .18s, transform .18s;
 }
-.sidebar__link:hover { background: var(--accent-dim); color: var(--accent); transform: translateX(2px) scale(1.06); }
+.sidebar__link:hover { background: var(--accent-dim); color: var(--accent); transform: translateY(-1px); }
 .sidebar__link.is-active { background: var(--accent-dim); color: var(--accent); }
-.sidebar__link svg { width: 22px; height: 22px; }
+.sidebar__link svg { width: 21px; height: 21px; }
 
 .main { flex: 1; min-width: 0; }
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 24px 32px;
+  padding: 30px 40px 26px;
 }
-.topbar h1 { font-size: 1.3rem; margin: 0; }
+.topbar h1 { font-size: 1.375rem; font-weight: 800; margin: 0; letter-spacing: -.01em; }
 .topbar__user {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 16px;
   color: var(--text-dim); font-size: .875rem;
+}
+.topbar__name { font-weight: 600; color: var(--text); }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #7c72f0, var(--accent));
+  color: #fff; font-weight: 700; font-size: .8125rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 .btn-logout {
   border: 1px solid var(--border);
@@ -101,47 +114,102 @@ button { font: inherit; cursor: pointer; }
   border-radius: 9px;
   font-size: .8125rem;
   color: var(--text-dim);
+  transition: border-color .15s, color .15s;
 }
-.btn-logout:hover { color: var(--text); border-color: var(--accent); }
+.btn-logout:hover { color: var(--text); border-color: var(--border-strong); }
 
-.content { padding: 0 32px 40px; max-width: 1100px; }
+.content { padding: 4px 40px 48px; max-width: 1180px; }
+
+@media (max-width: 640px) {
+  .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 22px 20px 18px; }
+  .topbar__user { flex-wrap: wrap; row-gap: 8px; }
+  .content { padding: 4px 20px 40px; }
+}
 
 /* ---------- Tarjetas del dashboard ---------- */
-.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .card-grid--three { grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 720px) { .card-grid, .card-grid--three { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .card-grid, .card-grid--three { grid-template-columns: 1fr; } }
 
 .feature-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
   text-decoration: none;
   color: inherit;
   display: block;
-  transition: border-color .2s, transform .2s cubic-bezier(.16,.84,.44,1), box-shadow .2s;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: border-color .25s, transform .25s cubic-bezier(.16,.84,.44,1), box-shadow .25s;
 }
 .feature-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px);
-  box-shadow: 0 16px 32px -20px rgba(79, 70, 229, .35);
+  border-color: var(--border-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
-.feature-card:hover .feature-card__icon { animation: pulseSoft .6s ease-in-out; }
-.feature-card.is-disabled { opacity: .55; pointer-events: none; }
-.feature-card.is-disabled:hover { transform: none; box-shadow: none; }
-.feature-card__icon {
-  width: 46px; height: 46px; border-radius: 12px;
+.feature-card:hover .feature-card__icon-lg { transform: scale(1.06) rotate(-2deg); }
+.feature-card.is-disabled { cursor: default; }
+.feature-card.is-disabled .feature-card__visual { opacity: .6; }
+.feature-card.is-disabled:hover { transform: none; box-shadow: var(--shadow-xs); border-color: var(--border); }
+.feature-card.is-disabled:hover .feature-card__icon-lg { transform: none; }
+
+/* Las dos herramientas principales llevan un halo azul discreto, para que
+   se lean como el centro de la aplicación sin caer en un efecto neón. */
+.feature-card--primary {
+  border-color: rgba(79, 70, 229, .28);
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, .07), 0 10px 28px -16px rgba(79, 70, 229, .25);
+}
+.feature-card--primary:hover {
+  border-color: rgba(79, 70, 229, .4);
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, .1), 0 20px 44px -18px rgba(79, 70, 229, .35);
+}
+
+/* Zona visual superior: icono grande + nombre, sobre un patrón de
+   cuadrícula extremadamente sutil (estilo papel milimetrado). */
+.feature-card__visual {
+  padding: 40px 24px 34px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(to right, rgba(20, 22, 43, .035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 22, 43, .035) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: center;
+}
+.card-grid--three .feature-card__visual { padding: 30px 20px 26px; }
+
+.feature-card__icon-lg {
+  width: 64px; height: 64px; border-radius: 18px;
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px;
-  transition: transform .2s;
+  color: #fff;
+  box-shadow: 0 10px 22px -8px rgba(20, 22, 43, .28);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.feature-card__title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
-.feature-card__desc { color: var(--text-dim); font-size: .875rem; line-height: 1.4; }
+.feature-card__icon-lg svg { width: 30px; height: 30px; }
+.card-grid--three .feature-card__icon-lg { width: 52px; height: 52px; border-radius: 15px; }
+.card-grid--three .feature-card__icon-lg svg { width: 24px; height: 24px; }
+
+.feature-card__name {
+  margin-top: 16px;
+  font-weight: 800; font-size: 1.375rem; letter-spacing: -.01em;
+  color: var(--text);
+}
+.card-grid--three .feature-card__name { margin-top: 14px; font-size: 1.0625rem; }
+
+/* Zona inferior: nombre pequeño + descripción, separada por una línea fina. */
+.feature-card__info {
+  padding: 18px 22px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.feature-card__title { font-weight: 700; font-size: .875rem; margin-bottom: 4px; }
+.feature-card__desc { color: var(--text-dim); font-size: .8125rem; line-height: 1.55; }
 .badge-soon {
   display: inline-block; margin-top: 10px;
   font-size: .6875rem; font-weight: 700; letter-spacing: .04em;
   text-transform: uppercase; color: var(--text-dim);
-  background: var(--bg); padding: 3px 9px; border-radius: 999px;
+  background: var(--field-bg); border: 1px solid var(--border); padding: 3px 9px; border-radius: 999px;
 }
 
 /* ---------- Formularios ---------- */
@@ -156,7 +224,7 @@ button { font: inherit; cursor: pointer; }
 .field input, .field select {
   width: 100%; padding: 10px 12px;
   border: 1px solid var(--border); border-radius: 9px;
-  font-size: .9375rem; background: var(--bg);
+  font-size: .9375rem; background: var(--field-bg);
 }
 .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .btn-primary {
@@ -189,14 +257,14 @@ button { font: inherit; cursor: pointer; }
 .badge--alcista, .badge--compra, .badge--long { background: var(--green-bg); color: var(--green); }
 .badge--bajista, .badge--venta, .badge--short { background: var(--red-bg); color: var(--red); }
 .badge--lateral, .badge--esperar { background: var(--amber-bg); color: var(--amber); }
-.badge--mock { background: var(--bg); color: var(--text-dim); }
+.badge--mock { background: var(--field-bg); color: var(--text-dim); }
 
 /* ---------- Tablas ---------- */
 table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 th { text-align: left; color: var(--text-dim); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; padding-bottom: 10px; }
 td { padding: 12px 0; border-top: 1px solid var(--border); }
 tbody tr { animation: fadeInUp .4s cubic-bezier(.16,.84,.44,1) both; transition: background .15s; }
-tbody tr:hover { background: var(--bg); }
+tbody tr:hover { background: var(--field-bg); }
 tbody tr:nth-child(1) { animation-delay: .02s; }
 tbody tr:nth-child(2) { animation-delay: .07s; }
 tbody tr:nth-child(3) { animation-delay: .12s; }
