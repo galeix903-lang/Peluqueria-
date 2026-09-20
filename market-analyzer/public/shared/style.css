@@ -18,7 +18,7 @@
   --amber: #b45309;
   --amber-bg: #fef3e0;
   --radius: 18px;
-  --sidebar-w: 76px;
+  --sidebar-w: 104px;
   --shadow-xs: 0 1px 2px rgba(20, 22, 43, .04);
   --shadow-sm: 0 1px 2px rgba(20, 22, 43, .03), 0 8px 24px -18px rgba(20, 22, 43, .12);
   --shadow-md: 0 2px 6px rgba(20, 22, 43, .04), 0 16px 36px -16px rgba(20, 22, 43, .16);
@@ -52,42 +52,89 @@ button { font: inherit; cursor: pointer; }
   min-height: 100vh;
 }
 
+@keyframes logoGlow {
+  0%, 100% { box-shadow: 0 10px 22px -6px rgba(79, 70, 229, .55); }
+  50% { box-shadow: 0 12px 30px -4px rgba(79, 70, 229, .8); }
+}
+
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: var(--surface);
+  background: linear-gradient(180deg, #fbfaff, var(--surface) 220px);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 0;
-  gap: 36px;
+  padding: 30px 0;
+  gap: 44px;
 }
 .sidebar__logo {
-  width: 46px; height: 46px;
-  border-radius: 13px;
+  width: 60px; height: 60px;
+  border-radius: 18px;
   background: linear-gradient(135deg, var(--accent), #7c72f0);
   color: #fff;
   display: flex; align-items: center; justify-content: center;
   text-decoration: none;
-  box-shadow: 0 8px 18px -6px rgba(79, 70, 229, .5);
-  animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;
-  transition: transform .2s;
+  box-shadow: 0 10px 22px -6px rgba(79, 70, 229, .55);
+  animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both, logoGlow 2.8s ease-in-out 1s infinite;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.sidebar__logo svg { width: 24px; height: 24px; }
-.sidebar__logo:hover { transform: scale(1.08) rotate(-4deg); }
-.sidebar__nav { display: flex; flex-direction: column; gap: 16px; }
+.sidebar__logo svg { width: 30px; height: 30px; }
+.sidebar__logo:hover { transform: scale(1.1) rotate(-6deg); }
+.sidebar__nav { display: flex; flex-direction: column; gap: 22px; }
+
+/* Cada icono es un mini-logo con el color propio de su herramienta (el
+   mismo degradado que su tarjeta en el dashboard): gris en reposo, a
+   todo color al pasar el ratón o cuando está activo, con una etiqueta
+   flotante animada a modo de tooltip. */
 .sidebar__link {
-  width: 44px; height: 44px;
-  border-radius: 12px;
+  position: relative;
+  width: 54px; height: 54px;
+  border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-dim);
+  background: var(--field-bg);
   text-decoration: none;
-  transition: background .18s, color .18s, transform .18s;
+  transition: background .22s, color .22s, transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s;
 }
-.sidebar__link:hover { background: var(--accent-dim); color: var(--accent); transform: translateY(-1px); }
-.sidebar__link.is-active { background: var(--accent-dim); color: var(--accent); }
-.sidebar__link svg { width: 21px; height: 21px; }
+.sidebar__link svg { width: 24px; height: 24px; transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
+.sidebar__link:hover,
+.sidebar__link.is-active {
+  background: var(--link-gradient, var(--accent-dim));
+  color: #fff;
+  transform: translateY(-3px) scale(1.07);
+  box-shadow: 0 12px 24px -10px rgba(20, 22, 43, .35);
+}
+.sidebar__link:hover svg, .sidebar__link.is-active svg { transform: scale(1.08); }
+.sidebar__link.is-active {
+  box-shadow: 0 12px 24px -10px rgba(20, 22, 43, .35), 0 0 0 3px var(--field-bg), 0 0 0 4px rgba(20, 22, 43, .06);
+}
+
+/* Etiqueta flotante: aparece deslizándose desde el icono, así el sidebar
+   se puede quedar estrecho pero cada sección se identifica al instante. */
+.sidebar__link::after {
+  content: attr(data-label);
+  position: absolute; left: calc(100% + 16px); top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+  background: var(--text); color: #fff;
+  font-size: .75rem; font-weight: 700; letter-spacing: -.005em;
+  padding: 7px 12px; border-radius: 9px; white-space: nowrap;
+  opacity: 0; pointer-events: none; z-index: 30;
+  box-shadow: var(--shadow-md);
+  transition: opacity .18s ease, transform .18s cubic-bezier(.16,.84,.44,1);
+}
+.sidebar__link::before {
+  content: '';
+  position: absolute; left: calc(100% + 9px); top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+  border: 6px solid transparent; border-right-color: var(--text);
+  opacity: 0; pointer-events: none; z-index: 30;
+  transition: opacity .18s ease, transform .18s cubic-bezier(.16,.84,.44,1);
+}
+.sidebar__link:hover::after,
+.sidebar__link:hover::before {
+  opacity: 1; transform: translateY(-50%) translateX(0);
+}
 
 .main { flex: 1; min-width: 0; }
 .topbar {
@@ -121,6 +168,14 @@ button { font: inherit; cursor: pointer; }
 .content { padding: 4px 40px 48px; max-width: 1180px; }
 
 @media (max-width: 640px) {
+  :root { --sidebar-w: 76px; }
+  .sidebar { padding: 20px 0; gap: 28px; }
+  .sidebar__logo { width: 46px; height: 46px; border-radius: 13px; }
+  .sidebar__logo svg { width: 22px; height: 22px; }
+  .sidebar__nav { gap: 14px; }
+  .sidebar__link { width: 42px; height: 42px; border-radius: 12px; }
+  .sidebar__link svg { width: 20px; height: 20px; }
+  .sidebar__link::after, .sidebar__link::before { display: none; }
   .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 22px 20px 18px; }
   .topbar__user { flex-wrap: wrap; row-gap: 8px; }
   .content { padding: 4px 20px 40px; }

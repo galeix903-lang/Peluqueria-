@@ -5,11 +5,14 @@
     <div data-app-shell data-page="dashboard"></div>
   y llamar a mountShell({ title: '...', content: elementoOContenidoHTML }).
 */
+// Cada herramienta lleva el mismo color que su tarjeta en el dashboard,
+// para que el sidebar funcione como un mini-mapa de "logos" reconocibles
+// en vez de iconos grises sin identidad.
 const NAV_ITEMS = [
-  { page: 'dashboard', href: '/dashboard', label: 'Inicio', icon: 'home' },
-  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', icon: 'wand' },
-  { page: 'picks', href: '/picks', label: 'Handpicked Bets', icon: 'star' },
-  { page: 'trading', href: '/trading', label: 'Paper Trading', icon: 'chart' },
+  { page: 'dashboard', href: '/dashboard', label: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)' },
+  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', icon: 'wand', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)' },
+  { page: 'picks', href: '/picks', label: 'Handpicked Bets', icon: 'star', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)' },
+  { page: 'trading', href: '/trading', label: 'Paper Trading', icon: 'chart', gradient: 'linear-gradient(135deg, #f97316, #ef4444)' },
 ];
 
 const ICONS = {
@@ -42,7 +45,7 @@ async function mountShell({ page, title }) {
         <a class="sidebar__logo" href="/dashboard" title="Vantex">${icon('trend')}</a>
         <nav class="sidebar__nav">
           ${NAV_ITEMS.map((item) => `
-            <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" title="${item.label}">
+            <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" style="--link-gradient:${item.gradient};" data-label="${item.label}" aria-label="${item.label}">
               ${icon(item.icon)}
             </a>
           `).join('')}
