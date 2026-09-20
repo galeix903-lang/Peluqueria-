@@ -12,10 +12,36 @@
 <link rel="stylesheet" href="/shared/style.css" />
 <link rel="stylesheet" href="/shared/intro.css" />
 <style>
-  body {
-    display: flex; align-items: center; justify-content: center; min-height: 100vh;
-    position: relative;
+  html { scroll-behavior: smooth; }
+  body { position: relative; }
+
+  /* ---------- Barra de navegación superior ---------- */
+  .site-nav {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding: 16px 40px;
+    background: rgba(255,255,255,.82); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
   }
+  .site-nav__logo { display: inline-flex; align-items: center; gap: 10px; color: var(--text); }
+  .site-nav__logo-mark {
+    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), #7c72f0); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .site-nav__logo-mark svg { width: 17px; height: 17px; }
+  .site-nav__logo-word { font-size: 1.0625rem; font-weight: 800; letter-spacing: -.02em; }
+  .site-nav__links { display: flex; align-items: center; gap: 28px; }
+  .site-nav__links a { font-size: .875rem; font-weight: 600; color: var(--text-dim); transition: color .15s; }
+  .site-nav__links a:hover { color: var(--text); }
+  .site-nav__cta { padding: 9px 18px; font-size: .8125rem; flex-shrink: 0; }
+  @media (max-width: 760px) {
+    .site-nav { padding: 14px 20px; }
+    .site-nav__links { display: none; }
+  }
+
+  /* ---------- Hero: fondo con blobs + landing de dos columnas ---------- */
+  .hero-section { position: relative; overflow: hidden; }
   .bg-blob {
     position: absolute; border-radius: 50%; filter: blur(60px); opacity: .3;
     animation: floatSlow 9s ease-in-out infinite; z-index: 0; pointer-events: none;
@@ -23,7 +49,6 @@
   .bg-blob--1 { width: 420px; height: 420px; background: #7c72f0; top: -140px; left: -140px; }
   .bg-blob--2 { width: 380px; height: 380px; background: #4f46e5; bottom: -160px; right: -120px; animation-delay: -4s; }
 
-  /* ---------- Landing de dos columnas: hero + acceso ---------- */
   .landing {
     position: relative; z-index: 1;
     width: 100%; max-width: 1180px;
@@ -35,6 +60,142 @@
     gap: 64px;
   }
   .landing__hero { max-width: 540px; }
+  .landing__trust {
+    display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 20px;
+    font-size: .8125rem; font-weight: 600; color: var(--text-dim);
+  }
+  .landing__trust span { display: inline-flex; align-items: center; gap: 6px; }
+  .landing__trust svg { width: 14px; height: 14px; color: var(--green); flex-shrink: 0; }
+  .landing__access { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+  .hero-float-card {
+    display: flex; align-items: center; gap: 10px; align-self: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 10px 16px; box-shadow: var(--shadow-sm);
+  }
+  .hero-float-card__icon {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--green), #22c55e); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-float-card__icon svg { width: 16px; height: 16px; }
+  .hero-float-card__title { font-size: .8125rem; font-weight: 700; }
+  .hero-float-card__desc { font-size: .75rem; color: var(--text-dim); }
+
+  /* ---------- Secciones de la landing (cómo funciona, herramientas, precio, FAQ) ---------- */
+  .section { padding: 88px 40px; max-width: 1180px; margin: 0 auto; scroll-margin-top: 76px; }
+  .section--tint { background: var(--field-bg); max-width: none; }
+  .section--tint > .section-inner { max-width: 1180px; margin: 0 auto; }
+  .section-head { text-align: center; max-width: 620px; margin: 0 auto 48px; }
+  .section-head h2 { font-size: var(--fs-h1); font-weight: 800; letter-spacing: -.02em; margin: 0 0 12px; }
+  .section-head p { font-size: 1rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
+
+  /* Pasos */
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-bottom: 40px; }
+  .step-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 28px 24px; transition: transform .18s var(--ease-out), box-shadow .18s;
+  }
+  .step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .step-card__badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 9px; margin-bottom: 16px;
+    background: var(--accent-dim); color: var(--accent); font-weight: 800; font-size: .8125rem;
+  }
+  .step-card h3 { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 700; }
+  .step-card p { margin: 0; color: var(--text-dim); font-size: .875rem; line-height: 1.55; }
+  .section-cta { text-align: center; }
+
+  /* Herramientas: bloques de color */
+  .tool-blocks { display: flex; flex-direction: column; gap: 22px; }
+  .tool-block {
+    border-radius: var(--radius); border: 1px solid; padding: 36px 40px;
+  }
+  .tool-block h3 { font-size: 1.375rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 8px; }
+  .tool-block > p { margin: 0 0 26px; color: var(--text-dim); font-size: .9375rem; max-width: 640px; }
+  .tool-block__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 22px; }
+  .tool-block__col h4 { margin: 0 0 4px; font-size: .9375rem; font-weight: 700; }
+  .tool-block__col p { margin: 0; font-size: .8125rem; color: var(--text-dim); line-height: 1.55; }
+  .tool-block--indigo { background: #eef0fd; border-color: #dcdffb; }
+  .tool-block--indigo h3 { color: #3730a3; }
+  .tool-block--amber { background: #fef3e0; border-color: #fbe3b8; }
+  .tool-block--amber h3 { color: #92400e; }
+  .tool-block--purple { background: #f3ecfe; border-color: #e5d5fc; }
+  .tool-block--purple h3 { color: #6b21a8; }
+  .tool-block .badge-sim {
+    display: inline-flex; align-items: center; gap: 5px; font-size: .6875rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim);
+    background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.06);
+    padding: 3px 9px; border-radius: 999px; margin-left: 10px; vertical-align: middle;
+  }
+
+  /* Precio */
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 780px; margin: 0 auto; }
+  .price-card {
+    position: relative; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 28px;
+  }
+  .price-card--pro { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .price-card__ribbon {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--accent), #7c72f0); color: #fff;
+    font-size: .6875rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+    padding: 4px 14px; border-radius: 999px;
+  }
+  .price-card__name { font-size: 1rem; font-weight: 700; color: var(--text-dim); margin: 0 0 6px; }
+  .price-card__amount { font-size: 2.25rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 20px; }
+  .price-card__amount span { font-size: .9375rem; font-weight: 600; color: var(--text-dim); }
+  .price-card__list { list-style: none; margin: 0 0 26px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+  .price-card__list li { display: flex; align-items: flex-start; gap: 9px; font-size: .875rem; }
+  .price-card__list svg { width: 16px; height: 16px; color: var(--green); flex-shrink: 0; margin-top: 1px; }
+  .price-card .btn-primary, .price-card .btn-secondary { width: 100%; justify-content: center; }
+
+  /* FAQ */
+  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .faq-item__q {
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 18px 20px; background: none; border: none; text-align: left;
+    font-size: .9375rem; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer;
+  }
+  .faq-item__q svg { width: 18px; height: 18px; color: var(--text-dim); flex-shrink: 0; transition: transform .2s var(--ease-out); }
+  .faq-item.is-open .faq-item__q svg { transform: rotate(180deg); color: var(--accent); }
+  .faq-item__a {
+    max-height: 0; overflow: hidden; transition: max-height .25s var(--ease-out);
+  }
+  .faq-item__a p { margin: 0; padding: 0 20px 18px; font-size: .875rem; color: var(--text-dim); line-height: 1.6; }
+
+  /* CTA final + footer */
+  .final-cta { text-align: center; }
+  .final-cta .btn-primary { padding: 14px 30px; font-size: 1rem; margin-top: 8px; }
+  .site-footer { border-top: 1px solid var(--border); padding: 48px 40px 32px; }
+  .site-footer__inner {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px;
+  }
+  .site-footer__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .site-footer__brand-mark {
+    width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), #7c72f0);
+    color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .site-footer__brand-mark svg { width: 16px; height: 16px; }
+  .site-footer__brand-word { font-size: 1.0625rem; font-weight: 800; }
+  .site-footer__desc { font-size: .8125rem; color: var(--text-dim); line-height: 1.6; max-width: 280px; }
+  .site-footer h4 { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-dim); margin: 0 0 14px; }
+  .site-footer ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .site-footer a { font-size: .875rem; color: var(--text); }
+  .site-footer a:hover { color: var(--accent); }
+  .site-footer__bottom {
+    max-width: 1180px; margin: 32px auto 0; padding-top: 20px; border-top: 1px solid var(--border);
+    font-size: .75rem; color: var(--text-dim); text-align: center;
+  }
+  @media (max-width: 760px) {
+    .section { padding: 60px 24px; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .tool-block { padding: 26px; }
+    .tool-block__cols { grid-template-columns: 1fr; gap: 18px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .site-footer__inner { grid-template-columns: 1fr; gap: 28px; }
+  }
 
   /* Logo grande al principio del todo: es lo primero que se lee. */
   .landing__logo { display: inline-flex; align-items: center; gap: 13px; margin-bottom: 28px; }
@@ -92,7 +253,8 @@
   }
   .landing__cta-secondary:hover { border-color: var(--accent); }
 
-  .auth-card { width: 100%; max-width: 380px; justify-self: end; position: relative; z-index: 1; }
+  .landing__access { width: 100%; max-width: 380px; justify-self: end; position: relative; z-index: 1; }
+  .auth-card { width: 100%; }
   .auth-logo {
     width: 46px; height: 46px; border-radius: 12px;
     background: linear-gradient(135deg, var(--accent), #7c72f0);
@@ -114,7 +276,7 @@
     .landing__bullets { align-items: center; }
     .landing__bullet { max-width: 340px; }
     .landing__cta-row { justify-content: center; }
-    .auth-card { justify-self: center; }
+    .landing__access { justify-self: center; }
   }
   @media (max-width: 480px) {
     .landing { padding: 32px 20px; }
@@ -148,92 +310,312 @@
     </button>
   </div>
 
-  <div class="bg-blob bg-blob--1"></div>
-  <div class="bg-blob bg-blob--2"></div>
+  <nav class="site-nav">
+    <a class="site-nav__logo" href="#top">
+      <span class="site-nav__logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></span>
+      <span class="site-nav__logo-word">Vantex</span>
+    </a>
+    <div class="site-nav__links">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#herramientas">Herramientas</a>
+      <a href="#precio">Precio</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <button class="btn-primary site-nav__cta" type="button" data-cta-signup>Empezar gratis</button>
+  </nav>
 
-  <div class="landing" data-hero-entrance>
-    <div class="landing__hero">
-      <div class="landing__logo reveal-pop">
-        <span class="landing__logo-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg>
-        </span>
-        <span class="landing__logo-word">Vantex</span>
+  <header class="hero-section" id="top">
+    <div class="bg-blob bg-blob--1"></div>
+    <div class="bg-blob bg-blob--2"></div>
+
+    <div class="landing" data-hero-entrance>
+      <div class="landing__hero">
+        <div class="landing__logo reveal-pop">
+          <span class="landing__logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg>
+          </span>
+          <span class="landing__logo-word">Vantex</span>
+        </div>
+        <span class="landing__eyebrow reveal"><span class="landing__eyebrow-dot"></span>Nuevo · Gratis para empezar</span>
+        <h1 class="landing__title reveal" style="animation-delay:.04s">Analiza el mercado con IA.<br>Practica sin riesgo. <em>Sigue a los mejores.</em></h1>
+        <p class="landing__lead reveal" style="animation-delay:.08s">Vantex reúne un analizador de gráficos con IA, un simulador de trading realista y seguimiento de wallets y traders — todo en un solo sitio, sin arriesgar un euro mientras aprendes.</p>
+
+        <div class="landing__bullets">
+          <div class="landing__bullet reveal" style="animation-delay:.12s">
+            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #4f46e5, #7c72f0);"></div>
+            <div>
+              <div class="landing__bullet-text">AI Market Analyzer</div>
+              <div class="landing__bullet-desc">Sube una captura de un gráfico y recibe un análisis técnico al instante.</div>
+            </div>
+          </div>
+          <div class="landing__bullet reveal" style="animation-delay:.17s">
+            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #f97316, #ef4444);"></div>
+            <div>
+              <div class="landing__bullet-text">Paper Trading</div>
+              <div class="landing__bullet-desc">Opera con saldo virtual y pon a prueba tu estrategia sin riesgo real.</div>
+            </div>
+          </div>
+          <div class="landing__bullet reveal" style="animation-delay:.22s">
+            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #0ea5e9, #22d3ee);"></div>
+            <div>
+              <div class="landing__bullet-text">Wallet &amp; Copy Trading</div>
+              <div class="landing__bullet-desc">Sigue wallets y traders modelo (modo simulado) dentro del mismo simulador.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing__cta-row reveal" style="animation-delay:.28s">
+          <button class="btn-primary" type="button" data-cta-signup>Crear cuenta gratis</button>
+          <button class="landing__cta-secondary" type="button" data-cta-login>Ya tengo cuenta →</button>
+        </div>
+        <div class="landing__trust reveal" style="animation-delay:.32s">
+          <span data-trust-icon>Sin arriesgar dinero real</span>
+          <span data-trust-icon>Sin tarjeta para probar</span>
+          <span data-trust-icon>Cancela cuando quieras</span>
+        </div>
       </div>
-      <span class="landing__eyebrow reveal"><span class="landing__eyebrow-dot"></span>Nuevo · Gratis para empezar</span>
-      <h1 class="landing__title reveal" style="animation-delay:.04s">Analiza el mercado con IA.<br>Practica sin riesgo. <em>Sigue a los mejores.</em></h1>
-      <p class="landing__lead reveal" style="animation-delay:.08s">Vantex reúne un analizador de gráficos con IA, un simulador de trading realista y seguimiento de wallets y traders — todo en un solo sitio, sin arriesgar un euro mientras aprendes.</p>
 
-      <div class="landing__bullets">
-        <div class="landing__bullet reveal" style="animation-delay:.12s">
-          <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #4f46e5, #7c72f0);"></div>
-          <div>
-            <div class="landing__bullet-text">AI Market Analyzer</div>
-            <div class="landing__bullet-desc">Sube una captura de un gráfico y recibe un análisis técnico al instante.</div>
-          </div>
+      <div class="landing__access">
+      <div class="panel auth-card reveal-pop" style="animation-delay:.1s">
+        <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></div>
+        <div class="auth-title">Bienvenido a Vantex</div>
+        <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
+
+        <div class="tabs">
+          <button type="button" data-tab="login" class="is-active">Iniciar sesión</button>
+          <button type="button" data-tab="signup">Crear cuenta</button>
         </div>
-        <div class="landing__bullet reveal" style="animation-delay:.17s">
-          <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #f97316, #ef4444);"></div>
-          <div>
-            <div class="landing__bullet-text">Paper Trading</div>
-            <div class="landing__bullet-desc">Opera con saldo virtual y pon a prueba tu estrategia sin riesgo real.</div>
+
+        <form data-form="login">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required autocomplete="email" />
           </div>
-        </div>
-        <div class="landing__bullet reveal" style="animation-delay:.22s">
-          <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #0ea5e9, #22d3ee);"></div>
-          <div>
-            <div class="landing__bullet-text">Wallet &amp; Copy Trading</div>
-            <div class="landing__bullet-desc">Sigue wallets y traders modelo (modo simulado) dentro del mismo simulador.</div>
+          <div class="field">
+            <label for="login-password">Contraseña</label>
+            <input id="login-password" name="password" type="password" required autocomplete="current-password" />
           </div>
-        </div>
+          <button class="btn-primary" type="submit" style="width:100%">Entrar</button>
+          <p class="error-msg" data-error="login"></p>
+        </form>
+
+        <form data-form="signup" hidden>
+          <div class="field">
+            <label for="signup-name">Nombre</label>
+            <input id="signup-name" name="name" type="text" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="signup-email">Email</label>
+            <input id="signup-email" name="email" type="email" required autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="signup-password">Contraseña</label>
+            <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+          </div>
+          <button class="btn-primary" type="submit" style="width:100%">Crear cuenta</button>
+          <p class="error-msg" data-error="signup"></p>
+        </form>
       </div>
 
-      <div class="landing__cta-row reveal" style="animation-delay:.28s">
-        <button class="btn-primary" type="button" data-cta-signup>Crear cuenta gratis</button>
-        <button class="landing__cta-secondary" type="button" data-cta-login>Ya tengo cuenta →</button>
+      <div class="hero-float-card reveal-pop" style="animation-delay:.2s">
+        <span class="hero-float-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+        <div>
+          <div class="hero-float-card__title">Análisis con IA en segundos</div>
+          <div class="hero-float-card__desc">Sube tu gráfico y listo</div>
+        </div>
+      </div>
       </div>
     </div>
+  </header>
 
-    <div class="panel auth-card reveal-pop" style="animation-delay:.1s">
-      <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></div>
-      <div class="auth-title">Bienvenido a Vantex</div>
-      <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
-
-      <div class="tabs">
-        <button type="button" data-tab="login" class="is-active">Iniciar sesión</button>
-        <button type="button" data-tab="signup">Crear cuenta</button>
+  <main>
+    <section class="section" id="como-funciona">
+      <div class="section-head">
+        <h2>Sube tu gráfico. Analiza. Decide.</h2>
+        <p>En tres pasos simples, convierte cualquier gráfico en un plan claro para tu siguiente operación.</p>
       </div>
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <span class="step-card__badge">1</span>
+          <h3>Sube una captura</h3>
+          <p>Arrastra el gráfico de cualquier mercado, cripto o activo que quieras estudiar — sin instalar nada.</p>
+        </div>
+        <div class="step-card reveal" style="animation-delay:.06s">
+          <span class="step-card__badge">2</span>
+          <h3>La IA lo analiza</h3>
+          <p>En segundos detecta patrones, soportes y resistencias sobre tu propio gráfico, no una plantilla.</p>
+        </div>
+        <div class="step-card reveal" style="animation-delay:.12s">
+          <span class="step-card__badge">3</span>
+          <h3>Recibe tu plan</h3>
+          <p>Nivel de confianza, niveles clave y una lectura clara para que decidas tu siguiente paso.</p>
+        </div>
+      </div>
+      <div class="section-cta">
+        <button class="btn-primary" type="button" data-cta-signup>Probar el AI Analyzer gratis →</button>
+      </div>
+    </section>
 
-      <form data-form="login">
-        <div class="field">
-          <label for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" required autocomplete="email" />
+    <section class="section section--tint" id="herramientas">
+      <div class="section-inner">
+        <div class="section-head">
+          <h2>Todo lo que necesitas para operar sin miedo a equivocarte.</h2>
+          <p>Un analizador de gráficos, picks diarios y un simulador completo de trading — todo dentro de la misma cuenta.</p>
         </div>
-        <div class="field">
-          <label for="login-password">Contraseña</label>
-          <input id="login-password" name="password" type="password" required autocomplete="current-password" />
-        </div>
-        <button class="btn-primary" type="submit" style="width:100%">Entrar</button>
-        <p class="error-msg" data-error="login"></p>
-      </form>
+        <div class="tool-blocks">
+          <div class="tool-block tool-block--indigo reveal">
+            <h3>El analizador de gráficos que nunca duerme.</h3>
+            <p>Sube cualquier captura y obtén soportes, resistencias y una lectura de confianza al instante, para cualquier mercado.</p>
+            <div class="tool-block__cols">
+              <div class="tool-block__col">
+                <h4>Funciona con cualquier mercado</h4>
+                <p>Cripto, forex o acciones — sube la imagen del gráfico y listo, sin conectar ninguna cuenta.</p>
+              </div>
+              <div class="tool-block__col">
+                <h4>Resultados con confianza real</h4>
+                <p>Cada análisis indica su propio nivel de certeza, para que decidas con criterio y no a ciegas.</p>
+              </div>
+            </div>
+            <button class="btn-secondary" type="button" data-cta-signup>Probar el Analyzer →</button>
+          </div>
 
-      <form data-form="signup" hidden>
-        <div class="field">
-          <label for="signup-name">Nombre</label>
-          <input id="signup-name" name="name" type="text" autocomplete="name" />
+          <div class="tool-block tool-block--amber reveal" style="animation-delay:.06s">
+            <h3>Picks diarios seleccionados por IA.</h3>
+            <p>Cada día, un nuevo grupo de oportunidades ya analizadas, listas para que las revises tú mismo.</p>
+            <div class="tool-block__cols">
+              <div class="tool-block__col">
+                <h4>Actualizado cada día</h4>
+                <p>Ideas nuevas cada mañana, sin que tengas que rastrear el mercado tú mismo.</p>
+              </div>
+              <div class="tool-block__col">
+                <h4>Contexto claro en cada pick</h4>
+                <p>Razonamiento y niveles clave junto a cada oportunidad — nunca solo un ticker suelto.</p>
+              </div>
+            </div>
+            <button class="btn-secondary" type="button" data-cta-signup>Ver picks de hoy →</button>
+          </div>
+
+          <div class="tool-block tool-block--purple reveal" style="animation-delay:.12s">
+            <h3>Sigue a traders y wallets<span class="badge-sim">Modo simulado</span></h3>
+            <p>Practica replicando estrategias ajenas dentro de tu propia cuenta de paper trading, sin arriesgar un euro real.</p>
+            <div class="tool-block__cols">
+              <div class="tool-block__col">
+                <h4>Wallet Tracker</h4>
+                <p>Sigue la actividad de cualquier dirección y observa sus movimientos recientes.</p>
+              </div>
+              <div class="tool-block__col">
+                <h4>Copy Trading simulado</h4>
+                <p>Copia automáticamente las operaciones de traders modelo dentro de tu saldo virtual.</p>
+              </div>
+            </div>
+            <button class="btn-secondary" type="button" data-cta-signup>Ver cómo funciona →</button>
+          </div>
         </div>
-        <div class="field">
-          <label for="signup-email">Email</label>
-          <input id="signup-email" name="email" type="email" required autocomplete="email" />
+      </div>
+    </section>
+
+    <section class="section" id="precio">
+      <div class="section-head">
+        <h2>Un solo plan de pago, sin sorpresas.</h2>
+        <p>Empieza gratis. Mejora cuando quieras más análisis y más herramientas.</p>
+      </div>
+      <div class="pricing-grid">
+        <div class="price-card reveal">
+          <p class="price-card__name">Gratis</p>
+          <p class="price-card__amount">0€ <span>/ siempre</span></p>
+          <ul class="price-card__list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>3 análisis con IA al día</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Paper Trading ilimitado</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Handpicked Bets diarios</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Wallet Tracker</li>
+          </ul>
+          <button class="btn-secondary" type="button" data-cta-signup>Crear cuenta gratis</button>
         </div>
-        <div class="field">
-          <label for="signup-password">Contraseña</label>
-          <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+        <div class="price-card price-card--pro reveal" style="animation-delay:.06s">
+          <span class="price-card__ribbon">Más popular</span>
+          <p class="price-card__name">Vantex Pro</p>
+          <p class="price-card__amount">4,99€ <span>/ mes</span></p>
+          <ul class="price-card__list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Análisis con IA ilimitados</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Copy Trading simulado</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Todo lo del plan gratis</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Cancela cuando quieras</li>
+          </ul>
+          <button class="btn-primary" type="button" data-cta-signup>Hazte Pro</button>
         </div>
-        <button class="btn-primary" type="submit" style="width:100%">Crear cuenta</button>
-        <p class="error-msg" data-error="signup"></p>
-      </form>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="section-head">
+        <h2>Preguntas frecuentes</h2>
+        <p>Lo que más nos preguntan antes de empezar.</p>
+      </div>
+      <div class="faq-list" data-faq>
+        <div class="faq-item">
+          <button class="faq-item__q" type="button">¿Es dinero real?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+          <div class="faq-item__a"><p>No. Paper Trading, Wallet Tracker y Copy Trading funcionan con saldo virtual y datos simulados — puedes practicar sin arriesgar un euro real.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__q" type="button">¿El análisis de IA es real?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+          <div class="faq-item__a"><p>Sí. El AI Market Analyzer usa un modelo de IA real para leer el gráfico que subas y generar el análisis — no son resultados de plantilla.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__q" type="button">¿Necesito experiencia previa?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+          <div class="faq-item__a"><p>No. Vantex está pensado para aprender practicando, con una lectura clara en cada análisis y sin arriesgar dinero mientras coges soltura.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__q" type="button">¿Qué pasa con mis datos?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+          <div class="faq-item__a"><p>Tu email y contraseña se guardan de forma segura y nunca se comparten. Vantex nunca pide acceso a tus cuentas de exchange ni a tu dinero real.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__q" type="button">¿Puedo cancelar cuando quiera?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+          <div class="faq-item__a"><p>Sí. Puedes cancelar tu suscripción Pro en cualquier momento desde Ajustes, sin permanencia ni penalización.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-item__q" type="button">¿Qué necesito para empezar?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+          <div class="faq-item__a"><p>Solo un email. Crea tu cuenta gratis y ya puedes subir tu primer gráfico en menos de un minuto.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section final-cta">
+      <h2 style="font-size:var(--fs-h1); font-weight:800; letter-spacing:-.02em; margin:0 0 12px;">¿Listo para dejar de improvisar?</h2>
+      <p style="color:var(--text-dim); font-size:1rem; margin:0;">Crea tu cuenta gratis y analiza tu primer gráfico en menos de un minuto.</p>
+      <button class="btn-primary" type="button" data-cta-signup>Crear cuenta gratis →</button>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div>
+        <div class="site-footer__brand">
+          <span class="site-footer__brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></span>
+          <span class="site-footer__brand-word">Vantex</span>
+        </div>
+        <p class="site-footer__desc">Analiza el mercado con IA, practica sin riesgo y sigue a los mejores — todo en un solo sitio.</p>
+      </div>
+      <div>
+        <h4>Producto</h4>
+        <ul>
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+          <li><a href="#herramientas">Herramientas</a></li>
+          <li><a href="#precio">Precio</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Cuenta</h4>
+        <ul>
+          <li><a href="#" data-cta-signup>Crear cuenta gratis</a></li>
+          <li><a href="#" data-cta-login>Iniciar sesión</a></li>
+        </ul>
+      </div>
     </div>
-  </div>
+    <div class="site-footer__bottom">
+      © 2026 Vantex. Paper Trading, Wallet Tracker y Copy Trading funcionan en modo simulado — sin dinero real.
+    </div>
+  </footer>
 
   <script src="/shared/icons.js"></script>
   <script src="/shared/api.js"></script>
@@ -241,6 +623,9 @@
     // Rellena los iconos de los 3 bullets (evita repetir el SVG a mano).
     document.querySelectorAll('.landing__bullet-icon').forEach((el, i) => {
       el.innerHTML = vantexIcon(['brain', 'chartBar', 'wallet'][i], { size: 20 });
+    });
+    document.querySelectorAll('[data-trust-icon]').forEach((el) => {
+      el.innerHTML = `${vantexIcon('check', { size: 14 })}${el.textContent}`;
     });
 
     const tabs = document.querySelectorAll('[data-tab]');
@@ -250,15 +635,38 @@
       Object.entries(forms).forEach(([n, form]) => { form.hidden = n !== name; });
     }
     tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
-    document.querySelector('[data-cta-signup]').addEventListener('click', () => {
+    // Varios botones a lo largo de la página (nav, hero, secciones, footer)
+    // llevan el mismo data-cta-signup/login — todos hacen lo mismo: activar
+    // la pestaña correspondiente y llevar al visitante a la tarjeta de acceso.
+    document.querySelectorAll('[data-cta-signup]').forEach((btn) => btn.addEventListener('click', (e) => {
+      e.preventDefault();
       activateTab('signup');
       document.getElementById('signup-name').focus({ preventScroll: false });
       document.querySelector('.auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    document.querySelector('[data-cta-login]').addEventListener('click', () => {
+    }));
+    document.querySelectorAll('[data-cta-login]').forEach((btn) => btn.addEventListener('click', (e) => {
+      e.preventDefault();
       activateTab('login');
       document.getElementById('login-email').focus({ preventScroll: false });
       document.querySelector('.auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }));
+
+    // Acordeón de FAQ: solo una pregunta abierta a la vez, altura animada
+    // calculando scrollHeight (max-height: none no se puede animar con CSS).
+    document.querySelectorAll('[data-faq] .faq-item__q').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const answer = item.querySelector('.faq-item__a');
+        const wasOpen = item.classList.contains('is-open');
+        document.querySelectorAll('[data-faq] .faq-item.is-open').forEach((open) => {
+          open.classList.remove('is-open');
+          open.querySelector('.faq-item__a').style.maxHeight = '';
+        });
+        if (!wasOpen) {
+          item.classList.add('is-open');
+          answer.style.maxHeight = `${answer.scrollHeight}px`;
+        }
+      });
     });
 
     async function handleSubmit(formName, endpoint) {

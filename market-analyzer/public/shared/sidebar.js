@@ -92,7 +92,9 @@ async function mountShell({ page, title }) {
               ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ PRO</span>'
               : '<button class="btn-primary" data-upgrade-btn>Upgrade!</button>'}
             <span class="topbar__name">${escapeHtml(user.name)}</span>
-            <span class="avatar" title="${escapeHtml(user.name)}">${avatarInnerHtml(user)}</span>
+            <button type="button" class="avatar-btn" data-avatar-btn aria-label="Ver perfil de ${escapeHtml(user.name)}">
+              <span class="avatar" title="${escapeHtml(user.name)}">${avatarInnerHtml(user)}</span>
+            </button>
             <button class="topbar__icon-btn" type="button" data-settings-btn aria-label="Ajustes">${icon('settings')}</button>
             <button class="btn-logout" data-logout>Cerrar sesión</button>
           </div>
@@ -143,6 +145,7 @@ async function mountShell({ page, title }) {
   setupConnectionIndicator(root);
   setupClock(root);
   root.querySelectorAll('[data-settings-btn]').forEach((btn) => btn.addEventListener('click', () => openSettingsModal(user, root)));
+  root.querySelectorAll('[data-avatar-btn]').forEach((btn) => btn.addEventListener('click', () => openProfileCard(user, root)));
 
   return { user, contentEl: root.querySelector('[data-shell-content]') };
 }
@@ -184,6 +187,60 @@ function setupClock(root) {
     if (!document.hidden) { clearTimeout(timer); render(); scheduleNextTick(); }
   });
   window.addEventListener('focus', render);
+}
+
+// Se abre al tocar/pulsar la foto de perfil de la topbar — una tarjeta
+// rápida de "quién soy" (como al tocar el avatar en Twitter/X), con
+// cambio de foto directo desde aquí y accesos a la edición completa y
+// al cierre de sesión, sin tener que pasar primero por Ajustes.
+function openProfileCard(user, root) {
+  openModal({
+    title: 'Perfil',
+    bodyHtml: `
+      <div class="profile-card">
+        <div class="profile-card__avatar-wrap">
+          <span class="avatar profile-card__avatar" data-profile-card-avatar>${avatarInnerHtml(user)}</span>
+          <button type="button" class="profile-card__avatar-edit" data-profile-card-avatar-pick aria-label="Cambiar foto de perfil">${vantexIcon('camera', { size: 14 })}</button>
+          <input type="file" accept="image/*" data-profile-card-avatar-input hidden />
+        </div>
+        <h3 class="profile-card__name">${escapeHtml(user.name)}</h3>
+        <p class="profile-card__email text-caption">${escapeHtml(user.email)}</p>
+        <p class="profile-card__bio ${user.bio ? '' : 'profile-card__bio--empty'}">${user.bio ? escapeHtml(user.bio) : 'Todavía no has añadido una biografía.'}</p>
+        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Vantex Pro' : 'Plan gratuito'}</span>
+      </div>
+    `,
+    footerHtml: `
+      <button type="button" class="btn-secondary" data-profile-card-logout>Cerrar sesión</button>
+      <button type="button" class="btn-primary" data-profile-card-edit>Editar perfil</button>
+    `,
+    onOpen: (modalRoot) => {
+      const avatarEl = modalRoot.querySelector('[data-profile-card-avatar]');
+      const avatarInput = modalRoot.querySelector('[data-profile-card-avatar-input]');
+      modalRoot.querySelector('[data-profile-card-avatar-pick]').addEventListener('click', () => avatarInput.click());
+      avatarInput.addEventListener('change', async () => {
+        const file = avatarInput.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await resizeImageToDataUrl(file);
+          const { user: updated } = await api('/auth/me', { method: 'PATCH', body: JSON.stringify({ avatar: dataUrl }) });
+          Object.assign(user, updated);
+          avatarEl.innerHTML = avatarInnerHtml(updated);
+          root.querySelectorAll('.avatar').forEach((el) => { el.innerHTML = avatarInnerHtml(updated); el.title = updated.name; });
+          showToast({ type: 'success', message: 'Foto de perfil actualizada.' });
+        } catch (err) {
+          showToast({ type: 'error', message: err.message || 'No se pudo actualizar la foto.' });
+        }
+      });
+      modalRoot.querySelector('[data-profile-card-edit]').addEventListener('click', () => {
+        closeModal();
+        openSettingsModal(user, root);
+      });
+      modalRoot.querySelector('[data-profile-card-logout]').addEventListener('click', async () => {
+        await api('/auth/logout', { method: 'POST' });
+        window.location.href = '/login';
+      });
+    },
+  });
 }
 
 function openSettingsModal(user, root) {
