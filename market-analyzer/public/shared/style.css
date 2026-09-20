@@ -81,8 +81,11 @@ button { font: inherit; cursor: pointer; }
   flex-direction: column;
   align-items: center;
   padding: 30px 0;
-  gap: 44px;
+  gap: 36px;
+  overflow-y: auto; /* pantallas bajas (Chromebook, portátiles pequeños) no deben cortar iconos sin forma de llegar a ellos */
+  scrollbar-width: none;
 }
+.sidebar::-webkit-scrollbar { display: none; }
 .sidebar__logo {
   width: 60px; height: 60px;
   border-radius: 18px;

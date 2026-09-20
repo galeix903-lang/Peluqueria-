@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Wallet Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .tool-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tool-head__icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #0ea5e9, #22d3ee); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 22px -8px rgba(14, 165, 233, .45);
+  }
+  .tool-head__icon svg { width: 22px; height: 22px; }
+  .badge--sim { background: var(--field-bg); color: var(--text-dim); border: 1px solid var(--border); }
+
+  .add-wallet-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .add-wallet-row .field { margin-bottom: 0; }
+  .add-wallet-row .field--addr { flex: 1; min-width: 220px; }
+
+  .wallet-card { padding: 18px 20px; }
+  .wallet-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .wallet-card__addr { font-weight: 700; font-size: .9375rem; word-break: break-all; }
+  .wallet-card__label { color: var(--text-dim); font-size: .8125rem; margin-top: 2px; }
+  .wallet-card__value { font-weight: 800; font-size: 1.25rem; margin-top: 10px; }
+  .holdings-mini { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .holdings-mini span { background: var(--field-bg); border-radius: 999px; padding: 4px 10px; font-size: .75rem; font-weight: 700; color: var(--text-dim); }
+
+  .holdings-table td, .holdings-table th { padding: 8px 0; }
+  .activity-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: .8125rem; }
+  .activity-item:first-child { border-top: none; }
+</style>
+</head>
+<body>
+  <div data-app-shell></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
+  <script src="/shared/format.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/toast.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    mountShell({ page: 'wallet', title: 'Wallet Tracker' }).then((ctx) => {
+      if (!ctx) return;
+      ctx.contentEl.innerHTML = `
+        <div class="panel reveal" style="margin-bottom:20px;">
+          <div class="tool-head">
+            <div class="tool-head__icon">${vantexIcon('wallet', { size: 22 })}</div>
+            <div style="flex:1; min-width:200px;">
+              <div class="text-h3">Wallet Tracker</div>
+              <div class="text-caption">Sigue direcciones y observa sus holdings y actividad reciente.</div>
+            </div>
+            <span class="badge badge--sim">${vantexIcon('shieldCheck', { size: 12 })} Modo simulado</span>
+          </div>
+
+          <form class="add-wallet-row" data-add-form>
+            <div class="field field--addr">
+              <label>Dirección de wallet</label>
+              <input type="text" name="address" placeholder="0x… o cualquier identificador" required maxlength="80" />
+            </div>
+            <div class="field">
+              <label>Etiqueta (opcional)</label>
+              <input type="text" name="label" placeholder="Ej. Ballena BTC" maxlength="40" />
+            </div>
+            <button class="btn-primary" type="submit">${vantexIcon('search', { size: 15 })} Seguir wallet</button>
+          </form>
+          <p class="error-msg" data-error></p>
+        </div>
+
+        <div data-wallets>
+          <div class="skeleton skeleton-card" style="margin-bottom:14px;"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
+      `;
+
+      const form = ctx.contentEl.querySelector('[data-add-form]');
+      const errorEl = ctx.contentEl.querySelector('[data-error]');
+      const walletsEl = ctx.contentEl.querySelector('[data-wallets]');
+      const submitBtn = form.querySelector('button[type=submit]');
+      const submitDefaultHtml = submitBtn.innerHTML;
+
+      function fmtDate(iso) { return new Date(iso).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+      function openWalletDetail(wallet) {
+        const s = wallet.snapshot;
+        openModal({
+          title: wallet.label || wallet.address,
+          bodyHtml: `
+            <p class="text-caption" style="word-break:break-all; margin-top:-8px;">${wallet.address}</p>
+            <p style="font-weight:800; font-size:1.375rem; margin:4px 0 14px;">${fmtUsd(s.totalValue)}</p>
+            <table class="holdings-table">
+              <thead><tr><th class="text-meta">Activo</th><th class="text-meta">Cantidad</th><th class="text-meta">Valor</th><th class="text-meta">%</th></tr></thead>
+              <tbody>
+                ${s.holdings.map((h) => `
+                  <tr>
+                    <td><strong>${h.symbol}</strong></td>
+                    <td>${h.amount}</td>
+                    <td>${fmtUsd(h.value)}</td>
+                    <td>${h.share}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <p class="text-meta" style="margin:18px 0 4px;">Actividad reciente (simulada)</p>
+            ${s.activity.map((a) => `
+              <div class="activity-item">
+                <span>${a.verb} ${a.amount} ${a.symbol}</span>
+                <span class="text-caption">${fmtDate(a.at)}</span>
+              </div>
+            `).join('') || '<p class="text-caption">Sin actividad reciente.</p>'}
+            <p class="disclaimer">Datos simulados con fines de demostración — no proceden de ninguna red blockchain real.</p>
+          `,
+          footerHtml: `
+            <button type="button" class="btn-secondary" data-modal-close>Cerrar</button>
+            <button type="button" class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" data-unfollow="${wallet.id}">Dejar de seguir</button>
+          `,
+          onOpen: (root) => {
+            root.querySelector('[data-unfollow]').addEventListener('click', async (e) => {
+              const btn = e.currentTarget;
+              btn.disabled = true;
+              try {
+                await api(`/wallet/${wallet.id}`, { method: 'DELETE' });
+                closeModal();
+                showToast({ type: 'success', message: 'Has dejado de seguir esta wallet.' });
+                await load();
+              } catch (err) {
+                showToast({ type: 'error', message: err.message });
+                btn.disabled = false;
+              }
+            });
+          },
+        });
+      }
+
+      function render(wallets) {
+        if (!wallets.length) {
+          walletsEl.innerHTML = `
+            <div class="panel empty-state">
+              <div class="empty-state__icon">${vantexIcon('search', { size: 24 })}</div>
+              <strong>No sigues ninguna wallet todavía</strong>
+              <span>Añade una dirección arriba para ver sus holdings y actividad (modo simulado).</span>
+            </div>
+          `;
+          return;
+        }
+        walletsEl.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${wallets.map((w, i) => `
+              <button type="button" class="panel data-card wallet-card reveal" style="animation-delay:${i * 0.05}s;" data-wallet="${w.id}">
+                <div class="wallet-card__head">
+                  <div>
+                    <div class="wallet-card__addr">${w.label || w.address}</div>
+                    ${w.label ? `<div class="wallet-card__label">${w.address}</div>` : ''}
+                  </div>
+                  ${vantexIcon('chevronRight', { size: 18 })}
+                </div>
+                <div class="wallet-card__value">${fmtUsd(w.snapshot.totalValue)}</div>
+                <div class="holdings-mini">
+                  ${w.snapshot.holdings.map((h) => `<span>${h.symbol} · ${h.share}%</span>`).join('')}
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        `;
+        walletsEl.querySelectorAll('[data-wallet]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const w = wallets.find((x) => x.id === btn.dataset.wallet);
+            if (w) openWalletDetail(w);
+          });
+        });
+      }
+
+      async function load() {
+        const { wallets } = await api('/wallet');
+        render(wallets);
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorEl.textContent = '';
+        const payload = Object.fromEntries(new FormData(form).entries());
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Buscando…';
+        try {
+          await api('/wallet', { method: 'POST', body: JSON.stringify(payload) });
+          form.reset();
+          showToast({ type: 'success', message: 'Wallet añadida.' });
+          await load();
+        } catch (err) {
+          errorEl.textContent = err.message;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = submitDefaultHtml;
+        }
+      });
+
+      load().catch((err) => {
+        walletsEl.innerHTML = `<p class="error-msg">${err.message}</p>`;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -12,7 +12,7 @@ const crypto = require('crypto');
 const DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
 
 function emptyDb() {
-  return { users: [], positions: [], analyses: [], picks: [] };
+  return { users: [], positions: [], analyses: [], picks: [], trackedWallets: [], copyFollows: [] };
 }
 
 function load() {
@@ -161,6 +161,60 @@ function addPick(pick) {
   return record;
 }
 
+// ---------- Wallet Tracker (simulado) ----------
+function listTrackedWallets(userId) {
+  const db = load();
+  return db.trackedWallets.filter((w) => w.userId === userId).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+function addTrackedWallet({ userId, address, label }) {
+  const db = load();
+  const record = { id: id(), userId, address, label: label || null, createdAt: new Date().toISOString() };
+  db.trackedWallets.push(record);
+  save(db);
+  return record;
+}
+
+function removeTrackedWallet(userId, walletId) {
+  const db = load();
+  const before = db.trackedWallets.length;
+  db.trackedWallets = db.trackedWallets.filter((w) => !(w.id === walletId && w.userId === userId));
+  save(db);
+  return db.trackedWallets.length < before;
+}
+
+// ---------- Copy Trading (simulado) ----------
+function listCopyFollows(userId) {
+  const db = load();
+  return db.copyFollows.filter((f) => f.userId === userId);
+}
+
+function findCopyFollow(userId, traderId) {
+  const db = load();
+  return db.copyFollows.find((f) => f.userId === userId && f.traderId === traderId) || null;
+}
+
+function addCopyFollow({ userId, traderId }) {
+  const db = load();
+  const record = { id: id(), userId, traderId, createdAt: new Date().toISOString() };
+  db.copyFollows.push(record);
+  save(db);
+  return record;
+}
+
+function removeCopyFollow(userId, traderId) {
+  const db = load();
+  const before = db.copyFollows.length;
+  db.copyFollows = db.copyFollows.filter((f) => !(f.userId === userId && f.traderId === traderId));
+  save(db);
+  return db.copyFollows.length < before;
+}
+
+function listAllCopyFollows() {
+  const db = load();
+  return db.copyFollows;
+}
+
 module.exports = {
   findUserByEmail,
   findUserById,
@@ -177,4 +231,12 @@ module.exports = {
   countAnalysesToday,
   listPicks,
   addPick,
+  listTrackedWallets,
+  addTrackedWallet,
+  removeTrackedWallet,
+  listCopyFollows,
+  findCopyFollow,
+  addCopyFollow,
+  removeCopyFollow,
+  listAllCopyFollows,
 };

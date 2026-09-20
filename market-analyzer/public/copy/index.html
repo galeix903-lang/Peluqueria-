@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Copy Trading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .tool-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tool-head__icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #8b5cf6, #a855f7); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 22px -8px rgba(139, 92, 246, .45);
+  }
+  .tool-head__icon svg { width: 22px; height: 22px; }
+  .badge--sim { background: var(--field-bg); color: var(--text-dim); border: 1px solid var(--border); }
+
+  .trader-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 860px) { .trader-grid { grid-template-columns: 1fr; } }
+  .trader-card { padding: 18px 20px; }
+  .trader-card__head { display: flex; align-items: center; gap: 12px; }
+  .trader-card__avatar {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1rem;
+  }
+  .trader-card__name { font-weight: 700; font-size: .9375rem; }
+  .trader-card__followers { color: var(--text-dim); font-size: .75rem; }
+  .trader-card__stats { display: flex; gap: 20px; margin: 14px 0; }
+  .trader-card__stat .text-meta { margin-bottom: 2px; }
+  .trader-card__stat .val { font-weight: 800; font-size: 1.0625rem; }
+  .trader-card__desc { color: var(--text-dim); font-size: .8125rem; line-height: 1.5; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+  <div data-app-shell></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
+  <script src="/shared/format.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/toast.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    mountShell({ page: 'copy', title: 'Copy Trading' }).then((ctx) => {
+      if (!ctx) return;
+      ctx.contentEl.innerHTML = `
+        <div class="panel reveal" style="margin-bottom:20px;">
+          <div class="tool-head">
+            <div class="tool-head__icon">${vantexIcon('refresh', { size: 22 })}</div>
+            <div style="flex:1; min-width:200px;">
+              <div class="text-h3">Copy Trading</div>
+              <div class="text-caption">Sigue a un trader modelo y replica sus operaciones dentro de tu Paper Trading.</div>
+            </div>
+            <span class="badge badge--sim">${vantexIcon('shieldCheck', { size: 12 })} Simulado — sin fondos reales</span>
+          </div>
+        </div>
+
+        <div class="trader-grid" data-traders>
+          ${[0, 1, 2, 3].map(() => '<div class="panel skeleton-card"></div>').join('')}
+        </div>
+
+        <h2 class="text-h3" style="margin:8px 0 12px;">Tus posiciones copiadas</h2>
+        <div data-copied-positions>
+          <div class="panel skeleton-card"></div>
+        </div>
+      `;
+
+      const tradersEl = ctx.contentEl.querySelector('[data-traders]');
+      const positionsEl = ctx.contentEl.querySelector('[data-copied-positions]');
+
+      function renderTraders(traders) {
+        tradersEl.innerHTML = traders.map((t, i) => `
+          <div class="panel trader-card reveal" style="animation-delay:${i * 0.05}s;">
+            <div class="trader-card__head">
+              <div class="trader-card__avatar" style="background:${t.color};">${t.name.charAt(0)}</div>
+              <div>
+                <div class="trader-card__name">${t.name}</div>
+                <div class="trader-card__followers">${t.followers.toLocaleString('es-ES')} seguidores</div>
+              </div>
+            </div>
+            <div class="trader-card__stats">
+              <div class="trader-card__stat"><div class="text-meta">Win rate</div><div class="val">${t.winRate}%</div></div>
+              <div class="trader-card__stat"><div class="text-meta">P&amp;L 30d</div><div class="val pnl-pos">+${t.pnl30d}%</div></div>
+            </div>
+            <p class="trader-card__desc">${t.strategy}</p>
+            <button type="button" class="${t.following ? 'btn-secondary' : 'btn-primary'}" style="width:100%; justify-content:center;" data-follow="${t.id}" data-following="${t.following}">
+              ${t.following ? 'Dejar de seguir' : 'Seguir'}
+            </button>
+          </div>
+        `).join('');
+
+        tradersEl.querySelectorAll('[data-follow]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.dataset.follow;
+            const isFollowing = btn.dataset.following === 'true';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,.15); border-top-color:var(--text-dim);"></span>';
+            try {
+              await api(`/copy/${id}/${isFollowing ? 'unfollow' : 'follow'}`, { method: 'POST' });
+              showToast({ type: 'success', message: isFollowing ? 'Has dejado de seguir al trader.' : 'Ahora sigues a este trader — en los próximos minutos verás operaciones simuladas.' });
+              await load();
+            } catch (err) {
+              showToast({ type: 'error', message: err.message });
+              btn.disabled = false;
+            }
+          });
+        });
+      }
+
+      function renderPositions(positions) {
+        if (!positions.length) {
+          positionsEl.innerHTML = `
+            <div class="panel empty-state">
+              <div class="empty-state__icon">${vantexIcon('refresh', { size: 24 })}</div>
+              <strong>Todavía no hay operaciones copiadas</strong>
+              <span>Sigue a un trader arriba — sus operaciones simuladas aparecerán aquí automáticamente.</span>
+            </div>
+          `;
+          return;
+        }
+        positionsEl.innerHTML = `
+          <div class="panel">
+            <table>
+              <thead><tr><th>Símbolo</th><th>Lado</th><th>Tamaño</th><th>Entrada</th><th>Estado</th><th>P&amp;L</th></tr></thead>
+              <tbody>
+                ${positions.map((p) => {
+                  const pnl = p.status === 'open' ? p.unrealizedPnl : p.realizedPnl;
+                  const pnlClass = pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+                  return `
+                    <tr>
+                      <td>${p.symbol}</td>
+                      <td><span class="badge badge--${p.side}">${p.side}</span></td>
+                      <td>${p.size}</td>
+                      <td>${fmtUsd(p.entryPrice)}</td>
+                      <td>${p.status === 'open' ? '<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">Abierta</span>' : '<span class="badge badge--manual">Cerrada</span>'}</td>
+                      <td class="${pnlClass}">${pnl != null ? fmtUsd(pnl) : '—'}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+            <p class="disclaimer">Estas operaciones se abren/cierran solas dentro de tu Paper Trading al seguir a un trader — mismo saldo virtual, cero fondos reales.</p>
+          </div>
+        `;
+      }
+
+      async function load() {
+        const { traders, copiedPositions } = await api('/copy');
+        renderTraders(traders);
+        renderPositions(copiedPositions);
+      }
+
+      load().catch((err) => {
+        tradersEl.innerHTML = `<p class="error-msg">${err.message}</p>`;
+      });
+    });
+  </script>
+</body>
+</html>

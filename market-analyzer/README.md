@@ -127,22 +127,29 @@ búsquedas de tu marca (`Vantex`) o con `site:vantex.onrender.com`.
 server/
   index.js               bootstrap de Express, sesiones, sirve /public
   store.js                persistencia en data/db.json (usuarios, posiciones,
-                           análisis, picks)
+                           análisis, picks, wallets seguidas, copy follows)
   middleware/requireAuth.js
   routes/
-    auth.js               signup / login / logout / me
+    auth.js               signup / login / logout / me (+ PATCH para el nombre)
     analyzer.js            sube una imagen, aplica el límite gratuito y devuelve el análisis
-    trading.js              abrir/cerrar posiciones de paper trading
+    trading.js              abrir/cerrar posiciones, SL/TP, histórico de precio
     picks.js                 lista de picks diarios
+    wallet.js                 Wallet Tracker (simulado)
+    copy.js                    Copy Trading (simulado)
     billing.js                checkout / portal / webhook de Stripe (Vantex Pro)
   services/
     claude.js               llamada a Claude con visión (tool use) + modo mock
-    market.js                precios en vivo (CoinGecko) con caché de 30s
+    market.js                precios en vivo (CoinGecko) con caché de 30s + histórico corto
     picksJob.js              genera los picks diarios (cron a las 08:00)
+    wallet.js                 snapshot determinista de una wallet (simulado)
+    copyTraders.js             lista de traders modelo (simulado)
+    copyTradingJob.js           simula su actividad dentro del Paper Trading real (cron cada 10 min)
     billing.js                Stripe Checkout/Portal/webhooks + modo mock
 public/
-  shared/                   CSS común, helper de fetch, sidebar + guardia de sesión
-  login/ dashboard/ analyzer/ trading/ picks/
+  shared/                   CSS común, helpers (fetch/toast/modal/formato), sidebar + bottom
+                            nav + guardia de sesión, intro 3D (Three.js perezoso)
+  login/ dashboard/ analyzer/ trading/ picks/ wallet/ copy/
+  vendor/                   Three.js (vendorizado, usado solo por la intro)
 ```
 
 ## Notas importantes
@@ -157,8 +164,16 @@ public/
   tocar el resto del código (es la única capa que habla con el "disco").
 - **Imágenes**: las capturas que se suben al analizador se procesan en
   memoria y se envían a la IA — no se guardan en disco.
-- **Pendiente / fuera de alcance por ahora**: Wallet Tracker y Copy
-  Trading necesitan un proveedor de datos on-chain y, en el caso de Copy
-  Trading, mover fondos reales de usuarios (con la carga legal que eso
-  implica) — quedan como tarjetas "Próximamente" en el dashboard hasta que
-  se aborden como su propio proyecto.
+- **Wallet Tracker y Copy Trading son simulados**: leer datos on-chain
+  reales necesita un proveedor externo (Etherscan/Alchemy/Moralis) y Copy
+  Trading, mover fondos reales de usuarios, con la carga legal que eso
+  implica (custodia, licencias de money transmission). Ambos están
+  completamente implementados y son funcionales, pero en modo simulado:
+  `server/services/wallet.js` genera holdings/actividad deterministas a
+  partir de la dirección (misma dirección, mismo resultado) y
+  `server/services/copyTraders.js` + `copyTradingJob.js` simulan la
+  actividad de unos traders modelo abriendo/cerrando posiciones dentro
+  del motor real de Paper Trading. Ambas interfaces llevan un badge
+  "Simulado" bien visible. El día que haya presupuesto para datos reales,
+  solo hay que reescribir esos dos ficheros — las rutas y el frontend no
+  cambian.

@@ -7,8 +7,11 @@ const authRoutes = require('./routes/auth');
 const analyzerRoutes = require('./routes/analyzer');
 const tradingRoutes = require('./routes/trading');
 const picksRoutes = require('./routes/picks');
+const walletRoutes = require('./routes/wallet');
+const copyRoutes = require('./routes/copy');
 const billing = require('./routes/billing');
 const { scheduleDailyPicks } = require('./services/picksJob');
+const { scheduleCopyTradingJob } = require('./services/copyTradingJob');
 
 const app = express();
 const PORT = process.env.PORT || 3100;
@@ -37,12 +40,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/analyzer', requireAuth, analyzerRoutes);
 app.use('/api/trading', requireAuth, tradingRoutes);
 app.use('/api/picks', requireAuth, picksRoutes);
+app.use('/api/wallet', requireAuth, walletRoutes);
+app.use('/api/copy', requireAuth, copyRoutes);
 app.use('/api/billing', requireAuth, billing.router);
 
 // Rutas "bonitas" sin .html para cada pantalla — van antes de
 // express.static para que no las intercepte con una redirección a la
 // carpeta (ej. /dashboard -> /dashboard/) antes de llegar aquí.
-const pages = ['login', 'dashboard', 'analyzer', 'trading', 'picks'];
+const pages = ['login', 'dashboard', 'analyzer', 'trading', 'picks', 'wallet', 'copy'];
 pages.forEach((page) => {
   app.get(`/${page}`, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', page, 'index.html'));
@@ -61,4 +66,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`market-analyzer escuchando en http://localhost:${PORT}`);
   scheduleDailyPicks();
+  scheduleCopyTradingJob();
 });

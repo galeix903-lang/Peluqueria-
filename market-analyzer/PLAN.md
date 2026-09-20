@@ -4,7 +4,7 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
-## Rediseño completo "producto real" — en curso (ver plan detallado)
+## Rediseño completo "producto real" — COMPLETO (5 fases)
 
 El usuario pidió una revisión y rediseño completo de la app (no solo
 estético): primera pantalla mucho más potente, intro 3D premium, cero
@@ -12,6 +12,54 @@ funciones "Próximamente", jerarquía visual real, estados de carga/vacío/
 error en todas partes, gráficos, confirmaciones, toasts, navegación móvil
 propia y motion design coherente. Se ejecuta en 5 fases con checkpoint
 tras cada una (plan completo en la sesión de Claude Code, resumen aquí).
+
+**Fase 5 — Wallet Tracker + Copy Trading + auditoría final — COMPLETA y
+verificada.** Las dos últimas tarjetas "Próximamente" del dashboard pasan
+a ser funciones reales, simuladas y claramente etiquetadas como tal
+(decisión ya acordada con el usuario, igual patrón mock que ya usan el
+analizador y el billing):
+
+- **Wallet Tracker** (`server/services/wallet.js`, `server/routes/
+  wallet.js`, `public/wallet/`): el usuario introduce cualquier
+  dirección; el snapshot (holdings + actividad reciente) es determinista
+  — un hash de la dirección alimenta un generador pseudoaleatorio propio
+  (mulberry32), así la misma dirección da siempre el mismo resultado, sin
+  depender todavía de Etherscan/Alchemy/Moralis. Badge "Modo simulado"
+  visible. Direcciones seguidas persisten por usuario
+  (`store.trackedWallets`); detalle completo en un modal con tabla de
+  holdings y feed de actividad; "Dejar de seguir" con confirmación.
+- **Copy Trading** (`server/services/copyTraders.js` +
+  `copyTradingJob.js`, `server/routes/copy.js`, `public/copy/`): 4
+  traders modelo estáticos con stats de ejemplo. Seguir a uno crea un
+  `copyFollow`; un cron cada 10 minutos (`copyTradingJob`) abre/cierra
+  posiciones por el usuario dentro del motor **real** de Paper Trading
+  (mismo `store.createPosition`/`closePosition`/`updateUserBalance` que
+  usa la pantalla de Trading manual), marcadas `source:'copy'` — el
+  efecto es de verdad dentro del simulador, nunca se mueve dinero real ni
+  se conecta a ningún trader real. Badge "Simulado — sin fondos reales"
+  bien visible por el riesgo legal ya detectado. Seguir dispara además un
+  primer impulso inmediato (no hay que esperar al cron) para que se note
+  al instante en la demo.
+- **Dashboard**: ambas tarjetas ya enlazan a `/wallet` y `/copy` sin
+  `disabled`/`badge-soon`.
+- **Navegación**: añadidas al sidebar de escritorio (6 iconos + logo, con
+  scroll interno de seguridad por si la pantalla es muy baja); se quedan
+  fuera de la bottom nav móvil a propósito (se mantiene en 5 accesos:
+  Inicio/Analyzer/Trading/Picks/Ajustes) — en móvil se llega a ellas
+  desde las tarjetas del dashboard, evitando saturar la barra inferior.
+- **Bug corregido durante la verificación**: los importes de "actividad
+  simulada" del Wallet Tracker podían salir con artefactos de coma
+  flotante (`17.200000000000003`) por sumar un `+0.1` después de un
+  `Math.round` intermedio; arreglado redondeando una sola vez al final.
+- **Auditoría final** (checklist completo, con Playwright): recorridas
+  las 7 pantallas (login/dashboard/analyzer/trading/picks/wallet/copy) en
+  5 resoluciones (1920/1440/1366/tablet~820/390) sin overflow horizontal
+  en ninguna; intro + skip/ESC siguen funcionando; navegación de
+  escritorio y móvil funcionan; cero "Próximamente" restantes; todos los
+  botones ejecutan una acción real; modales, formularios y confirmaciones
+  funcionan; regresión funcional completa (auth, analyzer, trading,
+  picks, billing) sin errores de consola nuevos. README y estructura de
+  ficheros actualizados para reflejar el estado final.
 
 **Fase 4 — Paper Trading — COMPLETA y verificada.** Backend: `Position`
 gana `stopLoss`/`takeProfit`/`closeReason`('manual'|'sl'|'tp')/`costBasis`

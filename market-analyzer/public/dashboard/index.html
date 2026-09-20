@@ -89,16 +89,16 @@
             delay: 0.14,
           })}
           ${card({
-            icon: 'wallet', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)',
+            href: '/wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)',
             name: 'Wallet Tracker', title: 'Wallet Tracker',
-            desc: 'Sigue en tiempo real lo que compran las wallets más certeras.',
-            disabled: true, delay: 0.2,
+            desc: 'Sigue direcciones y observa sus holdings y actividad (modo simulado).',
+            delay: 0.2,
           })}
           ${card({
-            icon: 'refresh', gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+            href: '/copy', icon: 'refresh', gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
             name: 'Copy Trading', title: 'Copy Trading',
-            desc: 'Replica automáticamente los movimientos de los mejores traders.',
-            disabled: true, delay: 0.26,
+            desc: 'Sigue a traders modelo y replica sus operaciones (simulado, sin fondos reales).',
+            delay: 0.26,
           })}
         </div>
       `;
