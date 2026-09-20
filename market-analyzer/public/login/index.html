@@ -26,7 +26,7 @@
   .site-nav__logo { display: inline-flex; align-items: center; gap: 10px; color: var(--text); }
   .site-nav__logo-mark {
     width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--accent), #7c72f0); color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
     display: flex; align-items: center; justify-content: center;
   }
   .site-nav__logo-mark svg { width: 17px; height: 17px; }
@@ -46,8 +46,9 @@
     position: absolute; border-radius: 50%; filter: blur(60px); opacity: .3;
     animation: floatSlow 9s ease-in-out infinite; z-index: 0; pointer-events: none;
   }
-  .bg-blob--1 { width: 420px; height: 420px; background: #7c72f0; top: -140px; left: -140px; }
+  .bg-blob--1 { width: 440px; height: 440px; background: var(--blue); top: -150px; left: -150px; }
   .bg-blob--2 { width: 380px; height: 380px; background: #4f46e5; bottom: -160px; right: -120px; animation-delay: -4s; }
+  .bg-blob--3 { width: 320px; height: 320px; background: var(--blue-bright); top: 30%; right: 6%; animation-delay: -2s; opacity: .18; }
 
   .landing {
     position: relative; z-index: 1;
@@ -115,8 +116,8 @@
   .tool-block__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 22px; }
   .tool-block__col h4 { margin: 0 0 4px; font-size: .9375rem; font-weight: 700; }
   .tool-block__col p { margin: 0; font-size: .8125rem; color: var(--text-dim); line-height: 1.55; }
-  .tool-block--indigo { background: #eef0fd; border-color: #dcdffb; }
-  .tool-block--indigo h3 { color: #3730a3; }
+  .tool-block--indigo { background: #eaf1ff; border-color: #cfe0fd; }
+  .tool-block--indigo h3 { color: #1d4ed8; }
   .tool-block--amber { background: #fef3e0; border-color: #fbe3b8; }
   .tool-block--amber h3 { color: #92400e; }
   .tool-block--purple { background: #f3ecfe; border-color: #e5d5fc; }
@@ -137,7 +138,7 @@
   .price-card--pro { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
   .price-card__ribbon {
     position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-    background: linear-gradient(135deg, var(--accent), #7c72f0); color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
     font-size: .6875rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
     padding: 4px 14px; border-radius: 999px;
   }
@@ -174,7 +175,7 @@
   }
   .site-footer__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .site-footer__brand-mark {
-    width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), #7c72f0);
+    width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--blue));
     color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .site-footer__brand-mark svg { width: 16px; height: 16px; }
@@ -201,7 +202,7 @@
   .landing__logo { display: inline-flex; align-items: center; gap: 13px; margin-bottom: 28px; }
   .landing__logo-mark {
     width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--accent), #7c72f0);
+    background: linear-gradient(135deg, var(--accent), var(--blue));
     color: #fff; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 10px 24px -6px rgba(79, 70, 229, .55);
     animation: logoGlow 2.8s ease-in-out infinite;
@@ -223,7 +224,7 @@
   }
   .landing__title em {
     font-style: normal;
-    background: linear-gradient(90deg, var(--accent), #7c72f0, var(--accent));
+    background: linear-gradient(90deg, var(--accent), var(--blue), var(--accent));
     background-size: 200% auto;
     -webkit-background-clip: text; background-clip: text; color: transparent;
     animation: gradientShift 4s ease-in-out infinite;
@@ -257,7 +258,7 @@
   .auth-card { width: 100%; }
   .auth-logo {
     width: 46px; height: 46px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), #7c72f0);
+    background: linear-gradient(135deg, var(--accent), var(--blue));
     color: #fff; display: flex; align-items: center; justify-content: center;
     font-weight: 800; font-size: 1.2rem; margin: 0 auto 18px;
     box-shadow: 0 8px 20px -8px rgba(79, 70, 229, .6);
@@ -327,6 +328,7 @@
   <header class="hero-section" id="top">
     <div class="bg-blob bg-blob--1"></div>
     <div class="bg-blob bg-blob--2"></div>
+    <div class="bg-blob bg-blob--3"></div>
 
     <div class="landing" data-hero-entrance>
       <div class="landing__hero">
@@ -342,7 +344,7 @@
 
         <div class="landing__bullets">
           <div class="landing__bullet reveal" style="animation-delay:.12s">
-            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #4f46e5, #7c72f0);"></div>
+            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));"></div>
             <div>
               <div class="landing__bullet-text">AI Market Analyzer</div>
               <div class="landing__bullet-desc">Sube una captura de un gráfico y recibe un análisis técnico al instante.</div>

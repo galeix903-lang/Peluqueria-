@@ -13,7 +13,7 @@
   .analyzer-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
   .analyzer-head__icon {
     width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
-    background: linear-gradient(135deg, #4f46e5, #7c72f0); color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 10px 22px -8px rgba(79, 70, 229, .45);
   }
@@ -65,7 +65,7 @@
   .result-grid .label { font-size: .75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: .03em; }
   .result-grid .value { font-weight: 700; margin-top: 2px; }
   .confidence-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 6px; }
-  .confidence-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #7c72f0); width: 0; transition: width 1s cubic-bezier(.16,.84,.44,1); }
+  .confidence-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--blue)); width: 0; transition: width 1s cubic-bezier(.16,.84,.44,1); }
 
   /* Barra visual de soporte/resistencia sobre una escala simple. */
   .levels-scale { position: relative; height: 34px; margin: 10px 0 6px; }

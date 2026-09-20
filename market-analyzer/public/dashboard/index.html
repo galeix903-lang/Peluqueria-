@@ -39,8 +39,11 @@
         <div class="stat-row-cards">
           ${[0, 1, 2].map(() => `
             <div class="stat-card">
-              <div class="skeleton skeleton-text skeleton-text--sm"></div>
-              <div class="skeleton skeleton-text" style="width:60%; height:1.5rem;"></div>
+              <div class="skeleton skeleton-avatar" style="border-radius:13px;"></div>
+              <div class="stat-card__body" style="flex:1;">
+                <div class="skeleton skeleton-text skeleton-text--sm"></div>
+                <div class="skeleton skeleton-text" style="width:60%; height:1.5rem;"></div>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -69,7 +72,7 @@
         <div class="primary-group">
           <div class="card-grid">
             ${card({
-              href: '/analyzer', icon: 'brain', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)',
+              href: '/analyzer', icon: 'brain', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))',
               name: 'AI Analyzer', title: 'AI Market Analyzer',
               desc: 'Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.',
               delay: 0.02,
@@ -118,16 +121,25 @@
         statsEl.innerHTML = `
           <div class="stat-row-cards reveal">
             <div class="stat-card">
-              <span class="stat-card__label text-meta">Saldo</span>
-              <span class="stat-card__value" data-stat-balance>${fmtUsd(trading.balance)}</span>
+              <span class="stat-card__icon" style="background:linear-gradient(135deg, var(--blue), var(--accent));">${vantexIcon('wallet', { size: 21 })}</span>
+              <div class="stat-card__body">
+                <span class="stat-card__label text-meta">Saldo</span>
+                <span class="stat-card__value" data-stat-balance>${fmtUsd(trading.balance)}</span>
+              </div>
             </div>
             <div class="stat-card">
-              <span class="stat-card__label text-meta">P&amp;L abierto</span>
-              <span class="stat-card__value ${openPnl >= 0 ? 'pnl-pos' : 'pnl-neg'}" data-stat-pnl>${fmtUsd(openPnl)}</span>
+              <span class="stat-card__icon" style="background:${openPnl >= 0 ? 'linear-gradient(135deg, #16a34a, #22c55e)' : 'linear-gradient(135deg, #dc2626, #ef4444)'};">${vantexIcon('trend', { size: 21 })}</span>
+              <div class="stat-card__body">
+                <span class="stat-card__label text-meta">P&amp;L abierto</span>
+                <span class="stat-card__value ${openPnl >= 0 ? 'pnl-pos' : 'pnl-neg'}" data-stat-pnl>${fmtUsd(openPnl)}</span>
+              </div>
             </div>
             <div class="stat-card">
-              <span class="stat-card__label text-meta">Posiciones abiertas</span>
-              <span class="stat-card__value">${open.length}</span>
+              <span class="stat-card__icon" style="background:linear-gradient(135deg, #8b5cf6, #a855f7);">${vantexIcon('inbox', { size: 21 })}</span>
+              <div class="stat-card__body">
+                <span class="stat-card__label text-meta">Posiciones abiertas</span>
+                <span class="stat-card__value">${open.length}</span>
+              </div>
             </div>
           </div>
         `;
@@ -136,7 +148,7 @@
         // falta en vez de mostrar siempre lo mismo.
         if (history.analyses.length === 0) {
           ctaEl.innerHTML = ctaBanner({
-            icon: 'brain', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)',
+            icon: 'brain', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))',
             title: 'Analiza tu primer gráfico',
             desc: 'Sube la captura de un gráfico y prueba el AI Market Analyzer — es gratis.',
             href: '/analyzer', cta: 'Analizar ahora',

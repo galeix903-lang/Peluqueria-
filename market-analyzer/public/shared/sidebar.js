@@ -12,8 +12,8 @@
 // (que se queda con 5 accesos para no saturarla) sin dejar de mostrarla
 // en el sidebar de escritorio, que sí tiene sitio de sobra.
 const NAV_ITEMS = [
-  { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)', bottom: true },
-  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'wand', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)', bottom: true },
+  { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))', bottom: true },
+  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'wand', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))', bottom: true },
   { page: 'trading', href: '/trading', label: 'Paper Trading', shortLabel: 'Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)', bottom: true },
   { page: 'picks', href: '/picks', label: 'Handpicked Bets', shortLabel: 'Picks', icon: 'star', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)', bottom: true },
   { page: 'wallet', href: '/wallet', label: 'Wallet Tracker', shortLabel: 'Wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)', bottom: false },
