@@ -5,7 +5,11 @@ const store = require('../store');
 const router = express.Router();
 
 function publicUser(user) {
-  return { id: user.id, email: user.email, name: user.name, balance: user.balance, plan: user.plan };
+  return {
+    id: user.id, email: user.email, name: user.name,
+    bio: user.bio || null, avatar: user.avatar || null,
+    balance: user.balance, plan: user.plan,
+  };
 }
 
 router.post('/signup', async (req, res) => {
@@ -46,14 +50,37 @@ router.get('/me', (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-// Usado por el modal de ajustes del header para editar el nombre mostrado.
+// Usado por el modal de ajustes del header: nombre, bio y foto de perfil.
 router.patch('/me', (req, res) => {
   const existing = req.session.userId && store.findUserById(req.session.userId);
   if (!existing) return res.status(401).json({ error: 'No has iniciado sesión.' });
-  const name = (req.body?.name || '').trim();
-  if (!name) return res.status(400).json({ error: 'El nombre no puede estar vacío.' });
-  if (name.length > 60) return res.status(400).json({ error: 'El nombre es demasiado largo.' });
-  const user = store.updateUserName(existing.id, name);
+
+  const patch = {};
+  if (req.body?.name !== undefined) {
+    const name = String(req.body.name).trim();
+    if (!name) return res.status(400).json({ error: 'El nombre no puede estar vacío.' });
+    if (name.length > 60) return res.status(400).json({ error: 'El nombre es demasiado largo.' });
+    patch.name = name;
+  }
+  if (req.body?.bio !== undefined) {
+    const bio = String(req.body.bio).trim();
+    if (bio.length > 160) return res.status(400).json({ error: 'La descripción no puede superar los 160 caracteres.' });
+    patch.bio = bio || null;
+  }
+  if (req.body?.avatar !== undefined) {
+    const avatar = req.body.avatar;
+    if (avatar !== null) {
+      if (typeof avatar !== 'string' || !avatar.startsWith('data:image/')) {
+        return res.status(400).json({ error: 'La imagen de perfil no es válida.' });
+      }
+      if (avatar.length > 400_000) {
+        return res.status(400).json({ error: 'La imagen es demasiado grande.' });
+      }
+    }
+    patch.avatar = avatar;
+  }
+
+  const user = store.updateUserProfile(existing.id, patch);
   res.json({ user: publicUser(user) });
 });
 

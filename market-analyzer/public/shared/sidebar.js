@@ -26,6 +26,37 @@ function icon(name) {
   return vantexIcon(name, { size: 24 });
 }
 
+// Devuelve el contenido de un <span class="avatar">: la foto si el
+// usuario tiene una, o su inicial como hasta ahora.
+function avatarInnerHtml(user) {
+  if (user.avatar) return `<img src="${user.avatar}" alt="" />`;
+  return escapeHtml(user.name.charAt(0).toUpperCase());
+}
+
+// Redimensiona/recorta la imagen elegida a un cuadrado pequeño en el
+// propio navegador (canvas) antes de subirla — así nunca se manda una
+// foto de varios MB al servidor, solo un avatar ya listo para usar.
+function resizeImageToDataUrl(file, size = 160, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+    reader.onload = () => { img.src = reader.result; };
+    img.onerror = () => reject(new Error('El archivo no es una imagen válida.'));
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function mountShell({ page, title }) {
   const root = document.querySelector('[data-app-shell]');
   let user;
@@ -61,7 +92,7 @@ async function mountShell({ page, title }) {
               ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ PRO</span>'
               : '<button class="btn-primary" data-upgrade-btn>Upgrade!</button>'}
             <span class="topbar__name">${escapeHtml(user.name)}</span>
-            <span class="avatar" title="${escapeHtml(user.name)}">${escapeHtml(user.name.charAt(0).toUpperCase())}</span>
+            <span class="avatar" title="${escapeHtml(user.name)}">${avatarInnerHtml(user)}</span>
             <button class="topbar__icon-btn" type="button" data-settings-btn aria-label="Ajustes">${icon('settings')}</button>
             <button class="btn-logout" data-logout>Cerrar sesión</button>
           </div>
@@ -156,12 +187,27 @@ function setupClock(root) {
 }
 
 function openSettingsModal(user, root) {
+  let pendingAvatar; // undefined = sin cambios; null = quitar foto; string = foto nueva
+
   openModal({
     title: 'Ajustes',
     bodyHtml: `
+      <div class="profile-edit__avatar-row">
+        <span class="avatar profile-edit__avatar" data-profile-avatar-preview>${avatarInnerHtml(user)}</span>
+        <div class="profile-edit__avatar-actions">
+          <button type="button" class="btn-secondary" data-avatar-pick>Cambiar foto</button>
+          <input type="file" accept="image/*" data-avatar-input hidden />
+          ${user.avatar ? '<button type="button" class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" data-avatar-remove>Quitar foto</button>' : ''}
+        </div>
+      </div>
       <div class="field">
         <label for="settings-name">Nombre</label>
         <input id="settings-name" type="text" value="${escapeHtml(user.name)}" maxlength="60" />
+      </div>
+      <div class="field">
+        <label for="settings-bio">Biografía</label>
+        <textarea id="settings-bio" maxlength="160" placeholder="Cuenta algo sobre ti (opcional)">${escapeHtml(user.bio || '')}</textarea>
+        <div class="profile-edit__bio-count" data-bio-count>0 / 160</div>
       </div>
       <p class="text-caption" style="margin:0 0 14px;">
         Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Pro ★' : 'Gratuito'}</strong>
@@ -177,22 +223,54 @@ function openSettingsModal(user, root) {
     `,
     onOpen: (modalRoot) => {
       const nameInput = modalRoot.querySelector('#settings-name');
+      const bioInput = modalRoot.querySelector('#settings-bio');
+      const bioCount = modalRoot.querySelector('[data-bio-count]');
+      const avatarPreview = modalRoot.querySelector('[data-profile-avatar-preview]');
+      const avatarInput = modalRoot.querySelector('[data-avatar-input]');
       const errorEl = modalRoot.querySelector('[data-settings-error]');
       const saveBtn = modalRoot.querySelector('[data-settings-save]');
       nameInput.focus({ preventScroll: true });
       nameInput.select();
 
+      const updateBioCount = () => { bioCount.textContent = `${bioInput.value.length} / 160`; };
+      updateBioCount();
+      bioInput.addEventListener('input', updateBioCount);
+
+      modalRoot.querySelector('[data-avatar-pick]').addEventListener('click', () => avatarInput.click());
+      avatarInput.addEventListener('change', async () => {
+        const file = avatarInput.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await resizeImageToDataUrl(file);
+          pendingAvatar = dataUrl;
+          avatarPreview.innerHTML = `<img src="${dataUrl}" alt="" />`;
+        } catch (err) {
+          errorEl.textContent = err.message;
+        }
+      });
+      const removeBtn = modalRoot.querySelector('[data-avatar-remove]');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+          pendingAvatar = null;
+          avatarPreview.innerHTML = escapeHtml(nameInput.value.trim().charAt(0).toUpperCase() || user.name.charAt(0).toUpperCase());
+          removeBtn.remove();
+        });
+      }
+
       saveBtn.addEventListener('click', async () => {
         const name = nameInput.value.trim();
+        const bio = bioInput.value.trim();
         errorEl.textContent = '';
         if (!name) { errorEl.textContent = 'El nombre no puede estar vacío.'; return; }
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span class="spinner"></span> Guardando…';
         try {
-          await api('/auth/me', { method: 'PATCH', body: JSON.stringify({ name }) });
-          root.querySelectorAll('.topbar__name').forEach((el) => { el.textContent = name; });
-          root.querySelectorAll('.avatar').forEach((el) => { el.textContent = name.charAt(0).toUpperCase(); el.title = name; });
-          user.name = name;
+          const payload = { name, bio };
+          if (pendingAvatar !== undefined) payload.avatar = pendingAvatar;
+          const { user: updated } = await api('/auth/me', { method: 'PATCH', body: JSON.stringify(payload) });
+          Object.assign(user, updated);
+          root.querySelectorAll('.topbar__name').forEach((el) => { el.textContent = updated.name; });
+          root.querySelectorAll('.avatar').forEach((el) => { el.innerHTML = avatarInnerHtml(updated); el.title = updated.name; });
           showToast({ type: 'success', message: 'Ajustes guardados.' });
           closeModal();
         } catch (err) {

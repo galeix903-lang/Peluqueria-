@@ -102,26 +102,25 @@ button { font: inherit; cursor: pointer; }
 .sidebar__nav { display: flex; flex-direction: column; gap: 22px; }
 
 /* Cada icono es un mini-logo con el color propio de su herramienta (el
-   mismo degradado que su tarjeta en el dashboard): gris en reposo, a
-   todo color al pasar el ratón o cuando está activo, con una etiqueta
-   flotante animada a modo de tooltip. */
+   mismo degradado que su tarjeta en el dashboard), siempre a todo color
+   —no solo al pasar el ratón—, con una etiqueta flotante animada a modo
+   de tooltip y un anillo extra cuando es la sección activa. */
 .sidebar__link {
   position: relative;
   width: 54px; height: 54px;
   border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--text-dim);
-  background: var(--field-bg);
+  color: #fff;
+  background: var(--link-gradient, var(--accent-dim));
   text-decoration: none;
-  transition: background .22s, color .22s, transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s;
+  box-shadow: 0 6px 16px -9px rgba(20, 22, 43, .5);
+  transition: transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s;
 }
 .sidebar__link svg { width: 24px; height: 24px; transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
 .sidebar__link:hover,
 .sidebar__link.is-active {
-  background: var(--link-gradient, var(--accent-dim));
-  color: #fff;
   transform: translateY(-3px) scale(1.07);
-  box-shadow: 0 12px 24px -10px rgba(20, 22, 43, .35);
+  box-shadow: 0 12px 24px -10px rgba(20, 22, 43, .4);
 }
 .sidebar__link:hover svg, .sidebar__link.is-active svg { transform: scale(1.08); }
 .sidebar__link.is-active {
@@ -170,8 +169,21 @@ button { font: inherit; cursor: pointer; }
   background: linear-gradient(135deg, #7c72f0, var(--accent));
   color: #fff; font-weight: 700; font-size: .8125rem;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  flex-shrink: 0; overflow: hidden;
 }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- Edición de perfil (modal de ajustes) ---------- */
+.profile-edit__avatar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.profile-edit__avatar { width: 64px; height: 64px; font-size: 1.375rem; }
+.profile-edit__avatar-actions { display: flex; flex-direction: column; gap: 6px; }
+.profile-edit__bio-count { text-align: right; font-size: .6875rem; color: var(--text-dim); margin-top: 4px; }
+.field textarea {
+  width: 100%; padding: 10px 12px; resize: vertical; min-height: 64px;
+  border: 1px solid var(--border); border-radius: 9px;
+  font-size: .875rem; font-family: inherit; background: var(--field-bg);
+}
+.field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .btn-logout {
   border: 1px solid var(--border);
   background: var(--surface);

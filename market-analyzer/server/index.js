@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 
 const requireAuth = require('./middleware/requireAuth');
 const authRoutes = require('./routes/auth');
@@ -25,8 +26,16 @@ app.get('/robots.txt', (req, res) => {
 // propio parser de solo esta ruta.
 app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), billing.webhookHandler);
 
-app.use(express.json());
+app.use(express.json({ limit: '1mb' })); // deja sitio a la foto de perfil (se envía como data URL ya comprimida)
 app.use(session({
+  // Por defecto express-session guarda las sesiones en memoria, así que
+  // cada vez que el proceso se reinicia (redeploy, o el propio Render
+  // "durmiendo" el servicio gratuito por inactividad) se perdían todas
+  // y todo el mundo tenía que volver a iniciar sesión. Guardarlas en
+  // disco (mismo directorio data/ que ya usa store.js) hace que
+  // sobrevivan a esos reinicios — solo se pierden si Render reconstruye
+  // el contenedor entero desde cero en un despliegue nuevo.
+  store: new FileStore({ path: path.join(__dirname, '..', 'data', 'sessions'), logFn: () => {} }),
   secret: process.env.SESSION_SECRET || 'dev-secret-cambia-esto',
   resave: false,
   saveUninitialized: false,

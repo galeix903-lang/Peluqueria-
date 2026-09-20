@@ -51,6 +51,8 @@ function createUser({ email, passwordHash, name }) {
     email,
     passwordHash,
     name: name || email.split('@')[0],
+    bio: null,
+    avatar: null,
     balance: 100000, // saldo virtual inicial de paper trading
     plan: 'free', // 'free' | 'pro'
     stripeCustomerId: null,
@@ -61,11 +63,16 @@ function createUser({ email, passwordHash, name }) {
   return user;
 }
 
-function updateUserName(userId, name) {
+// Actualiza los campos de perfil que llegan definidos (name/bio/avatar),
+// sin tocar los que no — así una petición que solo cambia la bio no
+// borra el avatar, y viceversa.
+function updateUserProfile(userId, { name, bio, avatar } = {}) {
   const db = load();
   const user = db.users.find((u) => u.id === userId);
   if (!user) return null;
-  user.name = name;
+  if (name !== undefined) user.name = name;
+  if (bio !== undefined) user.bio = bio;
+  if (avatar !== undefined) user.avatar = avatar;
   save(db);
   return user;
 }
@@ -220,7 +227,7 @@ module.exports = {
   findUserById,
   findUserByStripeCustomerId,
   createUser,
-  updateUserName,
+  updateUserProfile,
   updateUserBalance,
   setUserPlan,
   listPositions,
