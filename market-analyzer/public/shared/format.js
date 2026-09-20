@@ -4,6 +4,18 @@
   cambie con una pequeña transición en vez de un salto seco, sin
   necesitar ninguna librería.
 */
+// Los nombres de usuario son texto libre que en varios sitios se inserta
+// vía innerHTML (para poder combinarlo con iconos/markup) — hay que
+// escaparlo primero para que un nombre malicioso no pueda inyectar HTML.
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function fmtUsd(n) {
   return Number(n).toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 }

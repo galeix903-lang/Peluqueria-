@@ -14,6 +14,9 @@
 
   <script src="/shared/api.js"></script>
   <script src="/shared/icons.js"></script>
+  <script src="/shared/format.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/toast.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
     mountShell({ page: 'dashboard', title: 'Bienvenido de nuevo 👋' }).then((ctx) => {
@@ -30,6 +33,17 @@
         banner = '<div class="panel reveal-pop" style="margin-bottom:24px;">Has vuelto al plan gratuito (3 análisis al día).</div>';
       }
       if (banner) history.replaceState(null, '', location.pathname);
+
+      const statSkeleton = `
+        <div class="stat-row-cards">
+          ${[0, 1, 2].map(() => `
+            <div class="stat-card">
+              <div class="skeleton skeleton-text skeleton-text--sm"></div>
+              <div class="skeleton skeleton-text" style="width:60%; height:1.5rem;"></div>
+            </div>
+          `).join('')}
+        </div>
+      `;
 
       const card = ({ href, icon, gradient, name, title, desc, disabled, delay }) => `
         <${href ? 'a href="' + href + '"' : 'div'} class="feature-card reveal ${disabled ? 'is-disabled' : ''}" style="animation-delay:${delay}s">
@@ -49,6 +63,8 @@
 
       ctx.contentEl.innerHTML = `
         ${banner}
+        <div data-stats>${statSkeleton}</div>
+        <div data-cta></div>
         <div class="primary-group">
           <div class="card-grid">
             ${card({
@@ -86,7 +102,69 @@
           })}
         </div>
       `;
+
+      loadOverview(ctx.contentEl);
     });
+
+    async function loadOverview(contentEl) {
+      const statsEl = contentEl.querySelector('[data-stats]');
+      const ctaEl = contentEl.querySelector('[data-cta]');
+      try {
+        const [trading, history] = await Promise.all([api('/trading'), api('/analyzer/history')]);
+        const open = trading.positions.filter((p) => p.status === 'open');
+        const openPnl = open.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);
+
+        statsEl.innerHTML = `
+          <div class="stat-row-cards reveal">
+            <div class="stat-card">
+              <span class="stat-card__label text-meta">Saldo</span>
+              <span class="stat-card__value" data-stat-balance>${fmtUsd(trading.balance)}</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label text-meta">P&amp;L abierto</span>
+              <span class="stat-card__value ${openPnl >= 0 ? 'pnl-pos' : 'pnl-neg'}" data-stat-pnl>${fmtUsd(openPnl)}</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label text-meta">Posiciones abiertas</span>
+              <span class="stat-card__value">${open.length}</span>
+            </div>
+          </div>
+        `;
+
+        // CTA contextual: guía al usuario hacia la primera acción que le
+        // falta en vez de mostrar siempre lo mismo.
+        if (history.analyses.length === 0) {
+          ctaEl.innerHTML = ctaBanner({
+            icon: 'brain', gradient: 'linear-gradient(135deg, #4f46e5, #7c72f0)',
+            title: 'Analiza tu primer gráfico',
+            desc: 'Sube la captura de un gráfico y prueba el AI Market Analyzer — es gratis.',
+            href: '/analyzer', cta: 'Analizar ahora',
+          });
+        } else if (open.length === 0) {
+          ctaEl.innerHTML = ctaBanner({
+            icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)',
+            title: 'Abre tu primera operación',
+            desc: 'Practica con saldo virtual en Paper Trading, sin ningún riesgo real.',
+            href: '/trading', cta: 'Abrir operación',
+          });
+        }
+      } catch (err) {
+        statsEl.innerHTML = `<p class="text-caption">No se ha podido cargar el resumen: ${err.message}</p>`;
+      }
+    }
+
+    function ctaBanner({ icon, gradient, title, desc, href, cta }) {
+      return `
+        <a href="${href}" class="action-card reveal-pop" style="margin-bottom:22px; padding:16px 18px;">
+          <div class="action-card__icon" style="background:${gradient}; color:#fff; width:44px; height:44px;">${vantexIcon(icon, { size: 20 })}</div>
+          <div style="flex:1; min-width:0;">
+            <div class="action-card__title" style="font-size:.9375rem;">${title}</div>
+            <div class="action-card__desc">${desc}</div>
+          </div>
+          <span class="btn-secondary" style="flex-shrink:0;">${cta}</span>
+        </a>
+      `;
+    }
   </script>
 </body>
 </html>

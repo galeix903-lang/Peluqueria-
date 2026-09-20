@@ -180,19 +180,31 @@ button { font: inherit; cursor: pointer; }
 }
 .btn-logout:hover { color: var(--text); border-color: var(--border-strong); }
 
-.content { padding: 4px 40px 48px; max-width: 1180px; }
+.content { padding: 4px 40px 48px; max-width: 1180px; margin: 0 auto; }
+
+/* `margin:0 auto` centra el contenido dentro de .main, pero .main ya
+   arranca desplazado por el ancho del sidebar — en pantallas anchas eso
+   deja el contenido visiblemente descentrado respecto a la ventana
+   completa. A partir de 1300px se compensa ese desplazamiento para que
+   quede centrado de verdad respecto a toda la pantalla, y el topbar usa
+   el mismo cálculo para que el título/las tarjetas queden alineados. */
+@media (min-width: 1300px) {
+  .main {
+    --edge-l: max(24px, calc((100vw - 1180px) / 2 - var(--sidebar-w)));
+    --edge-r: max(24px, calc((100vw - 1180px) / 2));
+  }
+  .content { margin-left: var(--edge-l); margin-right: var(--edge-r); }
+  .topbar { padding-left: calc(var(--edge-l) + 40px); padding-right: calc(var(--edge-r) + 40px); }
+}
 
 @media (max-width: 640px) {
-  :root { --sidebar-w: 76px; }
-  .sidebar { padding: 20px 0; gap: 28px; }
-  .sidebar__logo { width: 46px; height: 46px; border-radius: 13px; }
-  .sidebar__logo svg { width: 22px; height: 22px; }
-  .sidebar__nav { gap: 14px; }
-  .sidebar__link { width: 42px; height: 42px; border-radius: 12px; }
-  .sidebar__link svg { width: 20px; height: 20px; }
-  .sidebar__link::after, .sidebar__link::before { display: none; }
+  /* El sidebar se oculta por completo por debajo de 640px — la
+     navegación móvil la resuelve .bottom-nav (ver más abajo), no una
+     miniatura del sidebar de escritorio. */
   .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 22px 20px 18px; }
   .topbar__user { flex-wrap: wrap; row-gap: 8px; }
+  .topbar__status span:last-child { display: none; }
+  .topbar__clock { display: none; }
   .content { padding: 4px 20px 40px; }
   /* En móvil la píldora de las tarjetas principales usa el mismo tamaño
      reducido que ya llevan las tarjetas secundarias, para que "AI Analyzer"
@@ -496,4 +508,84 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
 .toast__close:hover { color: #fff; }
 @media (max-width: 640px) {
   .toast-region { right: 12px; left: 12px; bottom: calc(var(--bottomnav-h) + 16px); max-width: none; }
+}
+
+/* ---------- Cabecera: estado de conexión, reloj, botón de ajustes ---------- */
+.topbar__status { display: flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; color: var(--text-dim); }
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--green); box-shadow: 0 0 0 3px var(--green-bg);
+  transition: background .2s, box-shadow .2s;
+}
+.status-dot.is-offline { background: var(--text-dim); box-shadow: 0 0 0 3px var(--field-bg); }
+.topbar__clock { font-size: .75rem; font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.topbar__icon-btn {
+  width: 36px; height: 36px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: border-color .15s, color .15s, transform .15s;
+}
+.topbar__icon-btn:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+.topbar__icon-btn svg { width: 17px; height: 17px; }
+
+/* ---------- Modal genérico ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(15, 16, 32, .44);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; transition: opacity .2s var(--ease-out);
+}
+.modal-backdrop.is-in { opacity: 1; }
+.modal-panel {
+  background: var(--surface); border-radius: var(--radius);
+  width: 100%; max-width: 400px;
+  box-shadow: var(--shadow-lg);
+  max-height: 86vh; overflow-y: auto;
+}
+.modal-panel__head { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 4px; }
+.modal-panel__close {
+  background: none; border: none; color: var(--text-dim); padding: 6px; border-radius: 8px;
+  display: flex; transition: background .15s, color .15s;
+}
+.modal-panel__close:hover { background: var(--field-bg); color: var(--text); }
+.modal-panel__body { padding: 16px 20px 4px; }
+.modal-panel__footer { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 20px 20px; }
+
+/* ---------- Fila de métricas del dashboard ---------- */
+.stat-row-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 26px; }
+@media (max-width: 720px) { .stat-row-cards { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .stat-row-cards { grid-template-columns: 1fr; } }
+
+/* ---------- Navegación inferior (móvil) ----------
+   Sustituye por completo al sidebar por debajo de 640px, en vez de
+   limitarse a encogerlo — pensada para el pulgar, no una miniatura del
+   escritorio. */
+.bottom-nav {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+  height: var(--bottomnav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -10px 26px -20px rgba(20, 22, 43, .35);
+  padding: 0 2px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bottom-nav__link {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  height: 100%;
+  color: var(--text-dim); text-decoration: none;
+  background: none; border: none; font-family: inherit;
+  font-size: .625rem; font-weight: 700; letter-spacing: .01em;
+  transition: color .15s, transform .12s;
+}
+.bottom-nav__link svg { width: 20px; height: 20px; }
+.bottom-nav__link.is-active { color: var(--accent); }
+.bottom-nav__link:active { transform: scale(.92); }
+
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .bottom-nav { display: flex; }
+  .content { padding-bottom: calc(28px + var(--bottomnav-h)); }
 }

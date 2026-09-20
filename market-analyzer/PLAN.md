@@ -13,6 +13,33 @@ error en todas partes, gráficos, confirmaciones, toasts, navegación móvil
 propia y motion design coherente. Se ejecuta en 5 fases con checkpoint
 tras cada una (plan completo en la sesión de Claude Code, resumen aquí).
 
+**Fase 2 — Dashboard + navegación — COMPLETA y verificada.** Backend:
+`PATCH /api/auth/me` para editar el nombre (`store.updateUserName`).
+Cabecera enriquecida: indicador de conexión real (reacciona a
+`online`/`offline`), reloj, botón de ajustes que abre un modal genérico
+nuevo y reutilizable (`shared/modal.js`) con el nombre editable y acceso
+a la suscripción. Dashboard con fila de métricas reales (saldo, P&L
+abierto, posiciones abiertas, leídas de `GET /api/trading`) con skeleton
+mientras cargan, y un CTA contextual (analiza tu primer gráfico / abre tu
+primera operación, según lo que le falte al usuario) en vez de uno fijo.
+Navegación móvil rediseñada de cero: por debajo de 640px el sidebar se
+oculta por completo y aparece una bottom nav fija pensada para el pulgar
+(Inicio/Analyzer/Trading/Picks/Ajustes), no una miniatura del sidebar de
+escritorio. Corregido además un descentrado que el usuario señaló en
+pantallas anchas: `.content` se centraba dentro de `.main`, pero como
+`.main` ya arranca desplazado por el ancho del sidebar, el resultado se
+veía pegado a la izquierda — a partir de 1300px de ancho se compensa ese
+desplazamiento (mismo cálculo aplicado al `.topbar` para que quede
+alineado) y ahora sí queda centrado respecto a toda la pantalla. Fix de
+seguridad de paso: `user.name` se interpolaba sin escapar en el topbar
+(XSS si alguien pone HTML como nombre); añadido `escapeHtml()` en
+`shared/format.js` y aplicado donde corresponde. Verificado con
+Playwright: centrado exacto en 1920px, stat-cards con datos reales, CTA
+contextual correcto, modal de ajustes guarda y persiste tras recargar,
+ESC lo cierra, bottom nav navega y el sidebar queda oculto en móvil, sin
+overflow horizontal en ninguna página/resolución, regresión funcional
+completa sin errores nuevos.
+
 **Fase 1 — Sistema de diseño + intro 3D + login/landing — COMPLETA y
 verificada.** Ampliados los tokens (tipografía, spacing, sombra lg),
 nuevos niveles de tarjeta (`.stat-card`/`.action-card`/`.data-card`),

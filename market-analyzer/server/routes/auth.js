@@ -46,4 +46,15 @@ router.get('/me', (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
+// Usado por el modal de ajustes del header para editar el nombre mostrado.
+router.patch('/me', (req, res) => {
+  const existing = req.session.userId && store.findUserById(req.session.userId);
+  if (!existing) return res.status(401).json({ error: 'No has iniciado sesión.' });
+  const name = (req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'El nombre no puede estar vacío.' });
+  if (name.length > 60) return res.status(400).json({ error: 'El nombre es demasiado largo.' });
+  const user = store.updateUserName(existing.id, name);
+  res.json({ user: publicUser(user) });
+});
+
 module.exports = router;

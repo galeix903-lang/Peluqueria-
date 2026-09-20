@@ -61,6 +61,15 @@ function createUser({ email, passwordHash, name }) {
   return user;
 }
 
+function updateUserName(userId, name) {
+  const db = load();
+  const user = db.users.find((u) => u.id === userId);
+  if (!user) return null;
+  user.name = name;
+  save(db);
+  return user;
+}
+
 function updateUserBalance(userId, newBalance) {
   const db = load();
   const user = db.users.find((u) => u.id === userId);
@@ -156,6 +165,7 @@ module.exports = {
   findUserById,
   findUserByStripeCustomerId,
   createUser,
+  updateUserName,
   updateUserBalance,
   setUserPlan,
   listPositions,
