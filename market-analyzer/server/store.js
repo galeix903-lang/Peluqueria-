@@ -108,7 +108,7 @@ function createPosition(position) {
   return record;
 }
 
-function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl }) {
+function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl, closeReason = 'manual' }) {
   const db = load();
   const pos = db.positions.find((p) => p.id === positionId && p.userId === userId);
   if (!pos) return null;
@@ -116,6 +116,7 @@ function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl }
   pos.closePrice = closePrice;
   pos.closedAt = closedAt;
   pos.realizedPnl = realizedPnl;
+  pos.closeReason = closeReason;
   save(db);
   return pos;
 }

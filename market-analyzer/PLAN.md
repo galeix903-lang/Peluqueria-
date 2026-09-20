@@ -13,6 +13,32 @@ error en todas partes, gráficos, confirmaciones, toasts, navegación móvil
 propia y motion design coherente. Se ejecuta en 5 fases con checkpoint
 tras cada una (plan completo en la sesión de Claude Code, resumen aquí).
 
+**Fase 4 — Paper Trading — COMPLETA y verificada.** Backend: `Position`
+gana `stopLoss`/`takeProfit`/`closeReason`('manual'|'sl'|'tp')/`costBasis`
+opcionales; `checkAndAutoClose(userId, prices)` se ejecuta al principio de
+`GET /api/trading` (que la página ya sondea cada 15s) y cierra sola
+cualquier posición que cruce su SL/TP al último precio muestreado, con la
+misma liquidación de saldo que un cierre manual (factorizada en
+`settleClose`). `market.js` guarda un histórico corto en memoria (hasta
+40 muestras por símbolo, una por cada refresco real de caché, nunca
+inventadas) y lo expone en `GET /api/trading/chart/:symbol`, nuevo,
+usado para un sparkline real sin ninguna librería de gráficos.
+
+Frontend reconstruido: ticket de orden con símbolo + sparkline, precio en
+vivo, Comprar/Vender con feedback visual, SL/TP opcionales en un desplegable,
+y un modal de confirmación (reutilizando `shared/modal.js`) tanto para
+abrir como para cerrar una posición — nunca se envía nada sin confirmar.
+Balance y P&L abierto usan `animateNumber` en vez de saltar en seco. Toasts
+de éxito/error, y un toast específico cuando una posición se cierra sola
+por stop-loss o take-profit (detectado comparando el `closeReason` entre
+cargas). Tabla ampliada con columna de % y badge SL/TP/manual en el cierre.
+Skeleton en la tabla durante la primera carga. Verificado con Playwright:
+apertura con SL/TP, cierre automático real disparado por un take-profit ya
+cumplido (badge TP visible, saldo liquidado), confirmaciones bloquean el
+envío hasta aceptarlas, sparkline se pinta, sin overflow en ninguna
+resolución, regresión completa (incluye el nuevo paso de confirmación)
+sin errores nuevos.
+
 **Fase 3 — AI Analyzer — COMPLETA y verificada.** Backend: `POST /api/
 analyzer` acepta ahora `symbolHint`/`timeframe` opcionales (junto a la
 imagen), se pasan al prompt de Claude en modo live y se reflejan en las

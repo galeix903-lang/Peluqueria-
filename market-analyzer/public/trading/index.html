@@ -10,11 +10,30 @@
 <link rel="stylesheet" href="/shared/style.css" />
 <style>
   .side-toggle { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
-  .side-toggle button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 700; font-size: .8125rem; color: var(--text-dim); transition: background .15s, color .15s; }
+  .side-toggle button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 700; font-size: .8125rem; color: var(--text-dim); display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: background .15s, color .15s, transform .1s; }
   .side-toggle button[data-side="long"].is-active { background: var(--green-bg); color: var(--green); }
   .side-toggle button[data-side="short"].is-active { background: var(--red-bg); color: var(--red); }
-  .trade-form { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
-  .trade-form .field { margin-bottom: 0; min-width: 140px; }
+  .side-toggle button:active { transform: scale(.97); }
+
+  .ticket-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 4px; }
+  .ticket-row .field { margin-bottom: 0; min-width: 140px; }
+  .ticket-advanced { border-top: 1px dashed var(--border); margin-top: 16px; padding-top: 16px; }
+  .ticket-advanced summary { cursor: pointer; font-size: .8125rem; font-weight: 700; color: var(--text-dim); list-style: none; display: flex; align-items: center; gap: 6px; }
+  .ticket-advanced summary::-webkit-details-marker { display: none; }
+  .ticket-advanced summary svg { width: 14px; height: 14px; transition: transform .18s; }
+  .ticket-advanced[open] summary svg { transform: rotate(90deg); }
+  .ticket-advanced__body { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+
+  .symbol-row { display: flex; align-items: center; gap: 14px; }
+  .sparkline svg { display: block; }
+  .live-price { font-weight: 800; font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
+
+  .badge--sl { background: var(--red-bg); color: var(--red); }
+  .badge--tp { background: var(--green-bg); color: var(--green); }
+  .badge--manual { background: var(--field-bg); color: var(--text-dim); }
+
+  .skeleton-table-row { display: flex; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
+  .skeleton-table-row:first-child { border-top: none; }
 </style>
 </head>
 <body>
@@ -42,44 +61,74 @@
             </div>
           </div>
 
-          <form class="trade-form" data-trade-form>
-            <div class="field">
-              <label>Símbolo</label>
-              <select name="symbol" data-symbol-select></select>
-            </div>
-            <div class="field">
-              <label>Dirección</label>
-              <div class="side-toggle">
-                <button type="button" data-side="long" class="is-active">Long</button>
-                <button type="button" data-side="short">Short</button>
+          <form data-trade-form>
+            <div class="ticket-row">
+              <div class="field">
+                <label>Símbolo</label>
+                <div class="symbol-row">
+                  <select name="symbol" data-symbol-select></select>
+                  <span class="sparkline" data-sparkline></span>
+                </div>
               </div>
-              <input type="hidden" name="side" value="long" data-side-input />
+              <div class="field">
+                <label>Precio actual</label>
+                <div class="live-price" data-live-price>—</div>
+              </div>
+              <div class="field">
+                <label>Dirección</label>
+                <div class="side-toggle">
+                  <button type="button" data-side="long" class="is-active">${vantexIcon('arrowUp', { size: 14 })} Comprar</button>
+                  <button type="button" data-side="short">${vantexIcon('arrowDown', { size: 14 })} Vender</button>
+                </div>
+                <input type="hidden" name="side" value="long" data-side-input />
+              </div>
+              <div class="field">
+                <label>Cantidad</label>
+                <input type="number" name="size" step="0.0001" min="0" placeholder="0.5" required />
+              </div>
             </div>
-            <div class="field">
-              <label>Tamaño</label>
-              <input type="number" name="size" step="0.0001" min="0" placeholder="0.5" required />
+
+            <details class="ticket-advanced">
+              <summary>${vantexIcon('chevronRight', { size: 14 })} Stop-loss / Take-profit (opcional)</summary>
+              <div class="ticket-advanced__body">
+                <div class="field">
+                  <label>Stop-loss</label>
+                  <input type="number" name="stopLoss" step="any" min="0" placeholder="Precio" />
+                </div>
+                <div class="field">
+                  <label>Take-profit</label>
+                  <input type="number" name="takeProfit" step="any" min="0" placeholder="Precio" />
+                </div>
+              </div>
+            </details>
+
+            <div style="margin-top:18px;">
+              <button class="btn-primary" type="submit">${vantexIcon('bolt', { size: 16 })} Abrir operación</button>
             </div>
-            <button class="btn-primary" type="submit">${vantexIcon('bolt', { size: 16 })} Abrir operación</button>
           </form>
           <p class="error-msg" data-error></p>
         </div>
 
         <div class="panel reveal" style="animation-delay:.08s" data-positions>
-          <div class="empty-state">
-            <div class="empty-state__icon">${vantexIcon('chartBar', { size: 26 })}</div>
-            Todavía no tienes operaciones.
-          </div>
+          <div class="skeleton-table-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-text skeleton-text--md"></div><div class="skeleton skeleton-text skeleton-text--sm"></div></div></div>
+          <div class="skeleton-table-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-text skeleton-text--md"></div><div class="skeleton skeleton-text skeleton-text--sm"></div></div></div>
         </div>
       `;
 
       const balanceEl = ctx.contentEl.querySelector('[data-balance]');
       const openPnlEl = ctx.contentEl.querySelector('[data-open-pnl]');
       const symbolSelect = ctx.contentEl.querySelector('[data-symbol-select]');
+      const sparklineEl = ctx.contentEl.querySelector('[data-sparkline]');
+      const livePriceEl = ctx.contentEl.querySelector('[data-live-price]');
       const sideButtons = ctx.contentEl.querySelectorAll('[data-side]');
       const sideInput = ctx.contentEl.querySelector('[data-side-input]');
       const form = ctx.contentEl.querySelector('[data-trade-form]');
       const errorEl = ctx.contentEl.querySelector('[data-error]');
       const positionsEl = ctx.contentEl.querySelector('[data-positions]');
+      let lastBalance = null;
+      let lastOpenPnl = null;
+      let firstLoad = true;
+      const seenClosedIds = new Set();
 
       sideButtons.forEach((btn) => btn.addEventListener('click', () => {
         sideButtons.forEach((b) => b.classList.remove('is-active'));
@@ -87,36 +136,99 @@
         sideInput.value = btn.dataset.side;
       }));
 
-      function fmtUsd(n) {
-        return n.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+      async function loadSparkline() {
+        const symbol = symbolSelect.value;
+        if (!symbol) return;
+        try {
+          const { history } = await api(`/trading/chart/${symbol}`);
+          renderSparkline(history);
+        } catch (e) { /* el sparkline es un detalle visual, no bloquea el resto de la página */ }
       }
+      function renderSparkline(history) {
+        const w = 100, h = 32;
+        if (!history || history.length < 2) { sparklineEl.innerHTML = `<svg width="${w}" height="${h}"></svg>`; return; }
+        const prices = history.map((p) => p.price);
+        const min = Math.min(...prices), max = Math.max(...prices);
+        const span = (max - min) || 1;
+        const up = prices[prices.length - 1] >= prices[0];
+        const points = prices.map((p, i) => {
+          const x = (i / (prices.length - 1)) * w;
+          const y = h - ((p - min) / span) * h;
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+        sparklineEl.innerHTML = `
+          <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+            <polyline points="${points}" fill="none" stroke="${up ? 'var(--green)' : 'var(--red)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        `;
+      }
+      symbolSelect.addEventListener('change', loadSparkline);
 
-      // Da un pequeño "pop" visual cuando un número cambia de verdad, en
-      // vez de repintar en silencio — ayuda a que se note que la app está
-      // viva (precios/P&L en movimiento), no solo texto estático.
-      function setNumberWithFlash(el, text) {
-        if (el.textContent !== text) {
-          el.textContent = text;
-          el.classList.remove('pnl-flash');
-          void el.offsetWidth;
-          el.classList.add('pnl-flash');
-        }
+      function fmtSign(n) { return n >= 0 ? '+' : ''; }
+
+      function renderConfirmModal({ title, rows, confirmLabel, onConfirm }) {
+        openModal({
+          title,
+          bodyHtml: `
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              ${rows.map(([label, value]) => `
+                <div style="display:flex; justify-content:space-between; gap:12px; font-size:.875rem;">
+                  <span class="text-caption">${label}</span>
+                  <strong>${value}</strong>
+                </div>
+              `).join('')}
+            </div>
+          `,
+          footerHtml: `
+            <button type="button" class="btn-secondary" data-modal-close>Cancelar</button>
+            <button type="button" class="btn-primary" data-confirm-action>${confirmLabel}</button>
+          `,
+          onOpen: (root) => {
+            root.querySelector('[data-confirm-action]').addEventListener('click', async (e) => {
+              const btn = e.currentTarget;
+              btn.disabled = true;
+              btn.innerHTML = '<span class="spinner"></span> Un momento…';
+              await onConfirm(btn);
+            });
+          },
+        });
       }
 
       function render(data) {
-        setNumberWithFlash(balanceEl, fmtUsd(data.balance));
+        animateNumber(balanceEl, lastBalance ?? data.balance, data.balance, { format: (n) => fmtUsd(n) });
+        lastBalance = data.balance;
+
         symbolSelect.innerHTML = data.supportedSymbols.map((s) => `<option value="${s}">${s}</option>`).join('');
+        if (firstLoad) loadSparkline();
 
         const open = data.positions.filter((p) => p.status === 'open');
         const totalOpenPnl = open.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);
         openPnlEl.className = 'value ' + (totalOpenPnl >= 0 ? 'pnl-pos' : 'pnl-neg');
-        setNumberWithFlash(openPnlEl, fmtUsd(totalOpenPnl));
+        animateNumber(openPnlEl, lastOpenPnl ?? totalOpenPnl, totalOpenPnl, { format: (n) => fmtUsd(n) });
+        lastOpenPnl = totalOpenPnl;
+
+        const currentSymbolPos = open.find((p) => p.symbol === symbolSelect.value);
+        if (currentSymbolPos && currentSymbolPos.currentPrice != null) {
+          livePriceEl.textContent = fmtUsd(currentSymbolPos.currentPrice);
+        }
+
+        // Detecta cierres automáticos (SL/TP) desde la última carga para avisar con un toast.
+        if (!firstLoad) {
+          data.positions
+            .filter((p) => p.status === 'closed' && (p.closeReason === 'sl' || p.closeReason === 'tp') && !seenClosedIds.has(p.id))
+            .forEach((p) => {
+              showToast({ type: p.closeReason === 'tp' ? 'success' : 'info', message: `${p.symbol} se cerró sola por ${p.closeReason === 'tp' ? 'take-profit' : 'stop-loss'}.` });
+            });
+        }
+        data.positions.forEach((p) => { if (p.status === 'closed') seenClosedIds.add(p.id); });
+        firstLoad = false;
 
         if (!data.positions.length) {
           positionsEl.innerHTML = `
             <div class="empty-state">
               <div class="empty-state__icon">${vantexIcon('chartBar', { size: 26 })}</div>
-              Todavía no tienes operaciones.
+              <strong>Todavía no tienes operaciones</strong>
+              <span>Abre tu primera operación con saldo virtual para ver aquí tu rendimiento.</span>
             </div>
           `;
           return;
@@ -124,20 +236,24 @@
 
         positionsEl.innerHTML = `
           <table>
-            <thead><tr><th>Símbolo</th><th>Lado</th><th>Tamaño</th><th>Entrada</th><th>Actual/Cierre</th><th>P&amp;L</th><th></th></tr></thead>
+            <thead><tr><th>Símbolo</th><th>Lado</th><th>Tamaño</th><th>Entrada</th><th>Actual/Cierre</th><th>P&amp;L</th><th>%</th><th></th></tr></thead>
             <tbody>
               ${data.positions.map((p) => {
                 const pnl = p.status === 'open' ? p.unrealizedPnl : p.realizedPnl;
                 const pnlClass = pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
                 const lastPrice = p.status === 'open' ? p.currentPrice : p.closePrice;
+                const reasonBadge = p.status === 'closed'
+                  ? `<span class="badge badge--${p.closeReason === 'sl' ? 'sl' : p.closeReason === 'tp' ? 'tp' : 'manual'}" style="margin-left:6px;">${p.closeReason === 'sl' ? 'SL' : p.closeReason === 'tp' ? 'TP' : 'manual'}</span>`
+                  : '';
                 return `
                   <tr>
                     <td>${p.symbol}</td>
                     <td><span class="badge badge--${p.side}">${p.side}</span></td>
                     <td>${p.size}</td>
                     <td>${fmtUsd(p.entryPrice)}</td>
-                    <td>${lastPrice != null ? fmtUsd(lastPrice) : '—'}</td>
+                    <td>${lastPrice != null ? fmtUsd(lastPrice) : '—'}${reasonBadge}</td>
                     <td class="${pnlClass}">${pnl != null ? fmtUsd(pnl) : '—'}</td>
+                    <td class="${pnlClass}">${p.pnlPercent != null ? fmtSign(p.pnlPercent) + p.pnlPercent.toFixed(1) + '%' : '—'}</td>
                     <td>${p.status === 'open' ? `<button class="btn-secondary" data-close="${p.id}">Cerrar</button>` : ''}</td>
                   </tr>
                 `;
@@ -147,17 +263,31 @@
         `;
 
         positionsEl.querySelectorAll('[data-close]').forEach((btn) => {
-          btn.addEventListener('click', async () => {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,.15); border-top-color:var(--text-dim);"></span>';
-            try {
-              await api(`/trading/${btn.dataset.close}/close`, { method: 'POST' });
-              await load();
-            } catch (err) {
-              errorEl.textContent = err.message;
-              btn.disabled = false;
-              btn.textContent = 'Cerrar';
-            }
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.close;
+            const pos = data.positions.find((p) => p.id === id);
+            renderConfirmModal({
+              title: 'Cerrar operación',
+              rows: [
+                ['Símbolo', pos.symbol],
+                ['Lado', pos.side],
+                ['Tamaño', pos.size],
+                ['Precio actual', pos.currentPrice != null ? fmtUsd(pos.currentPrice) : '—'],
+                ['P&L estimado', pos.unrealizedPnl != null ? fmtUsd(pos.unrealizedPnl) : '—'],
+              ],
+              confirmLabel: 'Cerrar operación',
+              onConfirm: async () => {
+                try {
+                  await api(`/trading/${id}/close`, { method: 'POST' });
+                  closeModal();
+                  showToast({ type: 'success', message: `Operación de ${pos.symbol} cerrada.` });
+                  await load();
+                } catch (err) {
+                  closeModal();
+                  showToast({ type: 'error', message: err.message });
+                }
+              },
+            });
           });
         });
       }
@@ -172,26 +302,48 @@
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorEl.textContent = '';
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span> Abriendo…';
         const payload = Object.fromEntries(new FormData(form).entries());
-        try {
-          await api('/trading', { method: 'POST', body: JSON.stringify(payload) });
-          form.reset();
-          sideButtons.forEach((b) => b.classList.remove('is-active'));
-          ctx.contentEl.querySelector('[data-side="long"]').classList.add('is-active');
-          sideInput.value = 'long';
-          await load();
-        } catch (err) {
-          errorEl.textContent = err.message;
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = submitBtnDefaultHtml;
-        }
+        if (!payload.stopLoss) delete payload.stopLoss;
+        if (!payload.takeProfit) delete payload.takeProfit;
+
+        renderConfirmModal({
+          title: 'Confirmar operación',
+          rows: [
+            ['Símbolo', payload.symbol],
+            ['Dirección', payload.side === 'long' ? 'Comprar (long)' : 'Vender (short)'],
+            ['Cantidad', payload.size],
+            ['Precio actual', livePriceEl.textContent],
+            ...(payload.stopLoss ? [['Stop-loss', fmtUsd(payload.stopLoss)]] : []),
+            ...(payload.takeProfit ? [['Take-profit', fmtUsd(payload.takeProfit)]] : []),
+          ],
+          confirmLabel: 'Abrir operación',
+          onConfirm: async () => {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Abriendo…';
+            try {
+              await api('/trading', { method: 'POST', body: JSON.stringify(payload) });
+              closeModal();
+              form.reset();
+              sideButtons.forEach((b) => b.classList.remove('is-active'));
+              ctx.contentEl.querySelector('[data-side="long"]').classList.add('is-active');
+              sideInput.value = 'long';
+              showToast({ type: 'success', message: 'Operación abierta.' });
+              await load();
+            } catch (err) {
+              closeModal();
+              errorEl.textContent = err.message;
+              showToast({ type: 'error', message: err.message });
+            } finally {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = submitBtnDefaultHtml;
+            }
+          },
+        });
       });
 
       load();
       setInterval(load, 15000); // refresca precios/P&L cada 15s
+      setInterval(loadSparkline, 15000);
     });
   </script>
 </body>

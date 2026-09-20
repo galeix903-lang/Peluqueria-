@@ -14,6 +14,24 @@ const SYMBOL_TO_COINGECKO_ID = {
 const CACHE_TTL_MS = 30 * 1000;
 let cache = { data: null, fetchedAt: 0 };
 
+// Histórico corto en memoria (una muestra por cada refresco de caché real,
+// no por cada request) — suficiente para dibujar un sparkline sin
+// depender de ninguna librería de gráficos ni de datos inventados: son
+// los mismos precios que ya se están sirviendo al paper trading.
+const HISTORY_MAX_SAMPLES = 40;
+const priceHistory = {};
+function pushHistorySamples(prices, timestamp) {
+  for (const [symbol, price] of Object.entries(prices)) {
+    if (!priceHistory[symbol]) priceHistory[symbol] = [];
+    const list = priceHistory[symbol];
+    list.push({ t: timestamp, price });
+    if (list.length > HISTORY_MAX_SAMPLES) list.shift();
+  }
+}
+function getHistory(symbol) {
+  return priceHistory[symbol.toUpperCase()] || [];
+}
+
 // Si CoinGecko no es alcanzable (red restringida, caído, rate limit) y no
 // hay nada en caché, se usa esto en vez de romper la pantalla de trading.
 // Son precios de referencia con un pequeño paseo aleatorio para que no se
@@ -48,12 +66,14 @@ async function fetchPrices() {
       if (payload[geckoId]) prices[symbol] = payload[geckoId].usd;
     }
     cache = { data: prices, fetchedAt: now, isFallback: false };
+    pushHistorySamples(prices, now);
     return prices;
   } catch (err) {
     // Sin red hacia CoinGecko: si había algo en caché (aunque esté
     // vencido) es más fiable que el fallback simulado; si no, simulamos.
     const prices = cache.data || simulatedFallbackPrices();
     cache = { data: prices, fetchedAt: now, isFallback: true };
+    pushHistorySamples(prices, now);
     return prices;
   }
 }
@@ -65,4 +85,4 @@ async function getPrice(symbol) {
   return price;
 }
 
-module.exports = { fetchPrices, getPrice, SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID) };
+module.exports = { fetchPrices, getPrice, getHistory, SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID) };
