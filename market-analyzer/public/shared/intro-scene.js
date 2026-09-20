@@ -18,8 +18,8 @@ const K = 0.18;
 function toVec3([svgX, svgY]) {
   return new THREE.Vector3((svgX - 12) * K, (12 - svgY) * K, 0);
 }
-const TREND_POINTS = [[3, 16.5], [9.5, 10], [13.5, 14], [21, 6]].map(toVec3);
-const BOX_POINTS = [[15, 6], [21, 6], [21, 12]].map(toVec3);
+const TREND_POINTS = [[4, 7], [10.5, 19], [20, 4]].map(toVec3);
+const BOX_POINTS = [[14.5, 4], [20, 4], [20, 9.5]].map(toVec3);
 
 function buildPathCurve(points) {
   const curve = new THREE.CurvePath();

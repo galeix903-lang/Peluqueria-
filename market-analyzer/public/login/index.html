@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="stylesheet" href="/shared/style.css" />
 <link rel="stylesheet" href="/shared/intro.css" />
 <style>
@@ -33,19 +34,40 @@
     align-items: center;
     gap: 64px;
   }
-  .landing__hero { max-width: 520px; }
+  .landing__hero { max-width: 540px; }
+
+  /* Logo grande al principio del todo: es lo primero que se lee. */
+  .landing__logo { display: inline-flex; align-items: center; gap: 13px; margin-bottom: 28px; }
+  .landing__logo-mark {
+    width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), #7c72f0);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 24px -6px rgba(79, 70, 229, .55);
+    animation: logoGlow 2.8s ease-in-out infinite;
+  }
+  .landing__logo-mark svg { width: 27px; height: 27px; }
+  .landing__logo-word { font-size: 1.75rem; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
+
   .landing__eyebrow {
-    display: inline-flex; align-items: center; gap: 7px;
+    display: inline-flex; align-items: center; gap: 8px;
     font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
     color: var(--accent); background: var(--accent-dim);
     padding: 6px 13px; border-radius: 999px; margin-bottom: 22px;
   }
+  .landing__eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulseSoft 1.6s ease-in-out infinite; }
   .landing__title {
-    font-size: clamp(2.25rem, 1.7rem + 2.2vw, 3.25rem);
-    font-weight: 800; letter-spacing: -.025em; line-height: 1.06;
+    font-size: clamp(2.5rem, 1.75rem + 2.8vw, 3.75rem);
+    font-weight: 800; letter-spacing: -.03em; line-height: 1.05;
     margin: 0 0 20px;
   }
-  .landing__title em { color: var(--accent); font-style: normal; }
+  .landing__title em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--accent), #7c72f0, var(--accent));
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: gradientShift 4s ease-in-out infinite;
+  }
+  @keyframes gradientShift { 0%, 100% { background-position: 0% center; } 50% { background-position: 100% center; } }
   .landing__lead {
     font-size: 1.0625rem; line-height: 1.6; color: var(--text-dim);
     margin: 0 0 36px; max-width: 460px;
@@ -107,7 +129,7 @@
     <canvas class="intro__canvas" data-intro-canvas aria-hidden="true"></canvas>
     <div class="intro__lite" data-intro-lite hidden aria-hidden="true">
       <div class="intro__lite-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" /></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg>
       </div>
       <div class="intro__lite-dot" style="top:28%; left:32%; animation-delay:.1s, 1s;"></div>
       <div class="intro__lite-dot" style="top:64%; left:26%; animation-delay:.25s, 1.4s;"></div>
@@ -131,7 +153,13 @@
 
   <div class="landing" data-hero-entrance>
     <div class="landing__hero">
-      <span class="landing__eyebrow reveal">Nuevo · Gratis para empezar</span>
+      <div class="landing__logo reveal-pop">
+        <span class="landing__logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg>
+        </span>
+        <span class="landing__logo-word">Vantex</span>
+      </div>
+      <span class="landing__eyebrow reveal"><span class="landing__eyebrow-dot"></span>Nuevo · Gratis para empezar</span>
       <h1 class="landing__title reveal" style="animation-delay:.04s">Analiza el mercado con IA.<br>Practica sin riesgo. <em>Sigue a los mejores.</em></h1>
       <p class="landing__lead reveal" style="animation-delay:.08s">Vantex reúne un analizador de gráficos con IA, un simulador de trading realista y seguimiento de wallets y traders — todo en un solo sitio, sin arriesgar un euro mientras aprendes.</p>
 
@@ -166,7 +194,7 @@
     </div>
 
     <div class="panel auth-card reveal-pop" style="animation-delay:.1s">
-      <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M3 16.5 9.5 10l4 4L21 6" /><path d="M15 6h6v6" /></svg></div>
+      <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></div>
       <div class="auth-title">Bienvenido a Vantex</div>
       <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
 

@@ -333,12 +333,23 @@ button { font: inherit; cursor: pointer; }
 }
 .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .btn-primary {
-  background: var(--accent); color: #fff; border: none;
+  background: linear-gradient(135deg, var(--accent), #7c72f0);
+  color: #fff; border: none;
   padding: 11px 20px; border-radius: 9px; font-weight: 700; font-size: .9375rem;
   transition: transform .12s, filter .15s, box-shadow .15s;
   display: inline-flex; align-items: center; gap: 8px;
+  position: relative; overflow: hidden; isolation: isolate;
 }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 8px 18px -8px rgba(79, 70, 229, .55); }
+/* Brillo sutil que cruza el botón al pasar el ratón — un detalle de
+   motion design, no una animación permanente. */
+.btn-primary::before {
+  content: ''; position: absolute; inset: 0 0 0 -60%;
+  width: 40%; background: linear-gradient(120deg, transparent, rgba(255,255,255,.4), transparent);
+  transform: skewX(-20deg) translateX(0);
+  transition: transform .5s var(--ease-out);
+}
+.btn-primary:hover:not(:disabled)::before { transform: skewX(-20deg) translateX(330%); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 10px 22px -8px rgba(79, 70, 229, .6); }
 .btn-primary:active:not(:disabled) { transform: scale(.97); }
 .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 .btn-secondary {
