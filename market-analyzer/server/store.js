@@ -222,6 +222,23 @@ function listAllCopyFollows() {
   return db.copyFollows;
 }
 
+// ---------- Actividad reciente (para el aviso público de "en vivo") ----------
+// Se deriva de las colecciones ya existentes (altas, análisis, posiciones)
+// en vez de llevar un log aparte: así lo que se muestra es siempre un
+// evento real que ya ocurrió, nunca un dato inventado, y no hay un
+// segundo sitio donde se pueda desincronizar. No expone email, nombre,
+// importes ni resultado — solo el tipo de evento, el símbolo si aplica y
+// la fecha.
+function listRecentActivity(limit = 12) {
+  const db = load();
+  const events = [
+    ...db.users.map((u) => ({ type: 'signup', at: u.createdAt })),
+    ...db.analyses.map((a) => ({ type: 'analysis', symbol: a.asset || null, at: a.createdAt })),
+    ...db.positions.map((p) => ({ type: 'trade_open', symbol: p.symbol || null, at: p.openedAt })),
+  ].filter((e) => e.at);
+  return events.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+}
+
 module.exports = {
   findUserByEmail,
   findUserById,
@@ -246,4 +263,5 @@ module.exports = {
   addCopyFollow,
   removeCopyFollow,
   listAllCopyFollows,
+  listRecentActivity,
 };

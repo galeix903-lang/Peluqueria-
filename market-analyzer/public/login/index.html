@@ -541,6 +541,33 @@
   .tabs { display: flex; border-radius: 10px; overflow: hidden; margin-bottom: 18px; padding: 3px; background: var(--field-bg); }
   .tabs button { flex: 1; padding: 8px; border-radius: 7px; background: none; border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .18s, color .18s, box-shadow .18s; }
   .tabs button.is-active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); }
+
+  /* Aviso de actividad reciente: eventos reales (altas, análisis, operaciones
+     abiertas) leídos de /api/activity/recent — nunca nombres, importes ni
+     resultados inventados. Oculto hasta tener datos reales que mostrar. */
+  .live-toast {
+    position: fixed; left: 24px; bottom: 24px; z-index: 30;
+    display: flex; align-items: center; gap: 12px;
+    max-width: 300px; padding: 12px 16px 12px 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow-md);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity .3s var(--ease-out), transform .3s var(--ease-out);
+    pointer-events: none;
+  }
+  .live-toast.is-visible { opacity: 1; transform: translateY(0); }
+  .live-toast__icon {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+  }
+  .live-toast__body { min-width: 0; }
+  .live-toast__text { margin: 0; font-size: .8125rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .live-toast__time { margin: 2px 0 0; font-size: .75rem; color: var(--text-dim); }
+  @media (max-width: 760px) {
+    .live-toast { display: none; }
+  }
+
   @media (max-width: 760px) {
     .showcase-section { padding: 64px 20px 0; }
     .showcase-cta { width: 100%; min-width: 0; }
@@ -991,6 +1018,14 @@
     </div>
   </footer>
 
+  <div class="live-toast" data-live-toast aria-live="polite">
+    <span class="live-toast__icon" data-live-toast-icon></span>
+    <div class="live-toast__body">
+      <p class="live-toast__text" data-live-toast-text></p>
+      <p class="live-toast__time" data-live-toast-time></p>
+    </div>
+  </div>
+
   <script src="/shared/icons.js"></script>
   <script src="/shared/api.js"></script>
   <script>
@@ -1241,6 +1276,55 @@
         }
       });
     });
+
+    // ---------- Aviso de actividad reciente ----------
+    // Lee eventos reales (altas, análisis, posiciones abiertas) de
+    // /api/activity/recent y los muestra en rotación. Si no hay ningún
+    // evento todavía (instalación nueva) o falla la petición, el aviso
+    // se queda oculto — nunca se rellena con datos inventados.
+    (function setupLiveActivity() {
+      const el = document.querySelector('[data-live-toast]');
+      if (!el) return;
+      const iconEl = el.querySelector('[data-live-toast-icon]');
+      const textEl = el.querySelector('[data-live-toast-text]');
+      const timeEl = el.querySelector('[data-live-toast-time]');
+      const ICONS = { signup: 'users', analysis: 'brain', trade_open: 'trend' };
+
+      function label(ev) {
+        if (ev.type === 'signup') return 'Nueva cuenta creada en Vantex';
+        if (ev.type === 'analysis') return ev.symbol ? `Alguien acaba de analizar ${ev.symbol} con IA` : 'Alguien acaba de analizar un gráfico con IA';
+        if (ev.type === 'trade_open') return ev.symbol ? `Se abrió una posición de ${ev.symbol} en Paper Trading` : 'Se abrió una posición en Paper Trading';
+        return null;
+      }
+      function timeAgo(iso) {
+        const min = Math.floor(Math.max(0, Date.now() - new Date(iso).getTime()) / 60000);
+        if (min < 1) return 'justo ahora';
+        if (min < 60) return `hace ${min} min`;
+        const hr = Math.floor(min / 60);
+        if (hr < 24) return `hace ${hr} h`;
+        return `hace ${Math.floor(hr / 24)} d`;
+      }
+
+      api('/activity/recent').then(({ events }) => {
+        const items = (events || []).map((ev) => ({ ...ev, text: label(ev) })).filter((ev) => ev.text);
+        if (!items.length) return;
+        let i = 0;
+        function show(index) {
+          const ev = items[index];
+          iconEl.innerHTML = vantexIcon(ICONS[ev.type] || 'bolt', { size: 16 });
+          textEl.textContent = ev.text;
+          timeEl.textContent = timeAgo(ev.at);
+          el.classList.add('is-visible');
+        }
+        show(0);
+        if (items.length > 1) {
+          setInterval(() => {
+            el.classList.remove('is-visible');
+            setTimeout(() => { i = (i + 1) % items.length; show(i); }, 320);
+          }, 5200);
+        }
+      }).catch(() => {});
+    })();
 
     async function handleSubmit(formName, endpoint) {
       const form = forms[formName];

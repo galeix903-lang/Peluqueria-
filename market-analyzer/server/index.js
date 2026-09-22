@@ -10,6 +10,7 @@ const tradingRoutes = require('./routes/trading');
 const picksRoutes = require('./routes/picks');
 const walletRoutes = require('./routes/wallet');
 const copyRoutes = require('./routes/copy');
+const activityRoutes = require('./routes/activity');
 const billing = require('./routes/billing');
 const { scheduleDailyPicks } = require('./services/picksJob');
 const { scheduleCopyTradingJob } = require('./services/copyTradingJob');
@@ -44,6 +45,7 @@ app.use(session({
 
 // API pública (sin sesión).
 app.use('/api/auth', authRoutes);
+app.use('/api/activity', activityRoutes);
 
 // API protegida (requiere sesión).
 app.use('/api/analyzer', requireAuth, analyzerRoutes);
