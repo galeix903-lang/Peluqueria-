@@ -35,6 +35,27 @@
 
   .skeleton-table-row { display: flex; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
   .skeleton-table-row:first-child { border-top: none; }
+
+  /* Calculadora de riesgo: matemática sobre el saldo real del usuario y
+     los precios que introduce — nunca una cifra de "beneficio garantizado". */
+  .risk-calc__row { display: flex; justify-content: space-between; align-items: center; font-size: .8125rem; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
+  .risk-calc__row span:last-child { color: var(--text); font-variant-numeric: tabular-nums; }
+  .risk-calc input[type="range"] {
+    width: 100%; appearance: none; height: 4px; border-radius: 999px;
+    background: var(--field-bg); outline: none; margin-bottom: 4px;
+  }
+  .risk-calc input[type="range"]::-webkit-slider-thumb {
+    appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer;
+  }
+  .risk-calc input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--accent);
+    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer;
+  }
+  .risk-calc__grid { display: flex; gap: 16px; flex-wrap: wrap; margin: 14px 0; }
+  .risk-calc__grid .field { min-width: 140px; margin-bottom: 0; }
+  .risk-calc__result { background: var(--field-bg); border-radius: 10px; padding: 12px 14px; font-size: .8125rem; color: var(--text-dim); }
+  .risk-calc__result strong { color: var(--text); font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -89,17 +110,37 @@
               </div>
             </div>
 
-            <details class="ticket-advanced">
+            <details class="ticket-advanced" data-sltp-details>
               <summary>${vantexIcon('chevronRight', { size: 14 })} Stop-loss / Take-profit (opcional)</summary>
               <div class="ticket-advanced__body">
                 <div class="field">
                   <label>Stop-loss</label>
-                  <input type="number" name="stopLoss" step="any" min="0" placeholder="Precio" />
+                  <input type="number" name="stopLoss" step="any" min="0" placeholder="Precio" data-risk-sl-link />
                 </div>
                 <div class="field">
                   <label>Take-profit</label>
                   <input type="number" name="takeProfit" step="any" min="0" placeholder="Precio" />
                 </div>
+              </div>
+            </details>
+
+            <details class="ticket-advanced risk-calc" data-risk-calc>
+              <summary>${vantexIcon('chartBar', { size: 14 })} Calculadora de tamaño de posición (opcional)</summary>
+              <div class="ticket-advanced__body" style="flex-direction:column; align-items:stretch;">
+                <p class="text-caption" style="margin:0 0 14px;">Calcula cuántas unidades comprar según cuánto de tu saldo estás dispuesto a arriesgar — no es una promesa de beneficio, solo matemática sobre tus propios números.</p>
+                <div class="risk-calc__row">
+                  <span>Riesgo por operación</span>
+                  <span data-risk-pct-label>1%</span>
+                </div>
+                <input type="range" min="0.25" max="5" step="0.25" value="1" data-risk-pct-input />
+                <div class="risk-calc__grid">
+                  <div class="field">
+                    <label>Precio de entrada</label>
+                    <input type="number" step="any" min="0" placeholder="Precio actual" data-risk-entry-input />
+                  </div>
+                </div>
+                <div class="risk-calc__result" data-risk-output>Añade un stop-loss arriba y un precio de entrada para calcular el tamaño según tu riesgo.</div>
+                <button type="button" class="btn-secondary" data-risk-apply hidden style="margin-top:12px; align-self:flex-start;">Usar este tamaño en el ticket</button>
               </div>
             </details>
 
@@ -143,6 +184,10 @@
         try {
           const { history } = await api(`/trading/chart/${symbol}`);
           renderSparkline(history);
+          if (history && history.length && !riskEntryTouched) {
+            riskEntryInput.value = history[history.length - 1].price;
+            updateRiskCalc();
+          }
         } catch (e) { /* el sparkline es un detalle visual, no bloquea el resto de la página */ }
       }
       function renderSparkline(history) {
@@ -164,6 +209,58 @@
         `;
       }
       symbolSelect.addEventListener('change', loadSparkline);
+
+      // ---------- Calculadora de tamaño de posición ----------
+      // Matemática pura sobre el saldo real y los precios que introduce el
+      // usuario (riesgo % del saldo, entrada y stop-loss) — nunca una
+      // cifra de beneficio prometido.
+      const riskPctInput = ctx.contentEl.querySelector('[data-risk-pct-input]');
+      const riskPctLabel = ctx.contentEl.querySelector('[data-risk-pct-label]');
+      const riskEntryInput = ctx.contentEl.querySelector('[data-risk-entry-input]');
+      const riskOutputEl = ctx.contentEl.querySelector('[data-risk-output]');
+      const riskApplyBtn = ctx.contentEl.querySelector('[data-risk-apply]');
+      const stopLossInput = form.querySelector('[data-risk-sl-link]');
+      const sltpDetails = form.querySelector('[data-sltp-details]');
+      const riskCalcDetails = form.querySelector('[data-risk-calc]');
+      const sizeInput = form.querySelector('[name="size"]');
+      let riskEntryTouched = false;
+      let suggestedSize = null;
+
+      // El campo de stop-loss vive en el bloque "Stop-loss / Take-profit"
+      // de arriba, no dentro de la propia calculadora — se abre solo al
+      // abrir la calculadora, para que el usuario no tenga que buscarlo.
+      riskCalcDetails.addEventListener('toggle', () => {
+        if (riskCalcDetails.open) sltpDetails.open = true;
+      });
+
+      riskEntryInput.addEventListener('input', () => { riskEntryTouched = true; updateRiskCalc(); });
+      riskPctInput.addEventListener('input', updateRiskCalc);
+      stopLossInput.addEventListener('input', updateRiskCalc);
+      symbolSelect.addEventListener('change', () => { riskEntryTouched = false; });
+
+      function updateRiskCalc() {
+        const pct = Number(riskPctInput.value) || 0;
+        riskPctLabel.textContent = `${pct}%`;
+        const entry = Number(riskEntryInput.value);
+        const sl = Number(stopLossInput.value);
+        suggestedSize = null;
+        riskApplyBtn.hidden = true;
+        if (!entry || !sl || entry === sl || !lastBalance) {
+          riskOutputEl.textContent = 'Añade un stop-loss arriba y un precio de entrada para calcular el tamaño según tu riesgo.';
+          return;
+        }
+        const riskAmount = lastBalance * (pct / 100);
+        const perUnitRisk = Math.abs(entry - sl);
+        suggestedSize = riskAmount / perUnitRisk;
+        const positionValue = suggestedSize * entry;
+        riskOutputEl.innerHTML = `Arriesgas <strong>${fmtUsd(riskAmount)}</strong> (${pct}% de tu saldo) si el precio llega al stop-loss.<br>Tamaño sugerido: <strong>${suggestedSize.toFixed(4)}</strong> unidades (≈ ${fmtUsd(positionValue)}).`;
+        riskApplyBtn.hidden = false;
+      }
+      riskApplyBtn.addEventListener('click', () => {
+        if (suggestedSize == null) return;
+        sizeInput.value = suggestedSize.toFixed(4);
+        showToast({ type: 'info', message: 'Tamaño aplicado al ticket.' });
+      });
 
       function fmtSign(n) { return n >= 0 ? '+' : ''; }
 
