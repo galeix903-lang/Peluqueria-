@@ -442,23 +442,76 @@
     .analyzer-mock__note { width: 100%; }
   }
 
-  /* ---------- Sección de acceso (login/crear cuenta) ---------- */
-  .auth-section { background: var(--surface); padding: 72px 40px 84px; }
-  .auth-section__inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: center; }
-  .auth-card { width: 100%; max-width: 400px; }
+  /* ---------- Sección de acceso (login/crear cuenta) ----------
+     Antes era solo una tarjeta suelta sobre fondo blanco liso, muy plana
+     al lado del hero nuevo — ahora recoge el mismo lenguaje visual
+     (resplandor azul de fondo, iconos en chip degradado, titular grande
+     con acento en gradiente) para que la transición no se note tan
+     brusca, en dos columnas: motivos para registrarte + la tarjeta. */
+  .auth-section { position: relative; overflow: hidden; background: linear-gradient(180deg, #fff, #f5f7ff 45%, #fff); padding: 104px 40px; }
+  .auth-section__glow {
+    position: absolute; top: 50%; left: 50%; width: 1100px; height: 640px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, rgba(37, 99, 235, .07), transparent 70%);
+    pointer-events: none;
+  }
+  .auth-section__inner {
+    position: relative; max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr .92fr; gap: 72px; align-items: center;
+  }
+  .auth-section__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 20px;
+  }
+  .auth-section__eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulseSoft 1.6s ease-in-out infinite; }
+  .auth-section__title {
+    font-size: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem); font-weight: 800;
+    letter-spacing: -.025em; line-height: 1.1; margin: 0 0 16px;
+  }
+  .auth-section__title-accent {
+    background: linear-gradient(90deg, var(--accent), var(--blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .auth-section__lead { font-size: 1.0625rem; line-height: 1.6; color: var(--text-dim); margin: 0 0 36px; max-width: 460px; }
+  .auth-section__points { display: flex; flex-direction: column; gap: 20px; }
+  .auth-section__point { display: flex; align-items: flex-start; gap: 14px; }
+  .auth-section__point-icon {
+    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 8px 18px -8px rgba(20, 22, 43, .3);
+  }
+  .auth-section__point-icon svg { width: 18px; height: 18px; }
+  .auth-section__point strong { display: block; font-size: .9375rem; font-weight: 700; margin-bottom: 2px; }
+  .auth-section__point span { display: block; color: var(--text-dim); font-size: .8438rem; }
+
+  .auth-card {
+    width: 100%; max-width: 420px; margin: 0 auto;
+    padding: 40px; border-radius: 26px;
+    box-shadow: var(--shadow-lg), 0 30px 60px -30px rgba(37, 99, 235, .3);
+  }
   .auth-logo {
-    width: 46px; height: 46px; border-radius: 12px;
+    width: 50px; height: 50px; border-radius: 14px;
     background: linear-gradient(135deg, var(--accent), var(--blue));
     color: #fff; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 1.2rem; margin: 0 auto 18px;
-    box-shadow: 0 8px 20px -8px rgba(79, 70, 229, .6);
+    font-weight: 800; font-size: 1.2rem; margin: 0 auto 20px;
+    box-shadow: 0 10px 24px -8px rgba(37, 99, 235, .6);
+    animation: logoGlow 2.8s ease-in-out infinite;
   }
-  .auth-logo svg { width: 24px; height: 24px; }
-  .auth-title { text-align: center; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
-  .auth-sub { text-align: center; color: var(--text-dim); font-size: .875rem; margin-bottom: 22px; }
-  .tabs { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 20px; }
-  .tabs button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .15s, color .15s; }
-  .tabs button.is-active { background: var(--accent); color: #fff; }
+  .auth-logo svg { width: 25px; height: 25px; }
+  .auth-title { text-align: center; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 5px; }
+  .auth-sub { text-align: center; color: var(--text-dim); font-size: .875rem; margin-bottom: 26px; }
+  .tabs { display: flex; border: 1px solid var(--border); border-radius: 11px; overflow: hidden; margin-bottom: 22px; padding: 3px; background: var(--field-bg); }
+  .tabs button { flex: 1; padding: 9px; border-radius: 8px; background: none; border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .18s, color .18s, box-shadow .18s; }
+  .tabs button.is-active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); }
+  @media (max-width: 900px) {
+    .auth-section__inner { grid-template-columns: 1fr; gap: 44px; }
+    .auth-section__intro { text-align: center; }
+    .auth-section__eyebrow, .auth-section__lead { margin-left: auto; margin-right: auto; }
+    .auth-section__points { align-items: center; }
+    .auth-section__point { max-width: 340px; text-align: left; }
+  }
 
   @media (max-width: 760px) {
     .hero-inner { padding: 48px 20px 0; }
@@ -576,8 +629,29 @@
   </header>
 
   <section class="auth-section" id="acceso">
+    <div class="auth-section__glow" aria-hidden="true"></div>
     <div class="auth-section__inner">
-      <div class="panel auth-card">
+      <div class="auth-section__intro io-reveal">
+        <span class="auth-section__eyebrow"><span class="auth-section__eyebrow-dot"></span>Empieza gratis</span>
+        <h2 class="auth-section__title">Tu cuenta, en menos de<span class="auth-section__title-accent"> un minuto.</span></h2>
+        <p class="auth-section__lead">Sin tarjeta. Sin compromiso. Crea tu cuenta y analiza tu primer gráfico ahora mismo.</p>
+        <div class="auth-section__points">
+          <div class="auth-section__point">
+            <span class="auth-section__point-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="bolt" data-icon-size="18"></span>
+            <div><strong>Acceso inmediato</strong><span>Entra directo al AI Analyzer nada más registrarte.</span></div>
+          </div>
+          <div class="auth-section__point">
+            <span class="auth-section__point-icon" style="background:linear-gradient(135deg, #16a34a, #22c55e);" data-icon="shieldCheck" data-icon-size="18"></span>
+            <div><strong>Datos siempre protegidos</strong><span>Tu email y contraseña nunca se comparten con nadie.</span></div>
+          </div>
+          <div class="auth-section__point">
+            <span class="auth-section__point-icon" style="background:linear-gradient(135deg, #f59e0b, #f97316);" data-icon="star" data-icon-size="18"></span>
+            <div><strong>Plan gratis para siempre</strong><span>No hace falta pagar nada para empezar a practicar.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel auth-card io-reveal" style="animation-delay:.1s">
         <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></div>
         <div class="auth-title">Bienvenido a Vantex</div>
         <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
