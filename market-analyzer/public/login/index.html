@@ -57,11 +57,14 @@
      al hacer scroll pasa a blanco/blur con texto oscuro (misma barra,
      dos estados via .is-scrolled). */
   .site-nav {
-    display: flex; align-items: center; justify-content: space-between;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
     gap: 24px; padding: 18px 40px;
+    max-width: 1300px; margin: 0 auto;
     background: transparent; border-bottom: 1px solid transparent;
     transition: background .3s var(--ease-out), border-color .3s, box-shadow .3s;
   }
+  .site-nav__logo { justify-self: start; }
+  .site-nav__right { justify-self: end; }
   /* Como la cabecera es position:fixed (fuera del flujo), el hero ya
      empieza de forma natural en la parte superior real de la página —
      solo necesita este padding-top (altura real de aviso+nav, medida por
