@@ -271,7 +271,7 @@ button { font: inherit; cursor: pointer; }
 }
 
 /* ---------- Tarjetas del dashboard ---------- */
-.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .card-grid--three { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 860px) { .card-grid, .card-grid--three { grid-template-columns: 1fr; } }
 
@@ -303,9 +303,9 @@ button { font: inherit; cursor: pointer; }
   background: linear-gradient(155deg, rgba(37, 99, 235, .09), rgba(79, 70, 229, .03));
   border: 1px solid rgba(37, 99, 235, .22);
   border-radius: calc(var(--radius) + 10px);
-  padding: 18px;
+  padding: 14px;
   box-shadow: 0 0 0 1px rgba(37, 99, 235, .05), 0 22px 48px -24px rgba(37, 99, 235, .38);
-  margin-bottom: 26px;
+  margin-bottom: 18px;
 }
 .primary-group .card-grid { margin-bottom: 0; }
 .primary-group .feature-card:hover {
@@ -316,7 +316,7 @@ button { font: inherit; cursor: pointer; }
    horizontal, flotando sobre un patrón de cuadrícula extremadamente sutil
    (estilo papel milimetrado). */
 .feature-card__visual {
-  padding: 52px 24px;
+  padding: 60px 24px;
   display: flex; align-items: center; justify-content: center;
   background-color: var(--surface);
   background-image:
@@ -325,34 +325,34 @@ button { font: inherit; cursor: pointer; }
   background-size: 22px 22px;
   background-position: center;
 }
-.card-grid--three .feature-card__visual { padding: 36px 20px; }
+.card-grid--three .feature-card__visual { padding: 44px 20px; }
 
 .feature-card__pill {
-  display: inline-flex; align-items: center; gap: 18px;
+  display: inline-flex; align-items: center; gap: 20px;
   background: var(--surface);
   border-radius: 999px;
-  padding: 14px 30px 14px 14px;
+  padding: 16px 34px 16px 16px;
   box-shadow: var(--shadow-sm);
   max-width: 100%;
 }
-.card-grid--three .feature-card__pill { gap: 13px; padding: 10px 22px 10px 10px; }
+.card-grid--three .feature-card__pill { gap: 14px; padding: 12px 24px 12px 12px; }
 
 .feature-card__icon-lg {
-  width: 72px; height: 72px; border-radius: 19px;
+  width: 82px; height: 82px; border-radius: 21px;
   display: flex; align-items: center; justify-content: center;
   color: #fff; flex-shrink: 0;
   box-shadow: 0 12px 26px -8px rgba(20, 22, 43, .3);
   transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.feature-card__icon-lg svg { width: 33px; height: 33px; }
-.card-grid--three .feature-card__icon-lg { width: 56px; height: 56px; border-radius: 15px; }
-.card-grid--three .feature-card__icon-lg svg { width: 26px; height: 26px; }
+.feature-card__icon-lg svg { width: 37px; height: 37px; }
+.card-grid--three .feature-card__icon-lg { width: 60px; height: 60px; border-radius: 16px; }
+.card-grid--three .feature-card__icon-lg svg { width: 28px; height: 28px; }
 
 .feature-card__name {
-  font-weight: 800; font-size: 1.875rem; letter-spacing: -.02em;
+  font-weight: 800; font-size: 2.0625rem; letter-spacing: -.02em;
   color: var(--text); white-space: nowrap;
 }
-.card-grid--three .feature-card__name { font-size: 1.375rem; }
+.card-grid--three .feature-card__name { font-size: 1.5rem; }
 
 /* Zona inferior: nombre pequeño + descripción, separada por una línea fina. */
 .feature-card__info {
