@@ -32,6 +32,7 @@ const VANTEX_ICON_PATHS = {
   chevronRight: '<path d="M9 6l6 6-6 6" />',
   more: '<circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" />',
   camera: '<path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1-2h7l1 2h2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z" /><circle cx="12" cy="13" r="3.2" />',
+  help: '<circle cx="12" cy="12" r="9" /><path d="M9.2 9.2a2.8 2.8 0 1 1 3.9 2.55c-.75.32-1.1.86-1.1 1.65v.3" /><path d="M12 17v.1" />',
 };
 
 function vantexIcon(name, { size = 22 } = {}) {

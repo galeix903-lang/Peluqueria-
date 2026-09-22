@@ -82,46 +82,91 @@
   .hero-float-card__title { font-size: .8125rem; font-weight: 700; }
   .hero-float-card__desc { font-size: .75rem; color: var(--text-dim); }
 
-  /* ---------- Secciones de la landing (cómo funciona, herramientas, precio, FAQ) ---------- */
-  .section { padding: 88px 40px; max-width: 1180px; margin: 0 auto; scroll-margin-top: 76px; }
+  /* ---------- Secciones de la landing (cómo funciona, herramientas, precio, FAQ) ----------
+     Todo lo de aquí abajo entra en escena al hacer scroll (en vez de animarse una
+     sola vez nada más cargar la página, invisible fuera de la pantalla): .io-reveal
+     arranca en opacity:0 y un IntersectionObserver añade .is-in cuando el elemento
+     asoma, disparando la misma animación fadeInUp que ya usa el resto de la app. */
+  .io-reveal { opacity: 0; }
+  .io-reveal.is-in { animation: fadeInUp .65s var(--ease-out) both; }
+
+  .section { padding: 96px 40px; max-width: 1180px; margin: 0 auto; scroll-margin-top: 76px; position: relative; }
+  .section--glow::before {
+    content: ''; position: absolute; inset: 0 0 auto 0; height: 320px; z-index: -1;
+    background: radial-gradient(680px 260px at 18% 0%, rgba(37, 99, 235, .06), transparent 65%),
+                radial-gradient(560px 240px at 85% 10%, rgba(79, 70, 229, .05), transparent 65%);
+  }
   .section--tint { background: var(--field-bg); max-width: none; }
   .section--tint > .section-inner { max-width: 1180px; margin: 0 auto; }
-  .section-head { text-align: center; max-width: 620px; margin: 0 auto 48px; }
-  .section-head h2 { font-size: var(--fs-h1); font-weight: 800; letter-spacing: -.02em; margin: 0 0 12px; }
-  .section-head p { font-size: 1rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
+  .section-head { text-align: center; max-width: 640px; margin: 0 auto 52px; }
+  .section-icon {
+    width: 52px; height: 52px; border-radius: 15px; margin: 0 auto 18px;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 12px 26px -10px rgba(37, 99, 235, .5);
+    animation: floatSlow 5s ease-in-out infinite;
+  }
+  .section-icon svg { width: 24px; height: 24px; }
+  .section-head h2 { font-size: clamp(2rem, 1.5rem + 2.1vw, 3.25rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; line-height: 1.12; }
+  .section-head p { font-size: 1.0625rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
 
   /* Pasos */
-  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-bottom: 40px; }
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 44px; }
   .step-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 28px 24px; transition: transform .18s var(--ease-out), box-shadow .18s;
+    padding: 32px 26px; transition: transform .22s var(--ease-spring), box-shadow .22s, border-color .22s;
   }
-  .step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-  .step-card__badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 9px; margin-bottom: 16px;
-    background: var(--accent-dim); color: var(--accent); font-weight: 800; font-size: .8125rem;
+  .step-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -18px rgba(37, 99, 235, .3); border-color: var(--border-strong); }
+  .step-card__icon-wrap { position: relative; display: inline-flex; margin-bottom: 20px; }
+  .step-card__icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 12px 24px -10px rgba(37, 99, 235, .45);
+    transition: transform .25s var(--ease-spring);
   }
-  .step-card h3 { margin: 0 0 6px; font-size: 1.0625rem; font-weight: 700; }
-  .step-card p { margin: 0; color: var(--text-dim); font-size: .875rem; line-height: 1.55; }
+  .step-card__icon svg { width: 25px; height: 25px; }
+  .step-card:hover .step-card__icon { transform: scale(1.08) rotate(-4deg); }
+  .step-card__num {
+    position: absolute; right: -7px; bottom: -7px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--text); color: #fff; border: 3px solid var(--surface);
+    font-size: .6875rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-card h3 { margin: 0 0 7px; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
+  .step-card p { margin: 0; color: var(--text-dim); font-size: .875rem; line-height: 1.6; }
   .section-cta { text-align: center; }
 
   /* Herramientas: bloques de color */
-  .tool-blocks { display: flex; flex-direction: column; gap: 22px; }
+  .tool-blocks { display: flex; flex-direction: column; gap: 24px; }
   .tool-block {
-    border-radius: var(--radius); border: 1px solid; padding: 36px 40px;
+    border-radius: calc(var(--radius) + 4px); border: 1px solid; padding: 40px 44px;
+    transition: transform .25s var(--ease-out), box-shadow .25s;
   }
-  .tool-block h3 { font-size: 1.375rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 8px; }
-  .tool-block > p { margin: 0 0 26px; color: var(--text-dim); font-size: .9375rem; max-width: 640px; }
-  .tool-block__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 22px; }
-  .tool-block__col h4 { margin: 0 0 4px; font-size: .9375rem; font-weight: 700; }
-  .tool-block__col p { margin: 0; font-size: .8125rem; color: var(--text-dim); line-height: 1.55; }
+  .tool-block:hover { transform: translateY(-4px); }
+  .tool-block__head { display: flex; align-items: center; gap: 18px; margin-bottom: 10px; }
+  .tool-block__icon {
+    width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 12px 24px -10px rgba(20, 22, 43, .3);
+    animation: floatSlow 6s ease-in-out infinite;
+  }
+  .tool-block__icon svg { width: 26px; height: 26px; }
+  .tool-block h3 { font-size: 1.75rem; font-weight: 800; letter-spacing: -.015em; margin: 0; }
+  .tool-block > p { margin: 0 0 28px; color: var(--text-dim); font-size: .9375rem; line-height: 1.6; max-width: 640px; }
+  .tool-block__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 24px; }
+  .tool-block__col-head { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; }
+  .tool-block__col-head svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .tool-block__col h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+  .tool-block__col p { margin: 0; font-size: .8438rem; color: var(--text-dim); line-height: 1.6; }
   .tool-block--indigo { background: #eaf1ff; border-color: #cfe0fd; }
   .tool-block--indigo h3 { color: #1d4ed8; }
+  .tool-block--indigo .tool-block__col-head svg { color: #1d4ed8; }
   .tool-block--amber { background: #fef3e0; border-color: #fbe3b8; }
   .tool-block--amber h3 { color: #92400e; }
+  .tool-block--amber .tool-block__col-head svg { color: #92400e; }
   .tool-block--purple { background: #f3ecfe; border-color: #e5d5fc; }
   .tool-block--purple h3 { color: #6b21a8; }
+  .tool-block--purple .tool-block__col-head svg { color: #6b21a8; }
   .tool-block .badge-sim {
     display: inline-flex; align-items: center; gap: 5px; font-size: .6875rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim);
@@ -130,12 +175,22 @@
   }
 
   /* Precio */
-  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 780px; margin: 0 auto; }
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; max-width: 800px; margin: 0 auto; }
   .price-card {
     position: relative; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 32px 28px;
+    border-radius: var(--radius); padding: 36px 30px;
+    transition: transform .22s var(--ease-out), box-shadow .22s;
   }
+  .price-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
   .price-card--pro { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .price-card--pro:hover { box-shadow: 0 0 0 1px var(--accent), 0 20px 40px -18px rgba(37, 99, 235, .35); }
+  .price-card__icon {
+    width: 48px; height: 48px; border-radius: 14px; margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 10px 20px -8px rgba(20, 22, 43, .3);
+  }
+  .price-card__icon svg { width: 22px; height: 22px; }
+  .price-card--pro .price-card__icon { animation: pulseSoft 2.2s ease-in-out infinite; }
   .price-card__ribbon {
     position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
     background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
@@ -143,31 +198,44 @@
     padding: 4px 14px; border-radius: 999px;
   }
   .price-card__name { font-size: 1rem; font-weight: 700; color: var(--text-dim); margin: 0 0 6px; }
-  .price-card__amount { font-size: 2.25rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 20px; }
+  .price-card__amount { font-size: 2.625rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 22px; }
   .price-card__amount span { font-size: .9375rem; font-weight: 600; color: var(--text-dim); }
-  .price-card__list { list-style: none; margin: 0 0 26px; padding: 0; display: flex; flex-direction: column; gap: 11px; }
-  .price-card__list li { display: flex; align-items: flex-start; gap: 9px; font-size: .875rem; }
-  .price-card__list svg { width: 16px; height: 16px; color: var(--green); flex-shrink: 0; margin-top: 1px; }
+  .price-card__list { list-style: none; margin: 0 0 26px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .price-card__list li { display: flex; align-items: flex-start; gap: 10px; font-size: .9375rem; }
+  .price-card__list svg { width: 17px; height: 17px; color: var(--green); flex-shrink: 0; margin-top: 1px; }
   .price-card .btn-primary, .price-card .btn-secondary { width: 100%; justify-content: center; }
 
   /* FAQ */
-  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
-  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: border-color .2s, box-shadow .2s; }
+  .faq-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+  .faq-item.is-open { border-color: rgba(37, 99, 235, .35); }
   .faq-item__q {
-    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 18px 20px; background: none; border: none; text-align: left;
-    font-size: .9375rem; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer;
+    width: 100%; display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px; background: none; border: none; text-align: left;
+    font-size: 1rem; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer;
   }
-  .faq-item__q svg { width: 18px; height: 18px; color: var(--text-dim); flex-shrink: 0; transition: transform .2s var(--ease-out); }
-  .faq-item.is-open .faq-item__q svg { transform: rotate(180deg); color: var(--accent); }
+  .faq-item__q-icon {
+    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+    background: var(--accent-dim); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s, color .2s;
+  }
+  .faq-item__q-icon svg { width: 16px; height: 16px; }
+  .faq-item.is-open .faq-item__q-icon { background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; }
+  .faq-item__q-text { flex: 1; }
+  .faq-item__q-chevron { width: 18px; height: 18px; color: var(--text-dim); flex-shrink: 0; transition: transform .25s var(--ease-out); }
+  .faq-item.is-open .faq-item__q-chevron { transform: rotate(180deg); color: var(--accent); }
   .faq-item__a {
-    max-height: 0; overflow: hidden; transition: max-height .25s var(--ease-out);
+    max-height: 0; overflow: hidden; transition: max-height .3s var(--ease-out);
   }
-  .faq-item__a p { margin: 0; padding: 0 20px 18px; font-size: .875rem; color: var(--text-dim); line-height: 1.6; }
+  .faq-item__a p { margin: 0; padding: 0 20px 20px 66px; font-size: .9375rem; color: var(--text-dim); line-height: 1.65; }
 
   /* CTA final + footer */
   .final-cta { text-align: center; }
-  .final-cta .btn-primary { padding: 14px 30px; font-size: 1rem; margin-top: 8px; }
+  .final-cta h2 { font-size: clamp(2rem, 1.5rem + 2.1vw, 3.25rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; }
+  .final-cta p { color: var(--text-dim); font-size: 1.0625rem; margin: 0; }
+  .final-cta .btn-primary { padding: 15px 32px; font-size: 1.0625rem; margin-top: 26px; }
   .site-footer { border-top: 1px solid var(--border); padding: 48px 40px 32px; }
   .site-footer__inner {
     max-width: 1180px; margin: 0 auto;
@@ -190,11 +258,14 @@
     font-size: .75rem; color: var(--text-dim); text-align: center;
   }
   @media (max-width: 760px) {
-    .section { padding: 60px 24px; }
+    .section { padding: 64px 24px; }
     .steps-grid { grid-template-columns: 1fr; }
-    .tool-block { padding: 26px; }
+    .tool-block { padding: 28px 24px; }
+    .tool-block__icon { width: 48px; height: 48px; }
+    .tool-block h3 { font-size: 1.375rem; }
     .tool-block__cols { grid-template-columns: 1fr; gap: 18px; }
     .pricing-grid { grid-template-columns: 1fr; }
+    .faq-item__a p { padding-left: 20px; }
     .site-footer__inner { grid-template-columns: 1fr; gap: 28px; }
   }
 
@@ -431,82 +502,102 @@
   </header>
 
   <main>
-    <section class="section" id="como-funciona">
-      <div class="section-head">
+    <section class="section section--glow" id="como-funciona">
+      <div class="section-head io-reveal">
+        <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="bolt" data-icon-size="24"></span>
         <h2>Sube tu gráfico. Analiza. Decide.</h2>
         <p>En tres pasos simples, convierte cualquier gráfico en un plan claro para tu siguiente operación.</p>
       </div>
       <div class="steps-grid">
-        <div class="step-card reveal">
-          <span class="step-card__badge">1</span>
+        <div class="step-card io-reveal">
+          <span class="step-card__icon-wrap">
+            <span class="step-card__icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="upload" data-icon-size="25"></span>
+            <span class="step-card__num">1</span>
+          </span>
           <h3>Sube una captura</h3>
           <p>Arrastra el gráfico de cualquier mercado, cripto o activo que quieras estudiar — sin instalar nada.</p>
         </div>
-        <div class="step-card reveal" style="animation-delay:.06s">
-          <span class="step-card__badge">2</span>
+        <div class="step-card io-reveal" style="animation-delay:.1s">
+          <span class="step-card__icon-wrap">
+            <span class="step-card__icon" style="background:linear-gradient(135deg, #f97316, #ef4444);" data-icon="brain" data-icon-size="25"></span>
+            <span class="step-card__num">2</span>
+          </span>
           <h3>La IA lo analiza</h3>
           <p>En segundos detecta patrones, soportes y resistencias sobre tu propio gráfico, no una plantilla.</p>
         </div>
-        <div class="step-card reveal" style="animation-delay:.12s">
-          <span class="step-card__badge">3</span>
+        <div class="step-card io-reveal" style="animation-delay:.2s">
+          <span class="step-card__icon-wrap">
+            <span class="step-card__icon" style="background:linear-gradient(135deg, #16a34a, #22c55e);" data-icon="shieldCheck" data-icon-size="25"></span>
+            <span class="step-card__num">3</span>
+          </span>
           <h3>Recibe tu plan</h3>
           <p>Nivel de confianza, niveles clave y una lectura clara para que decidas tu siguiente paso.</p>
         </div>
       </div>
-      <div class="section-cta">
+      <div class="section-cta io-reveal">
         <button class="btn-primary" type="button" data-cta-signup>Probar el AI Analyzer gratis →</button>
       </div>
     </section>
 
     <section class="section section--tint" id="herramientas">
       <div class="section-inner">
-        <div class="section-head">
+        <div class="section-head io-reveal">
+          <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="chartBar" data-icon-size="24"></span>
           <h2>Todo lo que necesitas para operar sin miedo a equivocarte.</h2>
           <p>Un analizador de gráficos, picks diarios y un simulador completo de trading — todo dentro de la misma cuenta.</p>
         </div>
         <div class="tool-blocks">
-          <div class="tool-block tool-block--indigo reveal">
-            <h3>El analizador de gráficos que nunca duerme.</h3>
+          <div class="tool-block tool-block--indigo io-reveal">
+            <div class="tool-block__head">
+              <span class="tool-block__icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="brain" data-icon-size="26"></span>
+              <h3>El analizador de gráficos que nunca duerme.</h3>
+            </div>
             <p>Sube cualquier captura y obtén soportes, resistencias y una lectura de confianza al instante, para cualquier mercado.</p>
             <div class="tool-block__cols">
               <div class="tool-block__col">
-                <h4>Funciona con cualquier mercado</h4>
+                <div class="tool-block__col-head"><span data-icon="search" data-icon-size="17"></span><h4>Funciona con cualquier mercado</h4></div>
                 <p>Cripto, forex o acciones — sube la imagen del gráfico y listo, sin conectar ninguna cuenta.</p>
               </div>
               <div class="tool-block__col">
-                <h4>Resultados con confianza real</h4>
+                <div class="tool-block__col-head"><span data-icon="shieldCheck" data-icon-size="17"></span><h4>Resultados con confianza real</h4></div>
                 <p>Cada análisis indica su propio nivel de certeza, para que decidas con criterio y no a ciegas.</p>
               </div>
             </div>
             <button class="btn-secondary" type="button" data-cta-signup>Probar el Analyzer →</button>
           </div>
 
-          <div class="tool-block tool-block--amber reveal" style="animation-delay:.06s">
-            <h3>Picks diarios seleccionados por IA.</h3>
+          <div class="tool-block tool-block--amber io-reveal" style="animation-delay:.1s">
+            <div class="tool-block__head">
+              <span class="tool-block__icon" style="background:linear-gradient(135deg, #f59e0b, #f97316);" data-icon="star" data-icon-size="26"></span>
+              <h3>Picks diarios seleccionados por IA.</h3>
+            </div>
             <p>Cada día, un nuevo grupo de oportunidades ya analizadas, listas para que las revises tú mismo.</p>
             <div class="tool-block__cols">
               <div class="tool-block__col">
-                <h4>Actualizado cada día</h4>
+                <div class="tool-block__col-head"><span data-icon="clock" data-icon-size="17"></span><h4>Actualizado cada día</h4></div>
                 <p>Ideas nuevas cada mañana, sin que tengas que rastrear el mercado tú mismo.</p>
               </div>
               <div class="tool-block__col">
-                <h4>Contexto claro en cada pick</h4>
+                <div class="tool-block__col-head"><span data-icon="chevronRight" data-icon-size="17"></span><h4>Contexto claro en cada pick</h4></div>
                 <p>Razonamiento y niveles clave junto a cada oportunidad — nunca solo un ticker suelto.</p>
               </div>
             </div>
             <button class="btn-secondary" type="button" data-cta-signup>Ver picks de hoy →</button>
           </div>
 
-          <div class="tool-block tool-block--purple reveal" style="animation-delay:.12s">
-            <h3>Sigue a traders y wallets<span class="badge-sim">Modo simulado</span></h3>
+          <div class="tool-block tool-block--purple io-reveal" style="animation-delay:.2s">
+            <div class="tool-block__head">
+              <span class="tool-block__icon" style="background:linear-gradient(135deg, #8b5cf6, #a855f7);" data-icon="users" data-icon-size="26"></span>
+              <h3>Sigue a traders y wallets<span class="badge-sim">Modo simulado</span></h3>
+            </div>
             <p>Practica replicando estrategias ajenas dentro de tu propia cuenta de paper trading, sin arriesgar un euro real.</p>
             <div class="tool-block__cols">
               <div class="tool-block__col">
-                <h4>Wallet Tracker</h4>
+                <div class="tool-block__col-head"><span data-icon="wallet" data-icon-size="17"></span><h4>Wallet Tracker</h4></div>
                 <p>Sigue la actividad de cualquier dirección y observa sus movimientos recientes.</p>
               </div>
               <div class="tool-block__col">
-                <h4>Copy Trading simulado</h4>
+                <div class="tool-block__col-head"><span data-icon="refresh" data-icon-size="17"></span><h4>Copy Trading simulado</h4></div>
                 <p>Copia automáticamente las operaciones de traders modelo dentro de tu saldo virtual.</p>
               </div>
             </div>
@@ -516,13 +607,15 @@
       </div>
     </section>
 
-    <section class="section" id="precio">
-      <div class="section-head">
+    <section class="section section--glow" id="precio">
+      <div class="section-head io-reveal">
+        <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="shieldCheck" data-icon-size="24"></span>
         <h2>Un solo plan de pago, sin sorpresas.</h2>
         <p>Empieza gratis. Mejora cuando quieras más análisis y más herramientas.</p>
       </div>
       <div class="pricing-grid">
-        <div class="price-card reveal">
+        <div class="price-card io-reveal">
+          <span class="price-card__icon" style="background:linear-gradient(135deg, #94a3b8, #64748b);" data-icon="bolt" data-icon-size="22"></span>
           <p class="price-card__name">Gratis</p>
           <p class="price-card__amount">0€ <span>/ siempre</span></p>
           <ul class="price-card__list">
@@ -533,8 +626,9 @@
           </ul>
           <button class="btn-secondary" type="button" data-cta-signup>Crear cuenta gratis</button>
         </div>
-        <div class="price-card price-card--pro reveal" style="animation-delay:.06s">
+        <div class="price-card price-card--pro io-reveal" style="animation-delay:.1s">
           <span class="price-card__ribbon">Más popular</span>
+          <span class="price-card__icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="star" data-icon-size="22"></span>
           <p class="price-card__name">Vantex Pro</p>
           <p class="price-card__amount">4,99€ <span>/ mes</span></p>
           <ul class="price-card__list">
@@ -549,41 +643,67 @@
     </section>
 
     <section class="section" id="faq">
-      <div class="section-head">
+      <div class="section-head io-reveal">
+        <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="help" data-icon-size="24"></span>
         <h2>Preguntas frecuentes</h2>
         <p>Lo que más nos preguntan antes de empezar.</p>
       </div>
       <div class="faq-list" data-faq>
-        <div class="faq-item">
-          <button class="faq-item__q" type="button">¿Es dinero real?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="faq-item io-reveal">
+          <button class="faq-item__q" type="button">
+            <span class="faq-item__q-icon" data-icon="shieldCheck" data-icon-size="16"></span>
+            <span class="faq-item__q-text">¿Es dinero real?</span>
+            <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div class="faq-item__a"><p>No. Paper Trading, Wallet Tracker y Copy Trading funcionan con saldo virtual y datos simulados — puedes practicar sin arriesgar un euro real.</p></div>
         </div>
-        <div class="faq-item">
-          <button class="faq-item__q" type="button">¿El análisis de IA es real?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="faq-item io-reveal" style="animation-delay:.05s">
+          <button class="faq-item__q" type="button">
+            <span class="faq-item__q-icon" data-icon="brain" data-icon-size="16"></span>
+            <span class="faq-item__q-text">¿El análisis de IA es real?</span>
+            <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div class="faq-item__a"><p>Sí. El AI Market Analyzer usa un modelo de IA real para leer el gráfico que subas y generar el análisis — no son resultados de plantilla.</p></div>
         </div>
-        <div class="faq-item">
-          <button class="faq-item__q" type="button">¿Necesito experiencia previa?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="faq-item io-reveal" style="animation-delay:.1s">
+          <button class="faq-item__q" type="button">
+            <span class="faq-item__q-icon" data-icon="star" data-icon-size="16"></span>
+            <span class="faq-item__q-text">¿Necesito experiencia previa?</span>
+            <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div class="faq-item__a"><p>No. Vantex está pensado para aprender practicando, con una lectura clara en cada análisis y sin arriesgar dinero mientras coges soltura.</p></div>
         </div>
-        <div class="faq-item">
-          <button class="faq-item__q" type="button">¿Qué pasa con mis datos?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="faq-item io-reveal" style="animation-delay:.15s">
+          <button class="faq-item__q" type="button">
+            <span class="faq-item__q-icon" data-icon="wallet" data-icon-size="16"></span>
+            <span class="faq-item__q-text">¿Qué pasa con mis datos?</span>
+            <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div class="faq-item__a"><p>Tu email y contraseña se guardan de forma segura y nunca se comparten. Vantex nunca pide acceso a tus cuentas de exchange ni a tu dinero real.</p></div>
         </div>
-        <div class="faq-item">
-          <button class="faq-item__q" type="button">¿Puedo cancelar cuando quiera?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="faq-item io-reveal" style="animation-delay:.2s">
+          <button class="faq-item__q" type="button">
+            <span class="faq-item__q-icon" data-icon="refresh" data-icon-size="16"></span>
+            <span class="faq-item__q-text">¿Puedo cancelar cuando quiera?</span>
+            <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div class="faq-item__a"><p>Sí. Puedes cancelar tu suscripción Pro en cualquier momento desde Ajustes, sin permanencia ni penalización.</p></div>
         </div>
-        <div class="faq-item">
-          <button class="faq-item__q" type="button">¿Qué necesito para empezar?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="faq-item io-reveal" style="animation-delay:.25s">
+          <button class="faq-item__q" type="button">
+            <span class="faq-item__q-icon" data-icon="bolt" data-icon-size="16"></span>
+            <span class="faq-item__q-text">¿Qué necesito para empezar?</span>
+            <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div class="faq-item__a"><p>Solo un email. Crea tu cuenta gratis y ya puedes subir tu primer gráfico en menos de un minuto.</p></div>
         </div>
       </div>
     </section>
 
-    <section class="section final-cta">
-      <h2 style="font-size:var(--fs-h1); font-weight:800; letter-spacing:-.02em; margin:0 0 12px;">¿Listo para dejar de improvisar?</h2>
-      <p style="color:var(--text-dim); font-size:1rem; margin:0;">Crea tu cuenta gratis y analiza tu primer gráfico en menos de un minuto.</p>
+    <section class="section section--glow final-cta io-reveal">
+      <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="bolt" data-icon-size="24"></span>
+      <h2>¿Listo para dejar de improvisar?</h2>
+      <p>Crea tu cuenta gratis y analiza tu primer gráfico en menos de un minuto.</p>
       <button class="btn-primary" type="button" data-cta-signup>Crear cuenta gratis →</button>
     </section>
   </main>
@@ -629,6 +749,33 @@
     document.querySelectorAll('[data-trust-icon]').forEach((el) => {
       el.innerHTML = `${vantexIcon('check', { size: 14 })}${el.textContent}`;
     });
+
+    // Todos los iconos nuevos de las secciones de debajo del hero (pasos,
+    // herramientas, precios, FAQ) se rellenan igual: un span con data-icon
+    // en vez de repetir el SVG a mano en cada sitio.
+    document.querySelectorAll('[data-icon]').forEach((el) => {
+      const size = Number(el.dataset.iconSize) || 20;
+      el.innerHTML = vantexIcon(el.dataset.icon, { size });
+    });
+
+    // Entrada animada al hacer scroll para todo lo que va debajo del hero
+    // (el hero en sí ya se anima solo, al cargar — esto es aparte y no lo
+    // toca). Cada .io-reveal se queda invisible hasta que asoma en la
+    // pantalla, momento en el que se le añade .is-in y dispara la misma
+    // animación fadeInUp que usa el resto de la app.
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -80px 0px' });
+      document.querySelectorAll('.io-reveal').forEach((el) => io.observe(el));
+    } else {
+      document.querySelectorAll('.io-reveal').forEach((el) => el.classList.add('is-in'));
+    }
 
     const tabs = document.querySelectorAll('[data-tab]');
     const forms = { login: document.querySelector('[data-form="login"]'), signup: document.querySelector('[data-form="signup"]') };
