@@ -14,73 +14,130 @@
 <style>
   html { scroll-behavior: smooth; }
   body { position: relative; }
+  :root {
+    --electric: #344de0;
+    --navy-deep: #060a24;
+    --navy-mid: #0d1750;
+  }
 
-  /* ---------- Barra de navegación superior ---------- */
+  /* ---------- Cabecera fija: aviso + nav ----------
+     Se agrupan en un único contenedor position:fixed (no sticky): el
+     body/html de esta app llevan overflow-x:hidden para evitar scroll
+     horizontal, y ese ajuste tiene un efecto secundario conocido — obliga
+     a overflow-y:auto y convierte a body en el "contenedor de scroll" de
+     sus hijos, lo que rompe position:sticky en Chromium (dejaría de
+     pegarse de verdad al hacer scroll). position:fixed no depende de eso
+     en absoluto, así que resuelve el problema de raíz. */
+  .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 40; }
+
+  /* ---------- Barra de aviso ---------- */
+  .announce-bar {
+    position: relative; overflow: hidden;
+    background: var(--electric); color: #fff; text-align: center;
+    padding: 10px 46px; font-size: .75rem; font-weight: 700; letter-spacing: .05em;
+    max-height: 42px; transition: max-height .3s var(--ease-out), opacity .25s, padding .3s;
+  }
+  .announce-bar.is-closed { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+  .announce-bar__shimmer {
+    position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.16) 48%, rgba(255,255,255,.16) 52%, transparent 65%);
+    background-size: 220% 100%; animation: shimmerSweep 4s ease-in-out infinite;
+  }
+  @keyframes shimmerSweep { 0% { background-position: 200% 0; } 100% { background-position: -60% 0; } }
+  .announce-bar__close {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%; border: none; background: none;
+    color: rgba(255,255,255,.75); font-size: 1.1rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: background .15s, color .15s;
+  }
+  .announce-bar__close:hover { background: rgba(255,255,255,.16); color: #fff; }
+
+  /* ---------- Barra de navegación superior ----------
+     Transparente y con texto claro mientras flota sobre el hero oscuro;
+     al hacer scroll pasa a blanco/blur con texto oscuro (misma barra,
+     dos estados via .is-scrolled). */
   .site-nav {
-    position: sticky; top: 0; z-index: 20;
     display: flex; align-items: center; justify-content: space-between;
-    gap: 24px; padding: 16px 40px;
-    background: rgba(255,255,255,.82); backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
+    gap: 24px; padding: 18px 40px;
+    background: transparent; border-bottom: 1px solid transparent;
+    transition: background .3s var(--ease-out), border-color .3s, box-shadow .3s;
   }
-  .site-nav__logo { display: inline-flex; align-items: center; gap: 10px; color: var(--text); }
+  /* Como la cabecera es position:fixed (fuera del flujo), el hero ya
+     empieza de forma natural en la parte superior real de la página —
+     solo necesita este padding-top (altura real de aviso+nav, medida por
+     JS en --nav-h) para que el título no quede tapado debajo. */
+  .hero-section { padding-top: var(--nav-h, 72px); }
+  .site-nav.is-scrolled { background: rgba(255,255,255,.86); backdrop-filter: blur(12px); border-bottom-color: var(--border); box-shadow: var(--shadow-sm); }
+  .site-nav__logo { display: inline-flex; align-items: center; gap: 10px; }
   .site-nav__logo-mark {
-    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #fff, #cfe0ff); color: var(--electric);
     display: flex; align-items: center; justify-content: center;
+    transition: background .3s, color .3s;
   }
-  .site-nav__logo-mark svg { width: 17px; height: 17px; }
-  .site-nav__logo-word { font-size: 1.0625rem; font-weight: 800; letter-spacing: -.02em; }
-  .site-nav__links { display: flex; align-items: center; gap: 28px; }
-  .site-nav__links a { font-size: .875rem; font-weight: 600; color: var(--text-dim); transition: color .15s; }
-  .site-nav__links a:hover { color: var(--text); }
-  .site-nav__cta { padding: 9px 18px; font-size: .8125rem; flex-shrink: 0; }
+  .site-nav.is-scrolled .site-nav__logo-mark { background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; }
+  .site-nav__logo-mark svg { width: 18px; height: 18px; }
+  .site-nav__logo-word { font-size: 1.0625rem; font-weight: 800; letter-spacing: -.02em; color: #fff; transition: color .3s; }
+  .site-nav.is-scrolled .site-nav__logo-word { color: var(--text); }
+  .site-nav__links { display: flex; align-items: center; gap: 30px; }
+  .site-nav__links a { font-size: .875rem; font-weight: 600; color: rgba(255,255,255,.8); transition: color .2s; }
+  .site-nav__links a:hover { color: #fff; }
+  .site-nav.is-scrolled .site-nav__links a { color: var(--text-dim); }
+  .site-nav.is-scrolled .site-nav__links a:hover { color: var(--text); }
+  .site-nav__right { display: flex; align-items: center; gap: 18px; }
+  .site-nav__login {
+    font-size: .875rem; font-weight: 700; color: rgba(255,255,255,.85); background: none; border: none;
+    font-family: inherit; cursor: pointer; transition: color .2s;
+  }
+  .site-nav__login:hover { color: #fff; }
+  .site-nav.is-scrolled .site-nav__login { color: var(--text-dim); }
+  .site-nav.is-scrolled .site-nav__login:hover { color: var(--text); }
+  .site-nav__cta {
+    padding: 11px 22px; font-size: .875rem; border-radius: 14px; flex-shrink: 0;
+    background: #fff; color: var(--electric); box-shadow: 0 8px 20px -8px rgba(0,0,0,.35);
+  }
+  .site-nav__cta::before { display: none; }
+  .site-nav__cta:hover { filter: none; background: #fff; transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); }
+  .site-nav.is-scrolled .site-nav__cta { background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; box-shadow: 0 8px 20px -8px rgba(37,99,235,.5); }
   @media (max-width: 760px) {
     .site-nav { padding: 14px 20px; }
     .site-nav__links { display: none; }
+    .site-nav__login { display: none; }
   }
 
-  /* ---------- Hero: fondo con blobs + landing de dos columnas ---------- */
-  .hero-section { position: relative; overflow: hidden; }
-  .bg-blob {
-    position: absolute; border-radius: 50%; filter: blur(60px); opacity: .3;
-    animation: floatSlow 9s ease-in-out infinite; z-index: 0; pointer-events: none;
+  /* ---------- Hero: fondo oscuro por capas ---------- */
+  .hero-section { position: relative; overflow: hidden; background: var(--navy-deep); }
+  .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .hero-bg__gradient {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      var(--navy-deep) 0%, var(--navy-mid) 20%, var(--electric) 48%,
+      #5470ee 68%, #eef1ff 90%, #fff 100%);
   }
-  .bg-blob--1 { width: 440px; height: 440px; background: var(--blue); top: -150px; left: -150px; }
-  .bg-blob--2 { width: 380px; height: 380px; background: #4f46e5; bottom: -160px; right: -120px; animation-delay: -4s; }
-  .bg-blob--3 { width: 320px; height: 320px; background: var(--blue-bright); top: 30%; right: 6%; animation-delay: -2s; opacity: .18; }
-
-  .landing {
-    position: relative; z-index: 1;
-    width: 100%; max-width: 1180px;
-    margin: 0 auto;
-    padding: 56px 40px;
-    display: grid;
-    grid-template-columns: 1.15fr .85fr;
-    align-items: center;
-    gap: 64px;
+  .hero-bg__grid {
+    position: absolute; inset: -40px; opacity: .1;
+    background-image:
+      linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,.9), transparent 70%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.9), transparent 70%);
+    transition: transform .15s linear;
   }
-  .landing__hero { max-width: 540px; }
-  .landing__trust {
-    display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 20px;
-    font-size: .8125rem; font-weight: 600; color: var(--text-dim);
+  .hero-bg__glow {
+    position: absolute; top: 4%; left: 50%; width: 920px; height: 520px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(255,255,255,.18), transparent 72%);
+    transition: transform .15s linear;
   }
-  .landing__trust span { display: inline-flex; align-items: center; gap: 6px; }
-  .landing__trust svg { width: 14px; height: 14px; color: var(--green); flex-shrink: 0; }
-  .landing__access { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
-  .hero-float-card {
-    display: flex; align-items: center; gap: 10px; align-self: center;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 10px 16px; box-shadow: var(--shadow-sm);
+  .hero-bg__particles { position: absolute; inset: 0; transition: transform .15s linear; }
+  .particle {
+    position: absolute; border-radius: 50%; background: #fff; pointer-events: none;
+    animation: particleFloat linear infinite, particlePulse ease-in-out infinite;
   }
-  .hero-float-card__icon {
-    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--green), #22c55e); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .hero-float-card__icon svg { width: 16px; height: 16px; }
-  .hero-float-card__title { font-size: .8125rem; font-weight: 700; }
-  .hero-float-card__desc { font-size: .75rem; color: var(--text-dim); }
+  @keyframes particleFloat { from { transform: translateY(6px); } to { transform: translateY(-26px); } }
+  @keyframes particlePulse { 0%, 100% { opacity: var(--p-min, .15); } 50% { opacity: var(--p-max, .6); } }
+  @media (max-width: 760px) { .hero-bg__particles { display: none; } }
 
   /* ---------- Secciones de la landing (cómo funciona, herramientas, precio, FAQ) ----------
      Todo lo de aquí abajo entra en escena al hacer scroll (en vez de animarse una
@@ -269,64 +326,126 @@
     .site-footer__inner { grid-template-columns: 1fr; gap: 28px; }
   }
 
-  /* Logo grande al principio del todo: es lo primero que se lee. */
-  .landing__logo { display: inline-flex; align-items: center; gap: 13px; margin-bottom: 28px; }
-  .landing__logo-mark {
-    width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--accent), var(--blue));
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 10px 24px -6px rgba(79, 70, 229, .55);
-    animation: logoGlow 2.8s ease-in-out infinite;
+  /* ---------- Contenido del hero ---------- */
+  .hero-inner {
+    position: relative; z-index: 1;
+    max-width: 1180px; margin: 0 auto;
+    padding: 64px 40px 90px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    transition: transform .15s linear, opacity .15s linear;
+    transform-origin: top center;
   }
-  .landing__logo-mark svg { width: 27px; height: 27px; }
-  .landing__logo-word { font-size: 1.75rem; font-weight: 800; letter-spacing: -.02em; color: var(--text); }
-
-  .landing__eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--accent); background: var(--accent-dim);
-    padding: 6px 13px; border-radius: 999px; margin-bottom: 22px;
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: #fff; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+    padding: 7px 16px 7px 12px; border-radius: 999px; margin-bottom: 28px;
+    backdrop-filter: blur(6px);
   }
-  .landing__eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulseSoft 1.6s ease-in-out infinite; }
-  .landing__title {
-    font-size: clamp(2.5rem, 1.75rem + 2.8vw, 3.75rem);
-    font-weight: 800; letter-spacing: -.03em; line-height: 1.05;
-    margin: 0 0 20px;
+  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); animation: pulseSoft 1.6s ease-in-out infinite; }
+  .hero-title {
+    font-size: clamp(2.5rem, 1.55rem + 4.4vw, 5.625rem);
+    font-weight: 700; letter-spacing: -.03em; line-height: .98;
+    color: #fff; margin: 0 0 24px; max-width: 880px;
   }
-  .landing__title em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--accent), var(--blue), var(--accent));
+  .hero-title__accent {
+    font-style: normal; display: block;
+    background: linear-gradient(90deg, #fff, #cfe0ff, #fff);
     background-size: 200% auto;
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: gradientShift 4s ease-in-out infinite;
+    animation: gradientShift 5s ease-in-out infinite;
   }
   @keyframes gradientShift { 0%, 100% { background-position: 0% center; } 50% { background-position: 100% center; } }
-  .landing__lead {
-    font-size: 1.0625rem; line-height: 1.6; color: var(--text-dim);
-    margin: 0 0 36px; max-width: 460px;
+  .hero-subtitle {
+    font-size: clamp(1.0625rem, 1rem + .3vw, 1.25rem); line-height: 1.55;
+    color: rgba(255,255,255,.78); max-width: 640px; margin: 0 0 36px;
   }
-  .landing__bullets { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
-  .landing__bullet { display: flex; align-items: center; gap: 14px; }
-  .landing__bullet-icon {
-    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; color: #fff;
-    box-shadow: 0 8px 18px -8px rgba(20, 22, 43, .3);
+  .hero-cta {
+    background: #fff; color: var(--electric); border: none;
+    font-weight: 700; font-size: 1.0625rem; font-family: inherit; cursor: pointer;
+    min-width: 280px; height: 62px; padding: 0 30px; border-radius: 18px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    box-shadow: 0 20px 40px -14px rgba(0,0,0,.4);
+    transition: transform .22s var(--ease-out), box-shadow .22s;
   }
-  .landing__bullet-icon svg { width: 20px; height: 20px; }
-  .landing__bullet-text { font-weight: 700; font-size: .9375rem; }
-  .landing__bullet-desc { color: var(--text-dim); font-size: .8125rem; font-weight: 500; margin-top: 1px; }
-  .landing__cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-  .landing__cta-row .btn-primary { padding: 14px 26px; font-size: 1rem; }
-  .landing__cta-secondary {
-    appearance: none; background: none; border: none; border-bottom: 2px solid transparent;
-    font-weight: 700; font-size: .9375rem; color: var(--text); font-family: inherit;
-    display: inline-flex; align-items: center; gap: 5px; padding: 4px 2px;
-    transition: border-color .15s;
+  .hero-cta:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 26px 48px -14px rgba(0,0,0,.45); }
+  .hero-cta:active { transform: translateY(-1px) scale(.99); }
+  .hero-trust {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px;
+    margin: 20px 0 0; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.68);
   }
-  .landing__cta-secondary:hover { border-color: var(--accent); }
+  .hero-trust span { display: inline-flex; align-items: center; gap: 6px; }
+  .hero-trust svg { width: 14px; height: 14px; color: #4ade80; flex-shrink: 0; }
 
-  .landing__access { width: 100%; max-width: 380px; justify-self: end; position: relative; z-index: 1; }
-  .auth-card { width: 100%; }
+  /* ---------- Visual del producto: tarjeta del analizador flotando ---------- */
+  .hero-visual { width: 100%; max-width: 1080px; margin: 56px auto 0; position: relative; z-index: 1; transition: transform .15s linear; }
+  .analyzer-mock {
+    position: relative; border-radius: 28px; overflow: hidden;
+    background: linear-gradient(165deg, #10173f, #0a0e2c);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 30px 60px -24px rgba(6,10,36,.4), 0 10px 30px -14px rgba(37,99,235,.3), 0 0 0 1px rgba(255,255,255,.04) inset;
+    opacity: 0; transform: translateY(28px) scale(.98);
+    animation: mockIn .7s var(--ease-out) .15s both;
+  }
+  @keyframes mockIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+  .analyzer-mock__head {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .analyzer-mock__chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+    padding: 6px 12px; border-radius: 999px;
+  }
+  .analyzer-mock__chip svg { width: 13px; height: 13px; color: rgba(255,255,255,.6); }
+  .analyzer-mock__status {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+    font-size: .75rem; font-weight: 700; color: #86efac;
+  }
+  .analyzer-mock__status-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.2); animation: pulseSoft 1.4s ease-in-out infinite; }
+  .analyzer-mock__body { display: grid; grid-template-columns: 1fr 260px; }
+  .analyzer-mock__chart { position: relative; padding: 20px 8px 12px 0; }
+  .analyzer-mock__chart svg { display: block; width: 100%; height: auto; aspect-ratio: 760 / 230; opacity: 0; animation: fadeInUp .6s var(--ease-out) .55s both; }
+  .candle-fx { animation: candlePop .3s ease-out forwards; }
+  @keyframes candlePop { to { opacity: 1; } }
+  .chart-ma { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawLine 1.2s var(--ease-out) .65s forwards; }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+  .analyzer-mock__scan {
+    position: absolute; top: 20px; bottom: 12px; width: 90px; left: -90px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+    animation: scanSweep 3.4s ease-in-out 1.4s infinite;
+    pointer-events: none;
+  }
+  @keyframes scanSweep { 0% { transform: translateX(0); opacity: 0; } 8% { opacity: 1; } 50% { transform: translateX(calc(100vw)); opacity: 1; } 58% { opacity: 0; } 100% { transform: translateX(calc(100vw)); opacity: 0; } }
+  .analyzer-mock__panel {
+    border-left: 1px solid rgba(255,255,255,.08);
+    padding: 22px 20px; display: flex; flex-direction: column; gap: 16px;
+    opacity: 0; transform: translateX(14px); animation: panelIn .55s var(--ease-out) 1.05s both;
+  }
+  @keyframes panelIn { to { opacity: 1; transform: translateX(0); } }
+  .analyzer-mock__panel-title { font-size: .6875rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.45); }
+  .analyzer-mock__trend { display: inline-flex; align-items: center; gap: 6px; width: fit-content; font-size: .8125rem; font-weight: 700; color: #86efac; background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.25); padding: 5px 11px; border-radius: 999px; }
+  .analyzer-mock__trend svg { width: 13px; height: 13px; }
+  .analyzer-mock__confidence-label { display: flex; justify-content: space-between; font-size: .75rem; color: rgba(255,255,255,.55); margin-bottom: 6px; }
+  .analyzer-mock__confidence-bar { height: 7px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .analyzer-mock__confidence-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #60a5fa, #a78bfa); animation: confidenceFill 1s var(--ease-out) 1.3s forwards; }
+  @keyframes confidenceFill { to { width: 78%; } }
+  .analyzer-mock__levels { display: flex; flex-direction: column; gap: 8px; font-size: .8125rem; }
+  .analyzer-mock__levels div { display: flex; justify-content: space-between; color: rgba(255,255,255,.7); }
+  .analyzer-mock__levels strong { color: #fff; font-variant-numeric: tabular-nums; }
+  .analyzer-mock__note { margin-top: auto; font-size: .6875rem; color: rgba(255,255,255,.4); line-height: 1.5; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); }
+  @media (max-width: 860px) {
+    .analyzer-mock__body { grid-template-columns: 1fr; }
+    .analyzer-mock__panel { border-left: none; border-top: 1px solid rgba(255,255,255,.08); flex-direction: row; flex-wrap: wrap; gap: 14px 24px; }
+    .analyzer-mock__panel > * { flex: 1 1 200px; min-width: 160px; }
+    .analyzer-mock__note { width: 100%; }
+  }
+
+  /* ---------- Sección de acceso (login/crear cuenta) ---------- */
+  .auth-section { background: var(--surface); padding: 72px 40px 84px; }
+  .auth-section__inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: center; }
+  .auth-card { width: 100%; max-width: 400px; }
   .auth-logo {
     width: 46px; height: 46px; border-radius: 12px;
     background: linear-gradient(135deg, var(--accent), var(--blue));
@@ -341,19 +460,16 @@
   .tabs button { flex: 1; padding: 9px; background: var(--surface); border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .15s, color .15s; }
   .tabs button.is-active { background: var(--accent); color: #fff; }
 
-  @media (max-width: 980px) {
-    .landing { grid-template-columns: 1fr; gap: 44px; padding: 40px 24px; }
-    .landing__hero { max-width: 560px; margin: 0 auto; text-align: center; }
-    .landing__lead { margin-left: auto; margin-right: auto; }
-    .landing__bullets { align-items: center; }
-    .landing__bullet { max-width: 340px; }
-    .landing__cta-row { justify-content: center; }
-    .landing__access { justify-self: center; }
-  }
-  @media (max-width: 480px) {
-    .landing { padding: 32px 20px; }
-    .landing__cta-row { flex-direction: column; align-items: center; }
-    .landing__cta-row .btn-primary { width: 100%; justify-content: center; }
+  @media (max-width: 760px) {
+    .hero-inner { padding: 48px 20px 0; }
+    .hero-badge { margin-bottom: 20px; }
+    .hero-title { margin-bottom: 18px; }
+    .hero-subtitle { margin-bottom: 28px; }
+    .hero-cta { width: 100%; min-width: 0; }
+    .hero-visual { margin-top: 40px; }
+    .analyzer-mock { border-radius: 20px; }
+    .analyzer-mock__head { padding: 14px 16px; }
+    .auth-section { padding: 56px 20px 64px; }
   }
 </style>
 </head>
@@ -382,74 +498,86 @@
     </button>
   </div>
 
-  <nav class="site-nav">
-    <a class="site-nav__logo" href="#top">
-      <span class="site-nav__logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></span>
-      <span class="site-nav__logo-word">Vantex</span>
-    </a>
-    <div class="site-nav__links">
-      <a href="#como-funciona">Cómo funciona</a>
-      <a href="#herramientas">Herramientas</a>
-      <a href="#precio">Precio</a>
-      <a href="#faq">FAQ</a>
+  <div class="site-header" data-site-header>
+    <div class="announce-bar" data-announce>
+      <div class="announce-bar__shimmer"></div>
+      <span>El AI Market Analyzer ya está disponible</span>
+      <button class="announce-bar__close" type="button" data-announce-close aria-label="Cerrar aviso">×</button>
     </div>
-    <button class="btn-primary site-nav__cta" type="button" data-cta-signup>Empezar gratis</button>
-  </nav>
+
+    <nav class="site-nav" data-site-nav>
+      <a class="site-nav__logo" href="#top">
+        <span class="site-nav__logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></span>
+        <span class="site-nav__logo-word">Vantex</span>
+      </a>
+      <div class="site-nav__links">
+        <a href="#herramientas">Funciones</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="site-nav__right">
+        <button class="site-nav__login" type="button" data-cta-login>Iniciar sesión</button>
+        <button class="btn-primary site-nav__cta" type="button" data-cta-signup>Analizar un gráfico →</button>
+      </div>
+    </nav>
+  </div>
 
   <header class="hero-section" id="top">
-    <div class="bg-blob bg-blob--1"></div>
-    <div class="bg-blob bg-blob--2"></div>
-    <div class="bg-blob bg-blob--3"></div>
+    <div class="hero-bg" aria-hidden="true">
+      <div class="hero-bg__gradient"></div>
+      <div class="hero-bg__grid" data-parallax="2"></div>
+      <div class="hero-bg__glow" data-parallax="7"></div>
+      <div class="hero-bg__particles" data-particles data-parallax="5"></div>
+    </div>
 
-    <div class="landing" data-hero-entrance>
-      <div class="landing__hero">
-        <div class="landing__logo reveal-pop">
-          <span class="landing__logo-mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg>
-          </span>
-          <span class="landing__logo-word">Vantex</span>
-        </div>
-        <span class="landing__eyebrow reveal"><span class="landing__eyebrow-dot"></span>Nuevo · Gratis para empezar</span>
-        <h1 class="landing__title reveal" style="animation-delay:.04s">Analiza el mercado con IA.<br>Practica sin riesgo. <em>Sigue a los mejores.</em></h1>
-        <p class="landing__lead reveal" style="animation-delay:.08s">Vantex reúne un analizador de gráficos con IA, un simulador de trading realista y seguimiento de wallets y traders — todo en un solo sitio, sin arriesgar un euro mientras aprendes.</p>
-
-        <div class="landing__bullets">
-          <div class="landing__bullet reveal" style="animation-delay:.12s">
-            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));"></div>
-            <div>
-              <div class="landing__bullet-text">AI Market Analyzer</div>
-              <div class="landing__bullet-desc">Sube una captura de un gráfico y recibe un análisis técnico al instante.</div>
-            </div>
-          </div>
-          <div class="landing__bullet reveal" style="animation-delay:.17s">
-            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #f97316, #ef4444);"></div>
-            <div>
-              <div class="landing__bullet-text">Paper Trading</div>
-              <div class="landing__bullet-desc">Opera con saldo virtual y pon a prueba tu estrategia sin riesgo real.</div>
-            </div>
-          </div>
-          <div class="landing__bullet reveal" style="animation-delay:.22s">
-            <div class="landing__bullet-icon" style="background:linear-gradient(135deg, #0ea5e9, #22d3ee);"></div>
-            <div>
-              <div class="landing__bullet-text">Wallet &amp; Copy Trading</div>
-              <div class="landing__bullet-desc">Sigue wallets y traders modelo (modo simulado) dentro del mismo simulador.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="landing__cta-row reveal" style="animation-delay:.28s">
-          <button class="btn-primary" type="button" data-cta-signup>Crear cuenta gratis</button>
-          <button class="landing__cta-secondary" type="button" data-cta-login>Ya tengo cuenta →</button>
-        </div>
-        <div class="landing__trust reveal" style="animation-delay:.32s">
-          <span data-trust-icon>Sin arriesgar dinero real</span>
-          <span data-trust-icon>Sin tarjeta para probar</span>
-          <span data-trust-icon>Cancela cuando quieras</span>
-        </div>
+    <div class="hero-inner" data-hero-inner>
+      <span class="hero-badge"><span class="hero-badge-dot"></span>Análisis de gráficos con IA</span>
+      <h1 class="hero-title">Lee el mercado.<span class="hero-title__accent">Antes de que se mueva.</span></h1>
+      <p class="hero-subtitle">Sube cualquier gráfico y deja que la IA detecte patrones, niveles y contexto en segundos — sin ruido, sin adivinar.</p>
+      <button class="hero-cta" type="button" data-cta-signup>Analizar mi gráfico →</button>
+      <div class="hero-trust" data-trust-row>
+        <span data-trust-icon>Análisis con IA real</span>
+        <span data-trust-icon>Gratis para empezar</span>
+        <span data-trust-icon>Sin arriesgar dinero real</span>
       </div>
 
-      <div class="landing__access">
-      <div class="panel auth-card reveal-pop" style="animation-delay:.1s">
+      <div class="hero-visual" data-parallax="3">
+        <div class="analyzer-mock">
+          <div class="analyzer-mock__head">
+            <span class="analyzer-mock__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11" /><path d="M11 20V4" /><path d="M18 20v-6" /></svg>BTC/USD</span>
+            <span class="analyzer-mock__chip">4H</span>
+            <span class="analyzer-mock__chip">Cripto</span>
+            <span class="analyzer-mock__status"><span class="analyzer-mock__status-dot"></span>IA analizando</span>
+          </div>
+          <div class="analyzer-mock__body">
+            <div class="analyzer-mock__chart" data-chart-mount>
+              <div class="analyzer-mock__scan"></div>
+            </div>
+            <div class="analyzer-mock__panel">
+              <div>
+                <div class="analyzer-mock__panel-title">Análisis IA</div>
+                <div class="analyzer-mock__trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17 10 11 14 15 20 7" /></svg>Tendencia alcista</div>
+              </div>
+              <div>
+                <div class="analyzer-mock__confidence-label"><span>Confianza</span><span>78%</span></div>
+                <div class="analyzer-mock__confidence-bar"><span></span></div>
+              </div>
+              <div class="analyzer-mock__levels">
+                <div><span>Resistencia</span><strong>68 420</strong></div>
+                <div><span>Precio actual</span><strong>66 180</strong></div>
+                <div><span>Soporte</span><strong>64 950</strong></div>
+              </div>
+              <p class="analyzer-mock__note">Vista previa ilustrativa — así se ve un análisis real dentro de la app. No es una recomendación de inversión.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="auth-section" id="acceso">
+    <div class="auth-section__inner">
+      <div class="panel auth-card">
         <div class="auth-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></div>
         <div class="auth-title">Bienvenido a Vantex</div>
         <div class="auth-sub">Análisis de mercado con IA + paper trading</div>
@@ -489,17 +617,8 @@
           <p class="error-msg" data-error="signup"></p>
         </form>
       </div>
-
-      <div class="hero-float-card reveal-pop" style="animation-delay:.2s">
-        <span class="hero-float-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
-        <div>
-          <div class="hero-float-card__title">Análisis con IA en segundos</div>
-          <div class="hero-float-card__desc">Sube tu gráfico y listo</div>
-        </div>
-      </div>
-      </div>
     </div>
-  </header>
+  </section>
 
   <main>
     <section class="section section--glow" id="como-funciona">
@@ -742,21 +861,181 @@
   <script src="/shared/icons.js"></script>
   <script src="/shared/api.js"></script>
   <script>
-    // Rellena los iconos de los 3 bullets (evita repetir el SVG a mano).
-    document.querySelectorAll('.landing__bullet-icon').forEach((el, i) => {
-      el.innerHTML = vantexIcon(['brain', 'chartBar', 'wallet'][i], { size: 20 });
-    });
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     document.querySelectorAll('[data-trust-icon]').forEach((el) => {
       el.innerHTML = `${vantexIcon('check', { size: 14 })}${el.textContent}`;
     });
 
-    // Todos los iconos nuevos de las secciones de debajo del hero (pasos,
+    // Todos los iconos de las secciones de debajo del hero (pasos,
     // herramientas, precios, FAQ) se rellenan igual: un span con data-icon
     // en vez de repetir el SVG a mano en cada sitio.
     document.querySelectorAll('[data-icon]').forEach((el) => {
       const size = Number(el.dataset.iconSize) || 20;
       el.innerHTML = vantexIcon(el.dataset.icon, { size });
     });
+
+    // El hero necesita saber la altura real de la cabecera fija completa
+    // (aviso + nav, --nav-h) para reservar ese mismo espacio arriba y que
+    // el título no quede tapado — se mide de verdad en vez de asumir un
+    // número fijo, así funciona igual en cualquier breakpoint y también
+    // cuando el aviso se cierra y la cabecera se queda más baja.
+    const siteHeader = document.querySelector('[data-site-header]');
+    function measureHeader() {
+      if (siteHeader) document.documentElement.style.setProperty('--nav-h', `${siteHeader.offsetHeight}px`);
+    }
+    measureHeader();
+    window.addEventListener('resize', measureHeader);
+
+    // ---------- Barra de aviso: se puede cerrar y no vuelve a molestar ----------
+    (function setupAnnounceBar() {
+      const bar = document.querySelector('[data-announce]');
+      if (!bar) return;
+      if (localStorage.getItem('vantex_announce_closed') === '1') {
+        bar.classList.add('is-closed');
+        measureHeader();
+        return;
+      }
+      bar.querySelector('[data-announce-close]').addEventListener('click', () => {
+        bar.classList.add('is-closed');
+        localStorage.setItem('vantex_announce_closed', '1');
+        bar.addEventListener('transitionend', measureHeader, { once: true });
+      });
+    })();
+
+    // ---------- Navbar: transparente sobre el hero, blanca al hacer scroll ----------
+    (function setupNavScroll() {
+      const nav = document.querySelector('[data-site-nav]');
+      if (!nav) return;
+      function update() { nav.classList.toggle('is-scrolled', window.scrollY > 40); }
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+    })();
+
+    // ---------- Gráfico de velas del mock del analizador ----------
+    // Datos fijos (no aleatorios): un patrón de subida-caída-ruptura que se
+    // ve como un gráfico real sin depender de ningún dato de mercado real.
+    (function buildChart() {
+      const mount = document.querySelector('[data-chart-mount]');
+      if (!mount) return;
+      const closes = [44, 47, 45, 49, 52, 50, 54, 58, 56, 60, 57, 53, 55, 59, 63, 61, 66, 64, 68, 72, 70, 75, 78, 82];
+      const W = 760, H = 230, PAD = 10;
+      const n = closes.length;
+      const stepX = (W - PAD * 2) / (n - 1 + 0.6);
+      const min = Math.min(...closes) - 6, max = Math.max(...closes) + 6;
+      const y = (v) => H - PAD - ((v - min) / (max - min)) * (H - PAD * 2 - 26);
+      const x = (i) => PAD + i * stepX;
+
+      let candles = '';
+      let maPoints = [];
+      closes.forEach((c, i) => {
+        const prev = closes[i - 1] ?? c;
+        const open = prev;
+        const wickUp = c + (i % 3 === 0 ? 2.5 : 1.4);
+        const wickDown = Math.min(open, c) - (i % 4 === 0 ? 2.2 : 1.1);
+        const bull = c >= open;
+        const cx = x(i);
+        const bodyTop = y(Math.max(open, c));
+        const bodyBot = y(Math.min(open, c));
+        const bodyH = Math.max(bodyBot - bodyTop, 2);
+        const delay = (0.65 + i * 0.028).toFixed(3);
+        candles += `
+          <line x1="${cx}" y1="${y(wickUp)}" x2="${cx}" y2="${y(wickDown)}" stroke="${bull ? '#4ade80' : '#f87171'}" stroke-width="1.4" opacity="0" class="candle-fx" style="animation-delay:${delay}s" />
+          <rect x="${cx - 4.5}" y="${bodyTop}" width="9" height="${bodyH}" rx="1.5" fill="${bull ? '#4ade80' : '#f87171'}" opacity="0" class="candle-fx" style="animation-delay:${delay}s" />
+        `;
+        maPoints.push(`${cx},${y(c)}`);
+      });
+
+      // Línea de media móvil suavizada (promedio simple de ventana 3).
+      const maSmoothed = closes.map((_, i) => {
+        const win = closes.slice(Math.max(0, i - 2), i + 1);
+        return win.reduce((a, b) => a + b, 0) / win.length;
+      });
+      const maPath = maSmoothed.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`).join(' ');
+
+      const resistance = y(max - 4);
+      const support = y(min + 3);
+
+      mount.insertAdjacentHTML('afterbegin', `
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Vista previa de un análisis de gráfico con IA">
+          <defs>
+            <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#60a5fa" stop-opacity=".25" />
+              <stop offset="1" stop-color="#60a5fa" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          ${[0, 1, 2, 3].map((r) => `<line x1="0" y1="${(H / 4) * r + 6}" x2="${W}" y2="${(H / 4) * r + 6}" stroke="rgba(255,255,255,.06)" stroke-width="1" />`).join('')}
+          <line x1="0" y1="${resistance}" x2="${W}" y2="${resistance}" stroke="rgba(248,113,113,.45)" stroke-width="1" stroke-dasharray="5 5" />
+          <line x1="0" y1="${support}" x2="${W}" y2="${support}" stroke="rgba(74,222,128,.45)" stroke-width="1" stroke-dasharray="5 5" />
+          <path d="${maPath}" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="chart-ma" />
+          ${candles}
+        </svg>
+      `);
+    })();
+
+    // ---------- Partículas del fondo del hero ----------
+    (function buildParticles() {
+      const host = document.querySelector('[data-particles]');
+      if (!host || reduceMotion) return;
+      const COUNT = window.innerWidth < 760 ? 0 : 26;
+      for (let i = 0; i < COUNT; i++) {
+        const p = document.createElement('span');
+        p.className = 'particle';
+        const size = 1.5 + Math.random() * 2.5;
+        p.style.width = `${size}px`;
+        p.style.height = `${size}px`;
+        p.style.left = `${Math.random() * 100}%`;
+        p.style.top = `${Math.random() * 70}%`;
+        p.style.setProperty('--p-min', (0.08 + Math.random() * 0.15).toFixed(2));
+        p.style.setProperty('--p-max', (0.4 + Math.random() * 0.4).toFixed(2));
+        p.style.animationDuration = `${5 + Math.random() * 6}s, ${3 + Math.random() * 4}s`;
+        p.style.animationDelay = `${Math.random() * -8}s, ${Math.random() * -6}s`;
+        host.appendChild(p);
+      }
+    })();
+
+    // ---------- Parallax sutil al mover el ratón (solo con ratón real) ----------
+    (function setupParallax() {
+      if (reduceMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches || window.innerWidth < 900) return;
+      const targets = Array.from(document.querySelectorAll('[data-parallax]')).map((el) => ({
+        el, factor: Number(el.dataset.parallax) || 3,
+      }));
+      if (!targets.length) return;
+      let raf = null, mx = 0, my = 0;
+      document.querySelector('.hero-section').addEventListener('mousemove', (e) => {
+        mx = e.clientX / window.innerWidth - 0.5;
+        my = e.clientY / window.innerHeight - 0.5;
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          targets.forEach(({ el, factor }) => {
+            el.style.transform = el.classList.contains('hero-bg__glow')
+              ? `translateX(-50%) translate(${mx * factor}px, ${my * factor}px)`
+              : `translate(${mx * factor}px, ${my * factor}px)`;
+          });
+          raf = null;
+        });
+      });
+    })();
+
+    // ---------- Al hacer scroll, el hero se encoge muy ligeramente ----------
+    (function setupHeroScrollShrink() {
+      if (reduceMotion) return;
+      const inner = document.querySelector('[data-hero-inner]');
+      const heroSection = document.querySelector('.hero-section');
+      if (!inner || !heroSection) return;
+      let ticking = false;
+      function update() {
+        const range = heroSection.offsetHeight * 0.7;
+        const progress = Math.min(Math.max(window.scrollY / range, 0), 1);
+        inner.style.transform = `scale(${1 - progress * 0.03})`;
+        inner.style.opacity = `${1 - progress * 0.15}`;
+        ticking = false;
+      }
+      update();
+      window.addEventListener('scroll', () => {
+        if (!ticking) { requestAnimationFrame(update); ticking = true; }
+      }, { passive: true });
+    })();
 
     // Entrada animada al hacer scroll para todo lo que va debajo del hero
     // (el hero en sí ya se anima solo, al cargar — esto es aparte y no lo
