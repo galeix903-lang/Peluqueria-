@@ -10,4 +10,10 @@ router.get('/recent', (req, res) => {
   res.json({ events: store.listRecentActivity(12) });
 });
 
+// También pública: el contador real de cuentas creadas, para el sello de
+// confianza de la landing (nunca una puntuación de estrellas inventada).
+router.get('/stats', (req, res) => {
+  res.json(store.getStats());
+});
+
 module.exports = router;

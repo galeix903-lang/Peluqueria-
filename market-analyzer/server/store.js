@@ -229,6 +229,13 @@ function listAllCopyFollows() {
 // segundo sitio donde se pueda desincronizar. No expone email, nombre,
 // importes ni resultado — solo el tipo de evento, el símbolo si aplica y
 // la fecha.
+// Contadores agregados reales (nº de cuentas), para el sello de confianza
+// de la landing — nunca una puntuación inventada tipo "4.9/5".
+function getStats() {
+  const db = load();
+  return { accounts: db.users.length };
+}
+
 function listRecentActivity(limit = 12) {
   const db = load();
   const events = [
@@ -264,4 +271,5 @@ module.exports = {
   removeCopyFollow,
   listAllCopyFollows,
   listRecentActivity,
+  getStats,
 };

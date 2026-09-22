@@ -532,15 +532,32 @@
   /* Widget de acceso: deliberadamente pequeño y discreto — ni logo
      grande ni título "Bienvenido a Vantex", solo lo justo para entrar o
      registrarte sin robarle protagonismo al producto de arriba. */
-  .quick-access { max-width: 380px; margin: 52px auto 0; padding-bottom: 92px; text-align: center; }
-  .quick-access__label { font-size: .875rem; font-weight: 600; color: var(--text-dim); margin: 0 0 14px; }
+  .quick-access { max-width: 460px; margin: 52px auto 0; padding-bottom: 92px; text-align: center; }
+  .quick-access__label { font-size: 1rem; font-weight: 600; color: var(--text-dim); margin: 0 0 16px; }
   .auth-card {
     text-align: left; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 18px; padding: 22px; box-shadow: var(--shadow-sm);
+    border-radius: 22px; padding: 34px; box-shadow: var(--shadow-md);
   }
-  .tabs { display: flex; border-radius: 10px; overflow: hidden; margin-bottom: 18px; padding: 3px; background: var(--field-bg); }
-  .tabs button { flex: 1; padding: 8px; border-radius: 7px; background: none; border: none; font-weight: 600; font-size: .8125rem; color: var(--text-dim); transition: background .18s, color .18s, box-shadow .18s; }
+  /* Los campos y el botón dentro de esta tarjeta se agrandan solo aquí
+     (no se toca .field/.btn-primary globales, que se usan en el resto
+     de la app). */
+  .auth-card .field { margin-bottom: 20px; }
+  .auth-card .field label { font-size: .9375rem; margin-bottom: 8px; }
+  .auth-card .field input { padding: 14px 16px; font-size: 1rem; border-radius: 11px; }
+  .auth-card .btn-primary { padding: 15px 22px; font-size: 1.0625rem; border-radius: 12px; }
+  .tabs { display: flex; border-radius: 12px; overflow: hidden; margin-bottom: 24px; padding: 4px; background: var(--field-bg); }
+  .tabs button { flex: 1; padding: 11px; border-radius: 9px; background: none; border: none; font-weight: 600; font-size: .9375rem; color: var(--text-dim); transition: background .18s, color .18s, box-shadow .18s; }
   .tabs button.is-active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); }
+
+  /* Sello de confianza bajo la tarjeta: un contador real (nº de cuentas
+     creadas), nunca una puntuación de estrellas inventada. */
+  .trust-stat {
+    display: inline-flex; align-items: center; gap: 8px; margin: 16px auto 0;
+    font-size: .8125rem; font-weight: 600; color: var(--text-dim);
+  }
+  .trust-stat[hidden] { display: none; }
+  .trust-stat span[data-trust-stat-icon] { display: inline-flex; color: var(--green); }
+  .trust-stat span[data-trust-stat-icon] svg { width: 15px; height: 15px; }
 
   /* Aviso de actividad reciente: eventos reales (altas, análisis, operaciones
      abiertas) leídos de /api/activity/recent — nunca nombres, importes ni
@@ -776,6 +793,10 @@
             <p class="error-msg" data-error="signup"></p>
           </form>
         </div>
+        <p class="trust-stat" data-trust-stat hidden>
+          <span data-trust-stat-icon></span>
+          <span data-trust-stat-text></span>
+        </p>
       </div>
     </div>
   </section>
@@ -1323,6 +1344,21 @@
             setTimeout(() => { i = (i + 1) % items.length; show(i); }, 320);
           }, 5200);
         }
+      }).catch(() => {});
+    })();
+
+    // ---------- Sello de confianza bajo la tarjeta de acceso ----------
+    // Contador real de cuentas creadas (GET /api/activity/stats). Sin
+    // datos reales que mostrar (o si falla la petición), se queda oculto
+    // en vez de mostrar una puntuación inventada.
+    (function setupTrustStat() {
+      const el = document.querySelector('[data-trust-stat]');
+      if (!el) return;
+      api('/activity/stats').then(({ accounts }) => {
+        if (!accounts) return;
+        el.querySelector('[data-trust-stat-icon]').innerHTML = vantexIcon('shieldCheck', { size: 15 });
+        el.querySelector('[data-trust-stat-text]').textContent = `+${accounts} cuentas ya creadas en Vantex`;
+        el.hidden = false;
       }).catch(() => {});
     })();
 
