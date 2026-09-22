@@ -144,6 +144,7 @@ async function mountShell({ page, title }) {
 
   setupConnectionIndicator(root);
   setupClock(root);
+  setupTabAttentionTitle();
   root.querySelectorAll('[data-settings-btn]').forEach((btn) => btn.addEventListener('click', () => openSettingsModal(user, root)));
   root.querySelectorAll('[data-avatar-btn]').forEach((btn) => btn.addEventListener('click', () => openProfileCard(user, root)));
 
@@ -187,6 +188,16 @@ function setupClock(root) {
     if (!document.hidden) { clearTimeout(timer); render(); scheduleNextTick(); }
   });
   window.addEventListener('focus', render);
+}
+
+// Cambia el título de la pestaña cuando el usuario se va a otra pestaña
+// (visibilitychange), para animarle a volver — se restaura el título
+// original de la página en cuanto la pestaña vuelve a primer plano.
+function setupTabAttentionTitle() {
+  const originalTitle = document.title;
+  document.addEventListener('visibilitychange', () => {
+    document.title = document.hidden ? '😢 Por favor, vuelve' : originalTitle;
+  });
 }
 
 // Se abre al tocar/pulsar la foto de perfil de la topbar — una tarjeta
