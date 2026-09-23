@@ -10,8 +10,9 @@ function baseUrl(req) {
 
 router.post('/checkout', async (req, res) => {
   const user = store.findUserById(req.session.userId);
+  const plan = req.body && req.body.plan === 'plus' ? 'plus' : 'pro';
   try {
-    const { url } = await billing.createCheckoutSession(user, baseUrl(req));
+    const { url } = await billing.createCheckoutSession(user, baseUrl(req), plan);
     res.json({ url });
   } catch (err) {
     console.error('Error creando el checkout:', err.message);
@@ -49,8 +50,9 @@ function webhookHandler(req, res) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+    const plan = session.metadata && session.metadata.plan === 'plus' ? 'plus' : 'pro';
     if (session.client_reference_id) {
-      store.setUserPlan(session.client_reference_id, 'pro', {
+      store.setUserPlan(session.client_reference_id, plan, {
         stripeCustomerId: session.customer,
         stripeSubscriptionId: session.subscription,
       });
@@ -60,7 +62,16 @@ function webhookHandler(req, res) {
     const user = store.findUserByStripeCustomerId(subscription.customer);
     if (user) {
       const stillActive = subscription.status === 'active' || subscription.status === 'trialing';
-      store.setUserPlan(user.id, stillActive ? 'pro' : 'free');
+      if (!stillActive) {
+        store.setUserPlan(user.id, 'free');
+      } else {
+        // Averigua qué precio tiene la suscripción activa para saber si
+        // es el plan Plus o el Pro (no hay otra pista fiable en este evento).
+        const item = subscription.items && subscription.items.data && subscription.items.data[0];
+        const priceId = item && item.price && item.price.id;
+        const plan = priceId && priceId === billing.priceIdForPlan('plus') ? 'plus' : 'pro';
+        store.setUserPlan(user.id, plan);
+      }
     }
   }
 

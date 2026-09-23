@@ -245,7 +245,7 @@
   }
 
   /* Precio */
-  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; max-width: 800px; margin: 0 auto; }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; max-width: 1080px; margin: 0 auto; }
   .price-card {
     position: relative; background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 36px 30px;
@@ -334,7 +334,7 @@
     .tool-block__icon { width: 48px; height: 48px; }
     .tool-block h3 { font-size: 1.375rem; }
     .tool-block__cols { grid-template-columns: 1fr; gap: 18px; }
-    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
     .faq-item__a p { padding-left: 20px; }
     .site-footer__inner { grid-template-columns: 1fr; gap: 28px; }
   }
@@ -1074,7 +1074,7 @@
     <section class="section section--glow" id="precio">
       <div class="section-head io-reveal">
         <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="shieldCheck" data-icon-size="24"></span>
-        <h2>Un solo plan de pago, sin sorpresas.</h2>
+        <h2>Tres planes, sin sorpresas.</h2>
         <p>Empieza gratis. Mejora cuando quieras más análisis y más herramientas.</p>
       </div>
       <div class="pricing-grid">
@@ -1090,10 +1090,21 @@
           </ul>
           <button class="btn-secondary" type="button" data-cta-signup>Crear cuenta gratis</button>
         </div>
+        <div class="price-card io-reveal" style="animation-delay:.05s">
+          <span class="price-card__icon" style="background:linear-gradient(135deg, #6366f1, #8b5cf6);" data-icon="refresh" data-icon-size="22"></span>
+          <p class="price-card__name">Vantex Pro</p>
+          <p class="price-card__amount">1€ <span>/ mes</span></p>
+          <ul class="price-card__list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>15 análisis con IA al día</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Copy Trading simulado</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Todo lo del plan gratis</li>
+          </ul>
+          <button class="btn-secondary" type="button" data-cta-signup>Elegir Pro</button>
+        </div>
         <div class="price-card price-card--pro io-reveal" style="animation-delay:.1s">
           <span class="price-card__ribbon">Más popular</span>
           <span class="price-card__icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="star" data-icon-size="22"></span>
-          <p class="price-card__name">Vantex Pro</p>
+          <p class="price-card__name">Vantex Business</p>
           <p class="price-card__amount">4,99€ <span>/ mes</span></p>
           <ul class="price-card__list">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Análisis con IA ilimitados</li>
@@ -1101,7 +1112,7 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Todo lo del plan gratis</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Cancela cuando quieras</li>
           </ul>
-          <button class="btn-primary" type="button" data-cta-signup>Hazte Pro</button>
+          <button class="btn-primary" type="button" data-cta-signup>Hazte Business</button>
         </div>
       </div>
     </section>

@@ -21,21 +21,41 @@ function stripeClient() {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 }
 
-async function createCheckoutSession(user, baseUrl) {
+// Dos planes de pago con identificador interno 'plus'/'pro' (así están
+// guardados en store.js y en el entorno de Render), aunque de cara al
+// usuario se llaman "Pro" (1€/mes, STRIPE_PRICE_ID_PLUS) y "Business"
+// (4,99€/mes, STRIPE_PRICE_ID — se mantiene el nombre de variable
+// original para no romper el entorno de Render ya configurado).
+function priceIdForPlan(plan) {
+  return plan === 'plus' ? process.env.STRIPE_PRICE_ID_PLUS : process.env.STRIPE_PRICE_ID;
+}
+
+async function createCheckoutSession(user, baseUrl, plan = 'pro') {
+  const targetPlan = plan === 'plus' ? 'plus' : 'pro';
+
   if (resolveBillingMode() !== 'live') {
     // Simula el pago entero al instante: no hay tarjeta ni Stripe de por
-    // medio, solo se marca al usuario como Pro directamente.
-    store.setUserPlan(user.id, 'pro');
-    return { url: `${baseUrl}/dashboard?upgraded=1&mock=1` };
+    // medio, solo se marca al usuario con el plan elegido directamente.
+    store.setUserPlan(user.id, targetPlan);
+    return { url: `${baseUrl}/dashboard?upgraded=${targetPlan}&mock=1` };
+  }
+
+  const priceId = priceIdForPlan(targetPlan);
+  if (!priceId) {
+    throw new Error(`Falta configurar STRIPE_PRICE_ID${targetPlan === 'plus' ? '_PLUS' : ''} para el plan "${targetPlan}".`);
   }
 
   const stripe = stripeClient();
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
-    line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     client_reference_id: user.id,
+    // El webhook usa esto para saber a qué plan pasar al usuario cuando
+    // se completa el pago (checkout.session.completed no lleva más pista
+    // que esta sobre qué precio se compró).
+    metadata: { plan: targetPlan },
     customer_email: user.email,
-    success_url: `${baseUrl}/dashboard?upgraded=1`,
+    success_url: `${baseUrl}/dashboard?upgraded=${targetPlan}`,
     cancel_url: `${baseUrl}/dashboard`,
     // Las cuentas nuevas de Stripe traen "Managed Payments" activado por
     // defecto, que exige un código de impuesto por producto (pensado para
@@ -70,4 +90,4 @@ function verifyWebhookEvent(rawBody, signature) {
   return stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET);
 }
 
-module.exports = { resolveBillingMode, createCheckoutSession, createPortalSession, verifyWebhookEvent };
+module.exports = { resolveBillingMode, createCheckoutSession, createPortalSession, verifyWebhookEvent, priceIdForPlan };

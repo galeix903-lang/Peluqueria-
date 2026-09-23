@@ -28,8 +28,10 @@
 
       const params = new URLSearchParams(location.search);
       let banner = '';
-      if (params.get('upgraded')) {
-        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Pro!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
+      if (params.get('upgraded') === 'plus') {
+        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Pro!</strong> Ya tienes 15 análisis al día y Copy Trading simulado.</div>';
+      } else if (params.get('upgraded')) {
+        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Business!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
       } else if (params.get('downgraded')) {
         banner = '<div class="panel reveal-pop" style="margin-bottom:24px;">Has vuelto al plan gratuito (3 análisis al día).</div>';
       }

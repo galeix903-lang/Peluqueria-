@@ -30,5 +30,7 @@ services:
         sync: false
       - key: STRIPE_PRICE_ID
         sync: false
+      - key: STRIPE_PRICE_ID_PLUS
+        sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false

@@ -108,6 +108,7 @@
             } catch (err) {
               showToast({ type: 'error', message: err.message });
               btn.disabled = false;
+              if (err.data && err.data.upgradeRequired) openUpgradeModal();
             }
           });
         });
