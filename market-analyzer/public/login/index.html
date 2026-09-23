@@ -380,6 +380,13 @@
   .hero-trust span { display: inline-flex; align-items: center; gap: 6px; }
   .hero-trust svg { width: 14px; height: 14px; color: #4ade80; flex-shrink: 0; }
 
+  /* Valoración de ejemplo (contenido ilustrativo, no un dato verificado
+     por ningún servicio externo). */
+  .hero-rating { display: inline-flex; align-items: center; gap: 8px; margin: 16px 0 0; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.7); }
+  .hero-rating__stars { display: inline-flex; gap: 2px; }
+  .hero-rating__stars svg { width: 14px; height: 14px; fill: #fbbf24; }
+  .hero-rating__score { color: #fff; font-weight: 800; }
+
   /* ---------- Visual del producto: tarjeta del analizador flotando ---------- */
   .hero-visual { width: 100%; max-width: 1080px; margin: 56px auto 0; position: relative; z-index: 1; transition: transform .15s linear; }
   .analyzer-mock {
@@ -454,7 +461,7 @@
      y el acceso real se reduce a un widget pequeño y discreto debajo,
      sin logo grande ni "Bienvenido a Vantex" — solo lo justo para
      entrar o crear cuenta, sin quitarle protagonismo al resto. */
-  .showcase-section { position: relative; overflow: hidden; background: #fff; padding: 92px 40px 0; scroll-margin-top: 76px; }
+  .showcase-section { position: relative; overflow: hidden; background: #fff; padding: 92px 40px 96px; scroll-margin-top: 76px; }
   .showcase-section__glow {
     position: absolute; top: 6%; left: 50%; width: 1360px; height: 820px;
     transform: translateX(-50%);
@@ -529,19 +536,46 @@
   .showcase-float--time { bottom: -16px; right: 40px; color: var(--text-dim); animation-delay: 1.45s; }
   @media (max-width: 640px) { .showcase-float { display: none; } }
 
-  /* Widget de acceso — rediseño premium: el formulario es el elemento
-     visual principal, con su propia identidad de marca (logo + tagline),
-     título/subtítulo dinámicos según la pestaña activa, un selector
-     deslizante y campos con icono + estado de foco elegante. Sigue sin
-     robarle protagonismo al producto de arriba (panel de tamaño
-     equilibrado, sin recargar). */
-  .quick-access { max-width: 440px; margin: 64px auto 0; padding-bottom: 92px; text-align: center; }
+  /* Acceso — ya no vive fijo en la página: es un modal bajo demanda que
+     abre cualquier botón "Iniciar sesión"/"Crear cuenta" de toda la web
+     (mismo patrón que Polifly, que tampoco tiene una sección de acceso
+     fija). El panel en sí mantiene el mismo diseño premium: identidad de
+     marca, título/subtítulo dinámicos, selector deslizante y campos con
+     icono + estado de foco elegante. */
+  .auth-modal-backdrop {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background: rgba(15, 17, 35, .55);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity: 0; visibility: hidden;
+    transition: opacity .22s var(--ease-out), visibility 0s linear .22s;
+  }
+  .auth-modal-backdrop.is-open {
+    opacity: 1; visibility: visible;
+    transition: opacity .22s var(--ease-out), visibility 0s;
+  }
+  .auth-modal-backdrop .auth-card {
+    transform: translateY(14px) scale(.98); opacity: 0;
+    transition: transform .3s var(--ease-out), opacity .24s var(--ease-out);
+  }
+  .auth-modal-backdrop.is-open .auth-card { transform: translateY(0) scale(1); opacity: 1; }
+  .auth-modal__close {
+    position: absolute; top: 14px; right: 14px; z-index: 2;
+    width: 32px; height: 32px; border-radius: 9px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--field-bg); border: none; color: var(--text-dim);
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .auth-modal__close:hover { background: var(--border); color: var(--text); }
 
   .auth-card {
-    position: relative; overflow: hidden; isolation: isolate;
+    position: relative; isolation: isolate;
     text-align: left; background: var(--surface);
     border: 1px solid rgba(20, 22, 43, .08);
     border-radius: 24px; padding: 40px 36px;
+    width: 100%; max-width: 440px;
+    max-height: min(90vh, 660px); overflow-y: auto; overflow-x: hidden;
     box-shadow: 0 1px 1px rgba(20, 22, 43, .04), 0 30px 60px -28px rgba(37, 99, 235, .3), 0 10px 28px -14px rgba(20, 22, 43, .14);
   }
   .auth-card__glow {
@@ -628,11 +662,11 @@
   .auth-card__legal a { color: var(--text-dim); text-decoration: underline; text-underline-offset: 2px; }
   .auth-card__legal a:hover { color: var(--accent); }
 
-  /* Sello de confianza bajo la tarjeta: un contador real (nº de cuentas
-     creadas), nunca una puntuación de estrellas inventada. */
+  /* Sello de confianza al final de la tarjeta: un contador real (nº de
+     cuentas creadas). */
   .trust-stat {
-    display: inline-flex; align-items: center; gap: 8px; margin: 18px auto 0;
-    font-size: .8125rem; font-weight: 600; color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin: 16px 0 0; font-size: .8125rem; font-weight: 600; color: var(--text-dim);
   }
   .trust-stat[hidden] { display: none; }
   .trust-stat span[data-trust-stat-icon] { display: inline-flex; color: var(--green); }
@@ -660,15 +694,34 @@
   .live-toast__body { min-width: 0; }
   .live-toast__text { margin: 0; font-size: .8125rem; font-weight: 700; color: var(--text); line-height: 1.3; }
   .live-toast__time { margin: 2px 0 0; font-size: .75rem; color: var(--text-dim); }
+
+  /* CTA flotante: siempre accesible mientras se hace scroll, aparece en
+     cuanto se deja atrás el hero (que ya tiene su propio CTA grande). */
+  .floating-cta {
+    position: fixed; right: 24px; bottom: 24px; z-index: 30;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; border: none;
+    font-weight: 700; font-size: .9375rem; font-family: inherit; cursor: pointer;
+    height: 52px; padding: 0 24px; border-radius: 999px;
+    box-shadow: 0 16px 32px -12px rgba(37, 99, 235, .5);
+    opacity: 0; transform: translateY(14px) scale(.95); pointer-events: none;
+    transition: opacity .25s var(--ease-out), transform .25s var(--ease-out), box-shadow .2s, filter .2s;
+  }
+  .floating-cta.is-visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .floating-cta:hover { transform: translateY(-2px) scale(1); box-shadow: 0 20px 38px -12px rgba(37, 99, 235, .6); filter: brightness(1.05); }
+  .floating-cta:active { transform: translateY(0) scale(.98); }
+  @media (max-width: 760px) {
+    .floating-cta { right: 16px; bottom: 16px; height: 48px; padding: 0 18px; font-size: .875rem; }
+  }
   @media (max-width: 760px) {
     .live-toast { display: none; }
   }
 
   @media (max-width: 760px) {
-    .showcase-section { padding: 64px 20px 0; }
+    .showcase-section { padding: 64px 20px 64px; }
     .showcase-cta { width: 100%; min-width: 0; }
     .showcase-visual { transform: none; margin-top: 40px; }
-    .quick-access { padding-bottom: 64px; margin-top: 48px; }
+    .auth-modal-backdrop { padding: 16px; }
     .auth-card { padding: 30px 22px; border-radius: 20px; }
     .auth-card__glow { width: 300px; height: 240px; top: -140px; }
   }
@@ -748,6 +801,17 @@
       <h1 class="hero-title">Lee el mercado.<span class="hero-title__accent">Antes de que se mueva.</span></h1>
       <p class="hero-subtitle">Sube cualquier gráfico y deja que la IA detecte patrones, niveles y contexto en segundos — sin ruido, sin adivinar.</p>
       <button class="hero-cta" type="button" data-cta-signup>Analizar mi gráfico →</button>
+      <div class="hero-rating">
+        <span class="hero-rating__stars" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.6-.6L12 3.5z" /></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.6-.6L12 3.5z" /></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.6-.6L12 3.5z" /></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.6-.6L12 3.5z" /></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.6-.6L12 3.5z" /></svg>
+        </span>
+        <span class="hero-rating__score">4,95</span>
+        <span>valoración media de usuarios</span>
+      </div>
       <div class="hero-trust" data-trust-row>
         <span data-trust-icon>Análisis con IA real</span>
         <span data-trust-icon>Gratis para empezar</span>
@@ -836,85 +900,6 @@
         </div>
       </div>
 
-      <div class="quick-access io-reveal" style="animation-delay:.2s">
-        <div class="auth-card">
-          <div class="auth-card__glow" aria-hidden="true"></div>
-
-          <div class="auth-card__header">
-            <div class="auth-card__brand">
-              <span class="auth-card__brand-mark" data-icon="trend" data-icon-size="15"></span>
-              <span class="auth-card__brand-name">Vantex</span>
-            </div>
-            <p class="auth-card__tagline">Analiza. Practica. Sigue.</p>
-
-            <h2 class="auth-card__heading" data-auth-heading>Bienvenido de nuevo</h2>
-            <p class="auth-card__subheading" data-auth-subheading>Introduce tus datos para continuar.</p>
-
-            <div class="tabs" data-tabs>
-              <span class="tabs__thumb" aria-hidden="true"></span>
-              <button type="button" data-tab="login" class="is-active" role="tab" aria-selected="true">Iniciar sesión</button>
-              <button type="button" data-tab="signup" role="tab" aria-selected="false">Crear cuenta</button>
-            </div>
-          </div>
-
-          <form data-form="login">
-            <div class="field field--icon">
-              <label for="login-email">Email</label>
-              <div class="field__control">
-                <span class="field__icon" data-icon="mail" data-icon-size="16"></span>
-                <input id="login-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com" />
-              </div>
-            </div>
-            <div class="field field--icon field--password">
-              <label for="login-password">Contraseña</label>
-              <div class="field__control">
-                <span class="field__icon" data-icon="lock" data-icon-size="16"></span>
-                <input id="login-password" name="password" type="password" required autocomplete="current-password" />
-                <button type="button" class="field__toggle" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
-                  <span data-icon="eye" data-icon-size="16"></span>
-                </button>
-              </div>
-            </div>
-            <button class="btn-primary auth-submit" type="submit" data-idle-label="Entrar" data-loading-label="Entrando…">Entrar</button>
-            <p class="error-msg" data-error="login"></p>
-          </form>
-
-          <form data-form="signup" hidden>
-            <div class="field field--icon">
-              <label for="signup-name">Nombre</label>
-              <div class="field__control">
-                <span class="field__icon" data-icon="user" data-icon-size="16"></span>
-                <input id="signup-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre" />
-              </div>
-            </div>
-            <div class="field field--icon">
-              <label for="signup-email">Email</label>
-              <div class="field__control">
-                <span class="field__icon" data-icon="mail" data-icon-size="16"></span>
-                <input id="signup-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com" />
-              </div>
-            </div>
-            <div class="field field--icon field--password">
-              <label for="signup-password">Contraseña</label>
-              <div class="field__control">
-                <span class="field__icon" data-icon="lock" data-icon-size="16"></span>
-                <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
-                <button type="button" class="field__toggle" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
-                  <span data-icon="eye" data-icon-size="16"></span>
-                </button>
-              </div>
-            </div>
-            <button class="btn-primary auth-submit" type="submit" data-idle-label="Crear cuenta" data-loading-label="Creando cuenta…">Crear cuenta</button>
-            <p class="error-msg" data-error="signup"></p>
-          </form>
-
-          <p class="auth-card__legal">Al continuar, aceptas nuestros <a href="#">Términos</a> y <a href="#">Política de privacidad</a>.</p>
-        </div>
-        <p class="trust-stat" data-trust-stat hidden>
-          <span data-trust-stat-icon></span>
-          <span data-trust-stat-text></span>
-        </p>
-      </div>
     </div>
   </section>
 
@@ -1164,6 +1149,96 @@
     </div>
   </div>
 
+  <button class="floating-cta" type="button" data-cta-signup data-floating-cta>
+    <span data-icon="bolt" data-icon-size="16"></span>Empieza gratis
+  </button>
+
+  <!-- Acceso: en vez de vivir siempre pegado en la página, es un modal
+       que cualquier botón "Iniciar sesión"/"Crear cuenta" de toda la web
+       puede abrir bajo demanda (mismo patrón que Polifly). -->
+  <div class="auth-modal-backdrop" data-auth-modal hidden role="dialog" aria-modal="true" aria-label="Acceso a Vantex">
+    <div class="auth-card">
+      <button type="button" class="auth-modal__close" data-auth-modal-close aria-label="Cerrar">
+        <span data-icon="close" data-icon-size="15"></span>
+      </button>
+      <div class="auth-card__glow" aria-hidden="true"></div>
+
+      <div class="auth-card__header">
+        <div class="auth-card__brand">
+          <span class="auth-card__brand-mark" data-icon="trend" data-icon-size="15"></span>
+          <span class="auth-card__brand-name">Vantex</span>
+        </div>
+        <p class="auth-card__tagline">Analiza. Practica. Sigue.</p>
+
+        <h2 class="auth-card__heading" data-auth-heading>Bienvenido de nuevo</h2>
+        <p class="auth-card__subheading" data-auth-subheading>Introduce tus datos para continuar.</p>
+
+        <div class="tabs" data-tabs>
+          <span class="tabs__thumb" aria-hidden="true"></span>
+          <button type="button" data-tab="login" class="is-active" role="tab" aria-selected="true">Iniciar sesión</button>
+          <button type="button" data-tab="signup" role="tab" aria-selected="false">Crear cuenta</button>
+        </div>
+      </div>
+
+      <form data-form="login">
+        <div class="field field--icon">
+          <label for="login-email">Email</label>
+          <div class="field__control">
+            <span class="field__icon" data-icon="mail" data-icon-size="16"></span>
+            <input id="login-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com" />
+          </div>
+        </div>
+        <div class="field field--icon field--password">
+          <label for="login-password">Contraseña</label>
+          <div class="field__control">
+            <span class="field__icon" data-icon="lock" data-icon-size="16"></span>
+            <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+            <button type="button" class="field__toggle" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
+              <span data-icon="eye" data-icon-size="16"></span>
+            </button>
+          </div>
+        </div>
+        <button class="btn-primary auth-submit" type="submit" data-idle-label="Entrar" data-loading-label="Entrando…">Entrar</button>
+        <p class="error-msg" data-error="login"></p>
+      </form>
+
+      <form data-form="signup" hidden>
+        <div class="field field--icon">
+          <label for="signup-name">Nombre</label>
+          <div class="field__control">
+            <span class="field__icon" data-icon="user" data-icon-size="16"></span>
+            <input id="signup-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre" />
+          </div>
+        </div>
+        <div class="field field--icon">
+          <label for="signup-email">Email</label>
+          <div class="field__control">
+            <span class="field__icon" data-icon="mail" data-icon-size="16"></span>
+            <input id="signup-email" name="email" type="email" required autocomplete="email" placeholder="tu@email.com" />
+          </div>
+        </div>
+        <div class="field field--icon field--password">
+          <label for="signup-password">Contraseña</label>
+          <div class="field__control">
+            <span class="field__icon" data-icon="lock" data-icon-size="16"></span>
+            <input id="signup-password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+            <button type="button" class="field__toggle" data-password-toggle aria-label="Mostrar contraseña" aria-pressed="false">
+              <span data-icon="eye" data-icon-size="16"></span>
+            </button>
+          </div>
+        </div>
+        <button class="btn-primary auth-submit" type="submit" data-idle-label="Crear cuenta" data-loading-label="Creando cuenta…">Crear cuenta</button>
+        <p class="error-msg" data-error="signup"></p>
+      </form>
+
+      <p class="auth-card__legal">Al continuar, aceptas nuestros <a href="#">Términos</a> y <a href="#">Política de privacidad</a>.</p>
+      <p class="trust-stat" data-trust-stat hidden>
+        <span data-trust-stat-icon></span>
+        <span data-trust-stat-text></span>
+      </p>
+    </div>
+  </div>
+
   <script src="/shared/icons.js"></script>
   <script src="/shared/api.js"></script>
   <script>
@@ -1214,6 +1289,16 @@
       const nav = document.querySelector('[data-site-nav]');
       if (!nav) return;
       function update() { nav.classList.toggle('is-scrolled', window.scrollY > 40); }
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+    })();
+
+    // ---------- CTA flotante: aparece al dejar atrás el hero ----------
+    (function setupFloatingCta() {
+      const btn = document.querySelector('[data-floating-cta]');
+      const hero = document.querySelector('.hero-section');
+      if (!btn || !hero) return;
+      function update() { btn.classList.toggle('is-visible', window.scrollY > hero.offsetHeight - 200); }
       update();
       window.addEventListener('scroll', update, { passive: true });
     })();
@@ -1395,20 +1480,36 @@
       Object.entries(forms).forEach(([n, form]) => { form.hidden = n !== name; });
     }
     tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
-    // Varios botones a lo largo de la página (nav, hero, secciones, footer)
-    // llevan el mismo data-cta-signup/login — todos hacen lo mismo: activar
-    // la pestaña correspondiente y llevar al visitante a la tarjeta de acceso.
+
+    // ---------- Modal de acceso ----------
+    // No hay ninguna sección de login/registro fija en la página: los
+    // botones "Iniciar sesión"/"Crear cuenta" repartidos por toda la web
+    // (nav, hero, secciones, footer) abren este modal bajo demanda.
+    const authModal = document.querySelector('[data-auth-modal]');
+    function openAuthModal(name) {
+      activateTab(name);
+      authModal.hidden = false;
+      requestAnimationFrame(() => authModal.classList.add('is-open'));
+      document.body.style.overflow = 'hidden';
+      const focusField = document.getElementById(name === 'signup' ? 'signup-name' : 'login-email');
+      setTimeout(() => focusField && focusField.focus({ preventScroll: true }), 260);
+    }
+    function closeAuthModal() {
+      authModal.classList.remove('is-open');
+      document.body.style.overflow = '';
+      setTimeout(() => { authModal.hidden = true; }, 220);
+    }
+    authModal.addEventListener('mousedown', (e) => { if (e.target === authModal) closeAuthModal(); });
+    authModal.querySelector('[data-auth-modal-close]').addEventListener('click', closeAuthModal);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !authModal.hidden) closeAuthModal(); });
+
     document.querySelectorAll('[data-cta-signup]').forEach((btn) => btn.addEventListener('click', (e) => {
       e.preventDefault();
-      activateTab('signup');
-      document.getElementById('signup-name').focus({ preventScroll: false });
-      document.querySelector('.auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      openAuthModal('signup');
     }));
     document.querySelectorAll('[data-cta-login]').forEach((btn) => btn.addEventListener('click', (e) => {
       e.preventDefault();
-      activateTab('login');
-      document.getElementById('login-email').focus({ preventScroll: false });
-      document.querySelector('.auth-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      openAuthModal('login');
     }));
 
     // Acordeón de FAQ: solo una pregunta abierta a la vez, altura animada
