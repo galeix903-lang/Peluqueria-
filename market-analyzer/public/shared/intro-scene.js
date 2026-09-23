@@ -3,23 +3,26 @@
   shared/intro.js, solo cuando de verdad se va a mostrar.
 
   Concepto: un puñado de partículas dispersas convergen para "ensamblar"
-  el mismo icono de tendencia que lleva el logo del sidebar (un tubo 3D
-  extruido siguiendo su mismo trazado), con un brillo índigo sutil, una
-  ligera rotación/parallax continua y otro grupo de partículas ambiente
-  que dan profundidad de fondo. Sin interacción del usuario: se reproduce
-  sola y llama a onComplete() al terminar.
+  el mismo logomark del sidebar (dos hojas asimétricas en forma de "V",
+  cada una como un tubo 3D extruido siguiendo su contorno), con un brillo
+  índigo sutil, una ligera rotación/parallax continua y otro grupo de
+  partículas ambiente que dan profundidad de fondo. Sin interacción del
+  usuario: se reproduce sola y llama a onComplete() al terminar.
 */
 import * as THREE from '../vendor/three.module.min.js';
 
-// Puntos del icono de marca (mismo trazado que shared/icons.js: 'trend'),
-// convertidos de su viewBox 24x24 (y hacia abajo) a coordenadas 3D
-// centradas en el origen (y hacia arriba).
+// Puntos del logomark (mismo trazado que shared/icons.js: vantexLogo,
+// simplificado a 3 vértices por hoja), reescalados de su espacio 0-100 a
+// un rango ~0-22 comparable al viewBox 24x24 que usaba el icono anterior,
+// y convertidos a coordenadas 3D centradas en el origen (y hacia arriba).
 const K = 0.18;
 function toVec3([svgX, svgY]) {
   return new THREE.Vector3((svgX - 12) * K, (12 - svgY) * K, 0);
 }
-const TREND_POINTS = [[4, 7], [10.5, 19], [20, 4]].map(toVec3);
-const BOX_POINTS = [[14.5, 4], [20, 4], [20, 9.5]].map(toVec3);
+// Hoja izquierda (anclada): esquina exterior -> esquina interior -> punta.
+const TREND_POINTS = [[2.4, 5.76], [9.12, 2.4], [11.28, 19.2]].map(toVec3);
+// Hoja derecha (adelantada, más afilada): esquina exterior -> interior -> punta.
+const BOX_POINTS = [[22.08, 3.84], [19.68, 0.48], [12.72, 19.2]].map(toVec3);
 
 function buildPathCurve(points) {
   const curve = new THREE.CurvePath();

@@ -53,3 +53,13 @@ function vantexIcon(name, { size = 22 } = {}) {
   const path = VANTEX_ICON_PATHS[name] || '';
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 }
+
+// Logomark de marca (distinto del set de iconos de trazo de arriba: es una
+// forma sólida rellena, no un icono de línea). Dos hojas asimétricas que
+// forman una "V" — una más alta y afilada (va por delante), otra más corta
+// (anclada) — con un rombo del color de acento flotando en el hueco entre
+// ambas. Se usa solo en los puntos de marca reales (sidebar, favicon,
+// cabecera, tarjeta de acceso), nunca como icono genérico de interfaz.
+function vantexLogo({ size = 24 } = {}) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" fill="currentColor"><polygon points="10,24 24,10 38,10 47,80" /><polygon points="92,16 82,2 64,8 53,80" /><rect x="44.5" y="70" width="11" height="11" transform="rotate(45 50 75.5)" /></svg>`;
+}
