@@ -54,7 +54,7 @@ function createUser({ email, passwordHash, name }) {
     bio: null,
     avatar: null,
     balance: 100000, // saldo virtual inicial de paper trading
-    plan: 'free', // 'free' | 'plus' (mostrado como "Pro") | 'pro' (mostrado como "Business")
+    plan: 'free', // 'free' | 'pro'
     stripeCustomerId: null,
     createdAt: new Date().toISOString(),
   };

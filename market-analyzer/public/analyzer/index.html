@@ -148,9 +148,9 @@
 
           <p class="error-msg" data-error></p>
           <div class="panel reveal-pop" data-upsell hidden style="margin-top:14px; background:var(--accent-dim); border-color:var(--accent);">
-            <strong data-upsell-title>Has usado tus análisis de hoy.</strong>
-            <p style="margin:6px 0 14px; color:var(--text-dim);" data-upsell-desc>Mejora tu plan para seguir analizando gráficos.</p>
-            <button class="btn-primary" data-upsell-btn>Mejorar plan</button>
+            <strong>Has usado tus 3 análisis gratuitos de hoy.</strong>
+            <p style="margin:6px 0 14px; color:var(--text-dim);">Hazte Pro y analiza todos los gráficos que quieras, sin límite diario.</p>
+            <button class="btn-primary" data-upsell-btn>Hazte Pro por 4,99€/mes</button>
           </div>
         </div>
 
@@ -196,30 +196,28 @@
         selectedTimeframe = btn.dataset.timeframe;
       }));
 
-      upsellBtn.addEventListener('click', () => openUpgradeModal());
-      const upsellTitleEl = ctx.contentEl.querySelector('[data-upsell-title]');
-      const upsellDescEl = ctx.contentEl.querySelector('[data-upsell-desc]');
+      upsellBtn.addEventListener('click', async () => {
+        upsellBtn.disabled = true;
+        upsellBtn.innerHTML = '<span class="spinner"></span> Un momento…';
+        try {
+          const { url } = await api('/billing/checkout', { method: 'POST' });
+          window.location.href = url;
+        } catch (e) {
+          upsellBtn.disabled = false;
+          upsellBtn.textContent = 'Hazte Pro por 4,99€/mes';
+        }
+      });
 
-      function applyQuota(plan, remainingToday, dailyLimit) {
+      function applyQuota(plan, remainingToday) {
         if (plan === 'pro') {
-          quotaEl.textContent = '★ Análisis ilimitados (Business)';
+          quotaEl.textContent = '★ Análisis ilimitados (Pro)';
           quotaExhausted = false;
           upsellEl.hidden = true;
-          analyzeBtn.disabled = !selectedFile;
           return;
         }
-        quotaEl.textContent = `${remainingToday} de ${dailyLimit} análisis ${plan === 'plus' ? '' : 'gratis '}hoy`;
+        quotaEl.textContent = `${remainingToday} de 3 análisis gratis hoy`;
         quotaExhausted = remainingToday <= 0;
         upsellEl.hidden = !quotaExhausted;
-        if (quotaExhausted) {
-          if (plan === 'plus') {
-            upsellTitleEl.textContent = `Has usado tus ${dailyLimit} análisis de hoy.`;
-            upsellDescEl.textContent = 'Hazte Business y analiza todos los gráficos que quieras, sin límite diario.';
-          } else {
-            upsellTitleEl.textContent = `Has usado tus ${dailyLimit} análisis gratuitos de hoy.`;
-            upsellDescEl.textContent = 'Mejora tu plan y consigue más análisis al día (o ilimitados con Business).';
-          }
-        }
         analyzeBtn.disabled = quotaExhausted || !selectedFile;
       }
 
@@ -376,7 +374,7 @@
         } catch (err) {
           finishSteps();
           if (err.data && err.data.limitReached) {
-            applyQuota(err.data.plan || 'free', 0, err.data.limit);
+            applyQuota('free', 0);
           } else {
             errorEl.textContent = err.message;
             showToast({ type: 'error', message: 'No se pudo completar el análisis.' });
@@ -388,9 +386,9 @@
       });
 
       async function loadHistory() {
-        const { analyses, plan, remainingToday, dailyLimit } = await api('/analyzer/history');
+        const { analyses, plan, remainingToday } = await api('/analyzer/history');
         renderHistory(analyses);
-        applyQuota(plan, remainingToday, dailyLimit);
+        applyQuota(plan, remainingToday);
       }
       loadHistory();
     });

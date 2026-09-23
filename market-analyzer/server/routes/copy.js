@@ -19,10 +19,6 @@ router.get('/', (req, res) => {
 });
 
 router.post('/:traderId/follow', async (req, res) => {
-  const user = store.findUserById(req.session.userId);
-  if (user.plan === 'free') {
-    return res.status(402).json({ error: 'Copy Trading es una función de los planes Pro y Business.', upgradeRequired: true });
-  }
   const trader = TRADERS.find((t) => t.id === req.params.traderId);
   if (!trader) return res.status(404).json({ error: 'Trader no encontrado.' });
   if (store.findCopyFollow(req.session.userId, trader.id)) {

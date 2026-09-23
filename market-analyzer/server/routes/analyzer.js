@@ -3,13 +3,7 @@ const multer = require('multer');
 const store = require('../store');
 const { analyzeChart } = require('../services/claude');
 
-// Límite diario de análisis por plan — Infinity para Pro (sin límite).
-// Única fuente de verdad: tanto el gate de POST / como la cuota que lee
-// el frontend en GET /history salen de aquí.
-const PLAN_DAILY_LIMIT = { free: 3, plus: 15, pro: Infinity };
-function dailyLimitFor(plan) {
-  return PLAN_DAILY_LIMIT[plan] ?? PLAN_DAILY_LIMIT.free;
-}
+const FREE_DAILY_LIMIT = 3;
 
 const router = express.Router();
 const upload = multer({
@@ -28,13 +22,10 @@ router.post('/', upload.single('image'), async (req, res) => {
     return res.status(400).json({ error: 'Sube una imagen del gráfico.' });
   }
   const user = store.findUserById(req.session.userId);
-  const limit = dailyLimitFor(user.plan);
-  if (Number.isFinite(limit) && store.countAnalysesToday(user.id) >= limit) {
+  if (user.plan !== 'pro' && store.countAnalysesToday(user.id) >= FREE_DAILY_LIMIT) {
     return res.status(402).json({
-      error: `Has usado tus ${limit} análisis de hoy.`,
+      error: `Has usado tus ${FREE_DAILY_LIMIT} análisis gratuitos de hoy.`,
       limitReached: true,
-      plan: user.plan,
-      limit,
     });
   }
   try {
@@ -57,12 +48,10 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.get('/history', (req, res) => {
   const user = store.findUserById(req.session.userId);
   const usedToday = store.countAnalysesToday(user.id);
-  const limit = dailyLimitFor(user.plan);
   res.json({
     analyses: store.listAnalyses(req.session.userId),
     plan: user.plan,
-    dailyLimit: Number.isFinite(limit) ? limit : null,
-    remainingToday: Number.isFinite(limit) ? Math.max(0, limit - usedToday) : null,
+    remainingToday: user.plan === 'pro' ? null : Math.max(0, FREE_DAILY_LIMIT - usedToday),
   });
 });
 

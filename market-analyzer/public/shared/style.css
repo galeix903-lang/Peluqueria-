@@ -428,19 +428,6 @@ button { font: inherit; cursor: pointer; }
 .badge--lateral, .badge--esperar { background: var(--amber-bg); color: var(--amber); }
 .badge--mock { background: var(--field-bg); color: var(--text-dim); }
 
-/* ---------- Modal de mejora de plan ---------- */
-.upgrade-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media (max-width: 560px) { .upgrade-plans { grid-template-columns: 1fr; } }
-.upgrade-plan { border: 1.5px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; }
-.upgrade-plan--pro { border-color: var(--accent); background: var(--accent-dim); }
-.upgrade-plan__head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
-.upgrade-plan__head strong { font-size: 1.05rem; }
-.upgrade-plan__price { font-size: 1.6rem; font-weight: 800; color: var(--text); }
-.upgrade-plan__price span { font-size: .8rem; font-weight: 600; color: var(--text-dim); }
-.upgrade-plan__list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.upgrade-plan__list li { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--text-dim); }
-.upgrade-plan__list li svg { flex-shrink: 0; color: var(--green); }
-
 /* ---------- Tablas ---------- */
 table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 th { text-align: left; color: var(--text-dim); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; padding-bottom: 10px; }
