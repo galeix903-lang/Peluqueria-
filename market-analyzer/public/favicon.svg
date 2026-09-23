@@ -6,9 +6,6 @@
     </linearGradient>
   </defs>
   <rect x="0" y="0" width="24" height="24" rx="6.5" fill="url(#g)" />
-  <g transform="translate(1,2.6) scale(0.205)" fill="#fff">
-    <polygon points="10,24 24,10 38,10 47,80" />
-    <polygon points="92,16 82,2 64,8 53,80" />
-    <rect x="44.5" y="70" width="11" height="11" transform="rotate(45 50 75.5)" />
-  </g>
+  <path d="M5 19 19 5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M9 5h10v10" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
 </svg>
