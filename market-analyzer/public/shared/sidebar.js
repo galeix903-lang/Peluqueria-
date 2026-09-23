@@ -90,6 +90,8 @@ async function mountShell({ page, title }) {
             <span class="topbar__clock" data-clock></span>
             ${user.plan === 'pro'
               ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ PRO</span>'
+              : user.plan === 'plus'
+              ? '<span class="badge" style="background:#eef2ff; color:var(--accent);" data-plan-badge title="Gestionar suscripción">PLUS</span>'
               : '<button class="btn-primary" data-upgrade-btn>Upgrade!</button>'}
             <span class="topbar__name">${escapeHtml(user.name)}</span>
             <button type="button" class="avatar-btn" data-avatar-btn aria-label="Ver perfil de ${escapeHtml(user.name)}">
@@ -121,17 +123,7 @@ async function mountShell({ page, title }) {
 
   const upgradeBtn = root.querySelector('[data-upgrade-btn]');
   if (upgradeBtn) {
-    upgradeBtn.addEventListener('click', async () => {
-      upgradeBtn.disabled = true;
-      upgradeBtn.innerHTML = '<span class="spinner"></span> Un momento…';
-      try {
-        const { url } = await api('/billing/checkout', { method: 'POST' });
-        window.location.href = url;
-      } catch (e) {
-        upgradeBtn.disabled = false;
-        upgradeBtn.textContent = 'Upgrade!';
-      }
-    });
+    upgradeBtn.addEventListener('click', () => openUpgradeModal());
   }
   const planBadge = root.querySelector('[data-plan-badge]');
   if (planBadge) {
@@ -217,7 +209,7 @@ function openProfileCard(user, root) {
         <h3 class="profile-card__name">${escapeHtml(user.name)}</h3>
         <p class="profile-card__email text-caption">${escapeHtml(user.email)}</p>
         <p class="profile-card__bio ${user.bio ? '' : 'profile-card__bio--empty'}">${user.bio ? escapeHtml(user.bio) : 'Todavía no has añadido una biografía.'}</p>
-        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Vantex Pro' : 'Plan gratuito'}</span>
+        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : user.plan === 'plus' ? 'background:#eef2ff; color:var(--accent);' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Vantex Pro' : user.plan === 'plus' ? 'Vantex Plus' : 'Plan gratuito'}</span>
       </div>
     `,
     footerHtml: `
@@ -254,6 +246,58 @@ function openProfileCard(user, root) {
   });
 }
 
+// Modal con los dos planes de pago (Plus y Pro) uno junto al otro; se abre
+// desde el botón "Upgrade!" de la topbar, desde Ajustes, y desde los
+// mensajes de upsell del AI Analyzer y de Copy Trading.
+function openUpgradeModal() {
+  openModal({
+    title: 'Mejora tu plan',
+    bodyHtml: `
+      <div class="upgrade-plans">
+        <div class="upgrade-plan">
+          <div class="upgrade-plan__head"><strong>Vantex Plus</strong><span class="upgrade-plan__price">1€<span>/mes</span></span></div>
+          <ul class="upgrade-plan__list">
+            <li>${vantexIcon('check', { size: 16 })} 15 análisis con IA al día</li>
+            <li>${vantexIcon('check', { size: 16 })} Copy Trading simulado</li>
+            <li>${vantexIcon('check', { size: 16 })} Todo lo del plan gratis</li>
+          </ul>
+          <button type="button" class="btn-secondary" style="width:100%; justify-content:center;" data-upgrade-plan="plus">Elegir Plus</button>
+        </div>
+        <div class="upgrade-plan upgrade-plan--pro">
+          <div class="upgrade-plan__head"><strong>Vantex Pro</strong><span class="upgrade-plan__price">4,99€<span>/mes</span></span></div>
+          <ul class="upgrade-plan__list">
+            <li>${vantexIcon('check', { size: 16 })} Análisis con IA ilimitados</li>
+            <li>${vantexIcon('check', { size: 16 })} Copy Trading simulado</li>
+            <li>${vantexIcon('check', { size: 16 })} Todo lo del plan gratis</li>
+          </ul>
+          <button type="button" class="btn-primary" style="width:100%; justify-content:center;" data-upgrade-plan="pro">Elegir Pro</button>
+        </div>
+      </div>
+      <p class="error-msg" data-upgrade-error></p>
+    `,
+    onOpen: (modalRoot) => {
+      modalRoot.querySelectorAll('[data-upgrade-plan]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const plan = btn.dataset.upgradePlan;
+          const errorEl = modalRoot.querySelector('[data-upgrade-error]');
+          errorEl.textContent = '';
+          btn.disabled = true;
+          const defaultHtml = btn.innerHTML;
+          btn.innerHTML = '<span class="spinner"></span> Un momento…';
+          try {
+            const { url } = await api('/billing/checkout', { method: 'POST', body: JSON.stringify({ plan }) });
+            window.location.href = url;
+          } catch (err) {
+            errorEl.textContent = err.message;
+            btn.disabled = false;
+            btn.innerHTML = defaultHtml;
+          }
+        });
+      });
+    },
+  });
+}
+
 function openSettingsModal(user, root) {
   let pendingAvatar; // undefined = sin cambios; null = quitar foto; string = foto nueva
 
@@ -278,10 +322,10 @@ function openSettingsModal(user, root) {
         <div class="profile-edit__bio-count" data-bio-count>0 / 160</div>
       </div>
       <p class="text-caption" style="margin:0 0 14px;">
-        Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Pro ★' : 'Gratuito'}</strong>
+        Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Pro ★' : user.plan === 'plus' ? 'Vantex Plus' : 'Gratuito'}</strong>
       </p>
       <button type="button" class="btn-secondary" data-settings-billing style="width:100%; justify-content:center;">
-        ${user.plan === 'pro' ? 'Gestionar suscripción' : 'Hazte Pro por 4,99€/mes'}
+        ${user.plan === 'free' ? 'Mejorar plan' : 'Gestionar suscripción'}
       </button>
       <p class="error-msg" data-settings-error></p>
     `,
@@ -349,12 +393,16 @@ function openSettingsModal(user, root) {
       });
 
       modalRoot.querySelector('[data-settings-billing]').addEventListener('click', async (e) => {
+        if (user.plan === 'free') {
+          closeModal();
+          openUpgradeModal();
+          return;
+        }
         const btn = e.currentTarget;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,.15); border-top-color:var(--text-dim);"></span>';
         try {
-          const endpoint = user.plan === 'pro' ? '/billing/portal' : '/billing/checkout';
-          const { url } = await api(endpoint, { method: 'POST' });
+          const { url } = await api('/billing/portal', { method: 'POST' });
           window.location.href = url;
         } catch (err) {
           btn.disabled = false;
