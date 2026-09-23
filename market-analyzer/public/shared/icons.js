@@ -54,11 +54,11 @@ function vantexIcon(name, { size = 22 } = {}) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 }
 
-// Logomark de marca: una línea de tendencia con una caída inicial y una
-// subida pronunciada que remata en flecha (ángulo recto), trazo grueso
-// de esquinas redondeadas. Se usa solo en los puntos de marca reales
-// (sidebar, favicon, cabecera, tarjeta de acceso), nunca como icono
-// genérico de interfaz.
+// Logomark de marca: una línea de tendencia en zigzag (dos picos con un
+// valle entre ellos) que remata en una punta de flecha sólida, trazo
+// grueso de esquinas redondeadas. Se usa solo en los puntos de marca
+// reales (sidebar, favicon, cabecera, tarjeta de acceso), nunca como
+// icono genérico de interfaz.
 function vantexLogo({ size = 24 } = {}) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16 8 20 13 11 26 2" /><path d="M18 2h8v8" /></svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><path d="M2 24 8 16 12 21 17 12 21 17 27 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 4 29 5 28 14z" fill="currentColor" /></svg>`;
 }

@@ -3,26 +3,28 @@
   shared/intro.js, solo cuando de verdad se va a mostrar.
 
   Concepto: un puñado de partículas dispersas convergen para "ensamblar"
-  el mismo logomark del sidebar (una línea de tendencia con una caída
-  inicial y una subida pronunciada que remata en flecha, cada trazo como
-  un tubo 3D extruido siguiendo su contorno), con un brillo índigo sutil,
-  una ligera rotación/parallax continua y otro grupo de partículas
-  ambiente que dan profundidad de fondo. Sin interacción del usuario: se
-  reproduce sola y llama a onComplete() al terminar.
+  el mismo logomark del sidebar (una línea de tendencia en zigzag —dos
+  picos con un valle entre ellos— que remata en una punta de flecha, todo
+  extruido como tubos 3D del mismo grosor siguiendo su contorno —la
+  punta como un triángulo cerrado, no como una placa sólida, para que no
+  desentone en peso visual con el resto del trazo—), con un brillo
+  índigo sutil, una ligera rotación/parallax continua y otro grupo de
+  partículas ambiente que dan profundidad de fondo. Sin interacción del
+  usuario: se reproduce sola y llama a onComplete() al terminar.
 */
 import * as THREE from '../vendor/three.module.min.js';
 
 // Puntos del logomark (mismo trazado que shared/icons.js: vantexLogo),
-// ya expresados en el viewBox 28x28 del icono, convertidos a coordenadas
+// ya expresados en el viewBox 32x32 del icono, convertidos a coordenadas
 // 3D centradas en el origen (y hacia arriba).
-const K = 0.18;
+const K = 0.16;
 function toVec3([svgX, svgY]) {
-  return new THREE.Vector3((svgX - 14) * K, (14 - svgY) * K, 0);
+  return new THREE.Vector3((svgX - 16) * K, (16 - svgY) * K, 0);
 }
-// Línea de tendencia: caída inicial -> subida pronunciada -> punta.
-const TREND_POINTS = [[2, 16], [8, 20], [13, 11], [26, 2]].map(toVec3);
-// Remate en ángulo recto de la punta de flecha: extremo horizontal -> vértice -> extremo vertical.
-const BOX_POINTS = [[18, 2], [26, 2], [26, 10]].map(toVec3);
+// Línea en zigzag: pico -> valle -> pico -> subida final hacia la punta.
+const TREND_POINTS = [[2, 24], [8, 16], [12, 21], [17, 12], [21, 17], [27, 6]].map(toVec3);
+// Punta de flecha (triángulo cerrado), mismos vértices que su versión SVG plana.
+const ARROW_LOOP_POINTS = [[20, 4], [29, 5], [28, 14], [20, 4]].map(toVec3);
 
 function buildPathCurve(points) {
   const curve = new THREE.CurvePath();
@@ -68,11 +70,11 @@ export function startScene(canvas, { quality = 'high', durationMs = 3000, onRead
     transparent: true,
     opacity: 0,
   });
-  const trendGeo = new THREE.TubeGeometry(buildPathCurve(TREND_POINTS), 48, tubeRadius, 8, false);
-  const boxGeo = new THREE.TubeGeometry(buildPathCurve(BOX_POINTS), 24, tubeRadius, 8, false);
+  const trendGeo = new THREE.TubeGeometry(buildPathCurve(TREND_POINTS), 56, tubeRadius, 8, false);
+  const arrowGeo = new THREE.TubeGeometry(buildPathCurve(ARROW_LOOP_POINTS), 24, tubeRadius, 8, false);
   const trendMesh = new THREE.Mesh(trendGeo, material);
-  const boxMesh = new THREE.Mesh(boxGeo, material);
-  logoGroup.add(trendMesh, boxMesh);
+  const arrowMesh = new THREE.Mesh(arrowGeo, material);
+  logoGroup.add(trendMesh, arrowMesh);
   logoGroup.scale.setScalar(.001);
 
   // ---------- Partículas ----------
@@ -220,7 +222,7 @@ export function startScene(canvas, { quality = 'high', durationMs = 3000, onRead
       particleGeo.dispose();
       particleMat.dispose();
       trendGeo.dispose();
-      boxGeo.dispose();
+      arrowGeo.dispose();
       material.dispose();
       renderer.dispose();
     }
