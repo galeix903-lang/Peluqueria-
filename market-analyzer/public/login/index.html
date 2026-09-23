@@ -195,6 +195,7 @@
   .step-card h3 { margin: 0 0 7px; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
   .step-card p { margin: 0; color: var(--text-dim); font-size: .875rem; line-height: 1.6; }
   .section-cta { text-align: center; }
+  .section-cta .social-proof { display: flex; justify-content: center; }
 
   /* Herramientas: bloques de color */
   .tool-blocks { display: flex; flex-direction: column; gap: 24px; }
@@ -217,16 +218,25 @@
   .tool-block__col-head { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; }
   .tool-block__col-head svg { width: 17px; height: 17px; flex-shrink: 0; }
   .tool-block__col h4 { margin: 0; font-size: 1rem; font-weight: 700; }
-  .tool-block__col p { margin: 0; font-size: .8438rem; color: var(--text-dim); line-height: 1.6; }
+  .tool-block__col p { margin: 0 0 10px; font-size: .8438rem; color: var(--text-dim); line-height: 1.6; }
+  .tool-block__col-cta {
+    display: inline-flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;
+    font-size: .8125rem; font-weight: 700; padding: 0;
+    transition: gap .15s var(--ease-out);
+  }
+  .tool-block__col-cta:hover { gap: 8px; }
   .tool-block--indigo { background: #eaf1ff; border-color: #cfe0fd; }
   .tool-block--indigo h3 { color: #1d4ed8; }
   .tool-block--indigo .tool-block__col-head svg { color: #1d4ed8; }
+  .tool-block--indigo .tool-block__col-cta { color: #1d4ed8; }
   .tool-block--amber { background: #fef3e0; border-color: #fbe3b8; }
   .tool-block--amber h3 { color: #92400e; }
   .tool-block--amber .tool-block__col-head svg { color: #92400e; }
+  .tool-block--amber .tool-block__col-cta { color: #92400e; }
   .tool-block--purple { background: #f3ecfe; border-color: #e5d5fc; }
   .tool-block--purple h3 { color: #6b21a8; }
   .tool-block--purple .tool-block__col-head svg { color: #6b21a8; }
+  .tool-block--purple .tool-block__col-cta { color: #6b21a8; }
   .tool-block .badge-sim {
     display: inline-flex; align-items: center; gap: 5px; font-size: .6875rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim);
@@ -346,6 +356,24 @@
     backdrop-filter: blur(6px);
   }
   .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); animation: pulseSoft 1.6s ease-in-out infinite; }
+
+  /* Prueba social con pila de avatares — dato real (nº de cuentas
+     creadas), oculta hasta tenerlo; sin fotos de gente real, solo un
+     icono genérico por avatar. */
+  .social-proof { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .social-proof[hidden] { display: none; }
+  .social-proof__avatars { display: inline-flex; }
+  .social-proof__avatar {
+    width: 26px; height: 26px; border-radius: 50%; margin-left: -8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    border: 2px solid var(--surface); flex-shrink: 0;
+  }
+  .social-proof__avatar:first-child { margin-left: 0; }
+  .social-proof__avatar svg { width: 12px; height: 12px; }
+  .social-proof__text { font-size: .8125rem; font-weight: 600; color: var(--text-dim); }
+  .social-proof--on-dark .social-proof__avatar { border-color: #141a3d; }
+  .social-proof--on-dark .social-proof__text { color: rgba(255,255,255,.75); }
   .hero-title {
     font-size: clamp(2.5rem, 1.55rem + 4.4vw, 5.625rem);
     font-weight: 700; letter-spacing: -.03em; line-height: .98;
@@ -807,6 +835,15 @@
     </div>
 
     <div class="hero-inner" data-hero-inner>
+      <div class="social-proof social-proof--on-dark" data-social-proof hidden>
+        <span class="social-proof__avatars" aria-hidden="true">
+          <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+          <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+          <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+          <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+        </span>
+        <span class="social-proof__text" data-social-proof-text></span>
+      </div>
       <span class="hero-badge"><span class="hero-badge-dot"></span>Análisis de gráficos con IA</span>
       <h1 class="hero-title">Lee el mercado.<span class="hero-title__accent">Antes de que se mueva.</span></h1>
       <p class="hero-subtitle">Sube cualquier gráfico y deja que la IA detecte patrones, niveles y contexto en segundos — sin ruido, sin adivinar.</p>
@@ -948,6 +985,15 @@
       </div>
       <div class="section-cta io-reveal">
         <button class="btn-primary" type="button" data-cta-signup>Probar el AI Analyzer gratis →</button>
+        <div class="social-proof" data-social-proof hidden style="justify-content:center; margin:16px 0 0;">
+          <span class="social-proof__avatars" aria-hidden="true">
+            <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+            <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+            <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+            <span class="social-proof__avatar" data-icon="user" data-icon-size="12"></span>
+          </span>
+          <span class="social-proof__text" data-social-proof-text></span>
+        </div>
       </div>
     </section>
 
@@ -969,10 +1015,12 @@
               <div class="tool-block__col">
                 <div class="tool-block__col-head"><span data-icon="search" data-icon-size="17"></span><h4>Funciona con cualquier mercado</h4></div>
                 <p>Cripto, forex o acciones — sube la imagen del gráfico y listo, sin conectar ninguna cuenta.</p>
+                <button class="tool-block__col-cta" type="button" data-cta-signup>Probarlo →</button>
               </div>
               <div class="tool-block__col">
                 <div class="tool-block__col-head"><span data-icon="shieldCheck" data-icon-size="17"></span><h4>Resultados con confianza real</h4></div>
                 <p>Cada análisis indica su propio nivel de certeza, para que decidas con criterio y no a ciegas.</p>
+                <button class="tool-block__col-cta" type="button" data-cta-signup>Ver un ejemplo →</button>
               </div>
             </div>
             <button class="btn-secondary" type="button" data-cta-signup>Probar el Analyzer →</button>
@@ -988,10 +1036,12 @@
               <div class="tool-block__col">
                 <div class="tool-block__col-head"><span data-icon="clock" data-icon-size="17"></span><h4>Actualizado cada día</h4></div>
                 <p>Ideas nuevas cada mañana, sin que tengas que rastrear el mercado tú mismo.</p>
+                <button class="tool-block__col-cta" type="button" data-cta-signup>Ver picks de hoy →</button>
               </div>
               <div class="tool-block__col">
                 <div class="tool-block__col-head"><span data-icon="chevronRight" data-icon-size="17"></span><h4>Contexto claro en cada pick</h4></div>
                 <p>Razonamiento y niveles clave junto a cada oportunidad — nunca solo un ticker suelto.</p>
+                <button class="tool-block__col-cta" type="button" data-cta-signup>Ver un pick →</button>
               </div>
             </div>
             <button class="btn-secondary" type="button" data-cta-signup>Ver picks de hoy →</button>
@@ -1007,10 +1057,12 @@
               <div class="tool-block__col">
                 <div class="tool-block__col-head"><span data-icon="wallet" data-icon-size="17"></span><h4>Wallet Tracker</h4></div>
                 <p>Sigue la actividad de cualquier dirección y observa sus movimientos recientes.</p>
+                <button class="tool-block__col-cta" type="button" data-cta-signup>Probar Wallet Tracker →</button>
               </div>
               <div class="tool-block__col">
                 <div class="tool-block__col-head"><span data-icon="refresh" data-icon-size="17"></span><h4>Copy Trading simulado</h4></div>
                 <p>Copia automáticamente las operaciones de traders modelo dentro de tu saldo virtual.</p>
+                <button class="tool-block__col-cta" type="button" data-cta-signup>Ver traders →</button>
               </div>
             </div>
             <button class="btn-secondary" type="button" data-cta-signup>Ver cómo funciona →</button>
@@ -1589,18 +1641,26 @@
       }).catch(() => {});
     })();
 
-    // ---------- Sello de confianza bajo la tarjeta de acceso ----------
-    // Contador real de cuentas creadas (GET /api/activity/stats). Sin
-    // datos reales que mostrar (o si falla la petición), se queda oculto
-    // en vez de mostrar una puntuación inventada.
+    // ---------- Sellos de confianza (tarjeta de acceso, hero, pasos) ----------
+    // Mismo contador real de cuentas creadas (GET /api/activity/stats)
+    // para los tres sitios donde se muestra prueba social. Sin datos
+    // reales que mostrar (o si falla la petición), todos se quedan
+    // ocultos en vez de mostrar una cifra inventada.
     (function setupTrustStat() {
-      const el = document.querySelector('[data-trust-stat]');
-      if (!el) return;
+      const trustStatEl = document.querySelector('[data-trust-stat]');
+      const socialProofEls = document.querySelectorAll('[data-social-proof]');
+      if (!trustStatEl && !socialProofEls.length) return;
       api('/activity/stats').then(({ accounts }) => {
         if (!accounts) return;
-        el.querySelector('[data-trust-stat-icon]').innerHTML = vantexIcon('shieldCheck', { size: 15 });
-        el.querySelector('[data-trust-stat-text]').textContent = `+${accounts} cuentas ya creadas en Vantex`;
-        el.hidden = false;
+        if (trustStatEl) {
+          trustStatEl.querySelector('[data-trust-stat-icon]').innerHTML = vantexIcon('shieldCheck', { size: 15 });
+          trustStatEl.querySelector('[data-trust-stat-text]').textContent = `+${accounts} cuentas ya creadas en Vantex`;
+          trustStatEl.hidden = false;
+        }
+        socialProofEls.forEach((el) => {
+          el.querySelector('[data-social-proof-text]').textContent = `+${accounts} personas ya usan Vantex`;
+          el.hidden = false;
+        });
       }).catch(() => {});
     })();
 
