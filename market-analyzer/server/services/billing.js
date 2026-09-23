@@ -48,6 +48,12 @@ async function createCheckoutSession(user, baseUrl, plan = 'pro') {
   const stripe = stripeClient();
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
+    // Solo tarjeta: sin esto, Stripe muestra automáticamente cualquier
+    // método que esté activado en el Dashboard (incluidos Klarna,
+    // Satispay...), poco reconocibles para dar confianza en un pago de
+    // suscripción. Apple Pay/Google Pay siguen apareciendo solos encima
+    // del formulario de tarjeta cuando el navegador los soporta.
+    payment_method_types: ['card'],
     line_items: [{ price: priceId, quantity: 1 }],
     client_reference_id: user.id,
     // El webhook usa esto para saber a qué plan pasar al usuario cuando
