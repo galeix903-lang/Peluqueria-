@@ -202,7 +202,7 @@
 
       function applyQuota(plan, remainingToday, dailyLimit) {
         if (plan === 'pro') {
-          quotaEl.textContent = '★ Análisis ilimitados (Pro)';
+          quotaEl.textContent = '★ Análisis ilimitados (Business)';
           quotaExhausted = false;
           upsellEl.hidden = true;
           analyzeBtn.disabled = !selectedFile;
@@ -214,10 +214,10 @@
         if (quotaExhausted) {
           if (plan === 'plus') {
             upsellTitleEl.textContent = `Has usado tus ${dailyLimit} análisis de hoy.`;
-            upsellDescEl.textContent = 'Hazte Pro y analiza todos los gráficos que quieras, sin límite diario.';
+            upsellDescEl.textContent = 'Hazte Business y analiza todos los gráficos que quieras, sin límite diario.';
           } else {
             upsellTitleEl.textContent = `Has usado tus ${dailyLimit} análisis gratuitos de hoy.`;
-            upsellDescEl.textContent = 'Mejora tu plan y consigue más análisis al día (o ilimitados con Pro).';
+            upsellDescEl.textContent = 'Mejora tu plan y consigue más análisis al día (o ilimitados con Business).';
           }
         }
         analyzeBtn.disabled = quotaExhausted || !selectedFile;

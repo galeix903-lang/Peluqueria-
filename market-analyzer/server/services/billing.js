@@ -21,7 +21,9 @@ function stripeClient() {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 }
 
-// Dos planes de pago: Plus (1€/mes, STRIPE_PRICE_ID_PLUS) y Pro
+// Dos planes de pago con identificador interno 'plus'/'pro' (así están
+// guardados en store.js y en el entorno de Render), aunque de cara al
+// usuario se llaman "Pro" (1€/mes, STRIPE_PRICE_ID_PLUS) y "Business"
 // (4,99€/mes, STRIPE_PRICE_ID — se mantiene el nombre de variable
 // original para no romper el entorno de Render ya configurado).
 function priceIdForPlan(plan) {

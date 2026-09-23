@@ -89,9 +89,9 @@ async function mountShell({ page, title }) {
             </span>
             <span class="topbar__clock" data-clock></span>
             ${user.plan === 'pro'
-              ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ PRO</span>'
+              ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ BUSINESS</span>'
               : user.plan === 'plus'
-              ? '<span class="badge" style="background:#eef2ff; color:var(--accent);" data-plan-badge title="Gestionar suscripción">PLUS</span>'
+              ? '<span class="badge" style="background:#eef2ff; color:var(--accent);" data-plan-badge title="Gestionar suscripción">PRO</span>'
               : '<button class="btn-primary" data-upgrade-btn>Upgrade!</button>'}
             <span class="topbar__name">${escapeHtml(user.name)}</span>
             <button type="button" class="avatar-btn" data-avatar-btn aria-label="Ver perfil de ${escapeHtml(user.name)}">
@@ -209,7 +209,7 @@ function openProfileCard(user, root) {
         <h3 class="profile-card__name">${escapeHtml(user.name)}</h3>
         <p class="profile-card__email text-caption">${escapeHtml(user.email)}</p>
         <p class="profile-card__bio ${user.bio ? '' : 'profile-card__bio--empty'}">${user.bio ? escapeHtml(user.bio) : 'Todavía no has añadido una biografía.'}</p>
-        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : user.plan === 'plus' ? 'background:#eef2ff; color:var(--accent);' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Vantex Pro' : user.plan === 'plus' ? 'Vantex Plus' : 'Plan gratuito'}</span>
+        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : user.plan === 'plus' ? 'background:#eef2ff; color:var(--accent);' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Vantex Business' : user.plan === 'plus' ? 'Vantex Pro' : 'Plan gratuito'}</span>
       </div>
     `,
     footerHtml: `
@@ -255,22 +255,22 @@ function openUpgradeModal() {
     bodyHtml: `
       <div class="upgrade-plans">
         <div class="upgrade-plan">
-          <div class="upgrade-plan__head"><strong>Vantex Plus</strong><span class="upgrade-plan__price">1€<span>/mes</span></span></div>
+          <div class="upgrade-plan__head"><strong>Vantex Pro</strong><span class="upgrade-plan__price">1€<span>/mes</span></span></div>
           <ul class="upgrade-plan__list">
             <li>${vantexIcon('check', { size: 16 })} 15 análisis con IA al día</li>
             <li>${vantexIcon('check', { size: 16 })} Copy Trading simulado</li>
             <li>${vantexIcon('check', { size: 16 })} Todo lo del plan gratis</li>
           </ul>
-          <button type="button" class="btn-secondary" style="width:100%; justify-content:center;" data-upgrade-plan="plus">Elegir Plus</button>
+          <button type="button" class="btn-secondary" style="width:100%; justify-content:center;" data-upgrade-plan="plus">Elegir Pro</button>
         </div>
         <div class="upgrade-plan upgrade-plan--pro">
-          <div class="upgrade-plan__head"><strong>Vantex Pro</strong><span class="upgrade-plan__price">4,99€<span>/mes</span></span></div>
+          <div class="upgrade-plan__head"><strong>Vantex Business</strong><span class="upgrade-plan__price">4,99€<span>/mes</span></span></div>
           <ul class="upgrade-plan__list">
             <li>${vantexIcon('check', { size: 16 })} Análisis con IA ilimitados</li>
             <li>${vantexIcon('check', { size: 16 })} Copy Trading simulado</li>
             <li>${vantexIcon('check', { size: 16 })} Todo lo del plan gratis</li>
           </ul>
-          <button type="button" class="btn-primary" style="width:100%; justify-content:center;" data-upgrade-plan="pro">Elegir Pro</button>
+          <button type="button" class="btn-primary" style="width:100%; justify-content:center;" data-upgrade-plan="pro">Elegir Business</button>
         </div>
       </div>
       <p class="error-msg" data-upgrade-error></p>
@@ -322,7 +322,7 @@ function openSettingsModal(user, root) {
         <div class="profile-edit__bio-count" data-bio-count>0 / 160</div>
       </div>
       <p class="text-caption" style="margin:0 0 14px;">
-        Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Pro ★' : user.plan === 'plus' ? 'Vantex Plus' : 'Gratuito'}</strong>
+        Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Business ★' : user.plan === 'plus' ? 'Vantex Pro' : 'Gratuito'}</strong>
       </p>
       <button type="button" class="btn-secondary" data-settings-billing style="width:100%; justify-content:center;">
         ${user.plan === 'free' ? 'Mejorar plan' : 'Gestionar suscripción'}
