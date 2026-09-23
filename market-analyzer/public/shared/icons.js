@@ -40,6 +40,13 @@ const VANTEX_ICON_PATHS = {
   book: '<path d="M12 6.8c-1.9-1.5-4.3-2.3-7-2.3v12.7c2.7 0 5.1.8 7 2.3" /><path d="M12 6.8c1.9-1.5 4.3-2.3 7-2.3v12.7c-2.7 0-5.1.8-7 2.3z" /><path d="M12 6.8v12.7" />',
   pencil: '<path d="M4 20l.9-4 10.6-10.6 3.1 3.1L8 19l-4 1z" /><path d="M13.5 6.4l3.1 3.1" />',
   sparkle: '<path d="M12 3.3c.5 3.3 1.9 5.3 5 5.9-3.1.6-4.5 2.6-5 5.9-.5-3.3-1.9-5.3-5-5.9 3.1-.6 4.5-2.6 5-5.9z" /><path d="M18.3 14.6c.2 1.5.9 2.4 2.2 2.7-1.3.3-2 1.2-2.2 2.7-.2-1.5-.9-2.4-2.2-2.7 1.3-.3 2-1.2 2.2-2.7z" />',
+  // Iconos del formulario de acceso: uno por campo (usuario, email,
+  // candado) y el interruptor de mostrar/ocultar contraseña.
+  user: '<circle cx="12" cy="8.3" r="3.4" /><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />',
+  mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="M4 7.2l8 5.8 8-5.8" />',
+  lock: '<rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2" /><path d="M7.5 10.5V8a4.5 4.5 0 0 1 9 0v2.5" />',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="3" />',
+  eyeOff: '<path d="M3 3l18 18" /><path d="M10.6 5.6A10.6 10.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a15.6 15.6 0 0 1-3.2 4" /><path d="M6.6 6.6C4 8.3 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.3 0 2.5-.3 3.5-.8" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />',
 };
 
 function vantexIcon(name, { size = 22 } = {}) {
