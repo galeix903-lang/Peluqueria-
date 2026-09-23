@@ -370,9 +370,19 @@
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
     box-shadow: 0 20px 40px -14px rgba(0,0,0,.4);
     transition: transform .22s var(--ease-out), box-shadow .22s;
+    animation: heroCtaAttention 3.2s ease-in-out infinite;
   }
-  .hero-cta:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 26px 48px -14px rgba(0,0,0,.45); }
-  .hero-cta:active { transform: translateY(-1px) scale(.99); }
+  /* Pulso periódico (no constante) para llamar la atención sin resultar
+     cansino: un latido cada ~3s y el resto quieto. Se pausa al pasar el
+     ratón para no pelearse con el propio hover, y prefers-reduced-motion
+     ya lo reduce a casi estático por la regla global. */
+  @keyframes heroCtaAttention {
+    0%, 58%, 100% { transform: scale(1); box-shadow: 0 20px 40px -14px rgba(0,0,0,.4), 0 0 0 0 rgba(255,255,255,.45); }
+    29% { transform: scale(1.045); box-shadow: 0 26px 48px -14px rgba(0,0,0,.45), 0 0 0 14px rgba(255,255,255,0); }
+  }
+  .hero-cta:hover { animation-play-state: paused; transform: translateY(-3px) scale(1.01); box-shadow: 0 26px 48px -14px rgba(0,0,0,.45); }
+  .hero-cta:focus-visible { animation-play-state: paused; }
+  .hero-cta:active { animation-play-state: paused; transform: translateY(-1px) scale(.99); }
   .hero-trust {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px;
     margin: 20px 0 0; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.68);
