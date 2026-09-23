@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const store = require('../store');
+const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
@@ -12,10 +13,13 @@ function publicUser(user) {
   };
 }
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', asyncHandler(async (req, res) => {
   const { email, password, name } = req.body || {};
-  if (!email || !password) {
+  if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
     return res.status(400).json({ error: 'Email y contraseña son obligatorios.' });
+  }
+  if (name !== undefined && typeof name !== 'string') {
+    return res.status(400).json({ error: 'Nombre no válido.' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
@@ -24,13 +28,25 @@ router.post('/signup', async (req, res) => {
     return res.status(409).json({ error: 'Ya existe una cuenta con ese email.' });
   }
   const passwordHash = await bcrypt.hash(password, 10);
+  // Segunda comprobación, esta vez atómica (dentro de la misma función
+  // síncrona que hace push+save): entre el check de arriba y este punto
+  // hay un await de por medio, así que dos signups concurrentes con el
+  // mismo email podrían haber pasado los dos la primera comprobación.
+  // store.createUser vuelve a comprobar justo antes de guardar, sin
+  // ningún await entre medias, así que solo uno de los dos puede ganar.
   const user = store.createUser({ email, passwordHash, name });
+  if (!user) {
+    return res.status(409).json({ error: 'Ya existe una cuenta con ese email.' });
+  }
   req.session.userId = user.id;
   res.status(201).json({ user: publicUser(user) });
-});
+}));
 
-router.post('/login', async (req, res) => {
+router.post('/login', asyncHandler(async (req, res) => {
   const { email, password } = req.body || {};
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    return res.status(401).json({ error: 'Email o contraseña incorrectos.' });
+  }
   const user = email && store.findUserByEmail(email);
   const ok = user && (await bcrypt.compare(password || '', user.passwordHash));
   if (!ok) {
@@ -38,7 +54,7 @@ router.post('/login', async (req, res) => {
   }
   req.session.userId = user.id;
   res.json({ user: publicUser(user) });
-});
+}));
 
 router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));

@@ -2,6 +2,7 @@ const express = require('express');
 const store = require('../store');
 const { TRADERS } = require('../services/copyTraders');
 const { runCopyTradingTick } = require('../services/copyTradingJob');
+const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ router.get('/', (req, res) => {
   res.json({ traders, copiedPositions });
 });
 
-router.post('/:traderId/follow', async (req, res) => {
+router.post('/:traderId/follow', asyncHandler(async (req, res) => {
   const user = store.findUserById(req.session.userId);
   if (user.plan === 'free') {
     return res.status(402).json({ error: 'Copy Trading es una función de los planes Pro y Business.', upgradeRequired: true });
@@ -33,7 +34,7 @@ router.post('/:traderId/follow', async (req, res) => {
   // en vez de esperar hasta 10 minutos al próximo ciclo del job.
   runCopyTradingTick().catch(() => {});
   res.status(201).json({ ok: true });
-});
+}));
 
 router.post('/:traderId/unfollow', (req, res) => {
   const ok = store.removeCopyFollow(req.session.userId, req.params.traderId);

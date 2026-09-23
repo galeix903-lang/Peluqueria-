@@ -46,6 +46,16 @@ function findUserById(userId) {
 
 function createUser({ email, passwordHash, name }) {
   const db = load();
+  // Repite la comprobación de email único aquí (no solo en la ruta) sin
+  // ningún await de por medio: dos signups concurrentes con el mismo
+  // email pueden haber pasado los dos el check de la ruta (que sí tiene
+  // un await a la bcrypt.hash entre medias), pero como JS es de un solo
+  // hilo y esta función es síncrona de principio a fin, solo una de las
+  // dos peticiones puede ejecutar este load()+push()+save() sin que la
+  // otra se cuele en medio — así que como mucho una gana.
+  if (db.users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
+    return null;
+  }
   const user = {
     id: id(),
     email,

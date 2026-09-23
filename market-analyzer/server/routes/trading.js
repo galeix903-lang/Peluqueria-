@@ -1,6 +1,7 @@
 const express = require('express');
 const store = require('../store');
 const market = require('../services/market');
+const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
@@ -58,7 +59,7 @@ async function checkAndAutoClose(userId, prices) {
 }
 
 // Balance + posiciones abiertas/cerradas, con P&L en vivo para las abiertas.
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const prices = await market.fetchPrices().catch(() => ({}));
   await checkAndAutoClose(req.session.userId, prices);
 
@@ -83,23 +84,28 @@ router.get('/', async (req, res) => {
     balance: user.balance,
     positions: withPnl,
     supportedSymbols: market.SUPPORTED_SYMBOLS,
+    // Si CoinGecko no responde, market.fetchPrices() cae a precios
+    // simulados con un pequeño paseo aleatorio en vez de romper la
+    // pantalla — el frontend necesita saberlo para avisar de que esos
+    // precios no son reales, en vez de mostrarlos como si lo fueran.
+    isSimulatedPricing: market.isUsingFallbackPrices(),
   });
-});
+}));
 
 // Histórico corto de precio de un símbolo, para el sparkline del ticket.
-router.get('/chart/:symbol', async (req, res) => {
+router.get('/chart/:symbol', asyncHandler(async (req, res) => {
   const symbol = req.params.symbol.toUpperCase();
   if (!market.SUPPORTED_SYMBOLS.includes(symbol)) {
     return res.status(404).json({ error: 'Símbolo no soportado.' });
   }
   await market.fetchPrices().catch(() => {}); // asegura al menos una muestra
-  res.json({ symbol, history: market.getHistory(symbol) });
-});
+  res.json({ symbol, history: market.getHistory(symbol), isSimulatedPricing: market.isUsingFallbackPrices() });
+}));
 
 // Abrir una posición al precio actual de mercado, con stop-loss/take-profit opcionales.
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const { symbol, side, size, stopLoss, takeProfit } = req.body || {};
-  if (!symbol || !['long', 'short'].includes(side) || !(Number(size) > 0)) {
+  if (typeof symbol !== 'string' || !symbol || !['long', 'short'].includes(side) || !(Number(size) > 0)) {
     return res.status(400).json({ error: 'Faltan datos: symbol, side ("long"/"short") y size (> 0).' });
   }
   const sl = stopLoss !== undefined && stopLoss !== null && stopLoss !== '' ? Number(stopLoss) : null;
@@ -135,10 +141,10 @@ router.post('/', async (req, res) => {
   store.updateUserBalance(req.session.userId, user.balance - cost);
 
   res.status(201).json({ position });
-});
+}));
 
 // Cerrar una posición al precio actual y liquidar el P&L contra el saldo.
-router.post('/:id/close', async (req, res) => {
+router.post('/:id/close', asyncHandler(async (req, res) => {
   const positions = store.listPositions(req.session.userId);
   const position = positions.find((p) => p.id === req.params.id);
   if (!position) return res.status(404).json({ error: 'Posición no encontrada.' });
@@ -154,6 +160,6 @@ router.post('/:id/close', async (req, res) => {
   const user = store.findUserById(req.session.userId);
   const { closed, newBalance } = settleClose(user, position, closePrice, 'manual');
   res.json({ position: closed, balance: newBalance });
-});
+}));
 
 module.exports = router;

@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const store = require('../store');
 const { analyzeChart } = require('../services/claude');
+const asyncHandler = require('../middleware/asyncHandler');
 
 // Límite diario de análisis por plan — Infinity para Pro (sin límite).
 // Única fuente de verdad: tanto el gate de POST / como la cuota que lee
@@ -23,9 +24,15 @@ const upload = multer({
   },
 });
 
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', upload.single('image'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Sube una imagen del gráfico.' });
+  }
+  if (req.body.symbolHint !== undefined && typeof req.body.symbolHint !== 'string') {
+    return res.status(400).json({ error: 'symbolHint no válido.' });
+  }
+  if (req.body.timeframe !== undefined && typeof req.body.timeframe !== 'string') {
+    return res.status(400).json({ error: 'timeframe no válido.' });
   }
   const user = store.findUserById(req.session.userId);
   const limit = dailyLimitFor(user.plan);
@@ -52,7 +59,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     console.error('Error en el analizador:', err.message);
     res.status(502).json({ error: 'No se pudo completar el análisis. Inténtalo de nuevo en unos segundos.' });
   }
-});
+}));
 
 router.get('/history', (req, res) => {
   const user = store.findUserById(req.session.userId);

@@ -71,6 +71,10 @@
     mountShell({ page: 'trading', title: 'Paper Trading' }).then((ctx) => {
       if (!ctx) return;
       ctx.contentEl.innerHTML = `
+        <div class="panel reveal-pop" data-sim-price-banner hidden style="margin-bottom:14px; background:var(--amber-bg); border-color:var(--amber); display:flex; align-items:center; gap:10px;">
+          ${vantexIcon('alertTriangle', { size: 16 })}
+          <span style="font-size:.8125rem; color:var(--text);"><strong>Precios simulados.</strong> No se ha podido conectar con la fuente de precios en vivo; estos precios son una aproximación generada por el servidor, no cotizaciones reales.</span>
+        </div>
         <div class="panel reveal" style="margin-bottom:20px;">
           <div class="stat-row">
             <div class="stat-row__item">
@@ -106,7 +110,7 @@
               </div>
               <div class="field">
                 <label>Cantidad</label>
-                <input type="number" name="size" step="0.0001" min="0" placeholder="0.5" required />
+                <input type="number" name="size" step="0.0001" min="0.0001" placeholder="0.5" required />
               </div>
             </div>
 
@@ -157,6 +161,7 @@
         </div>
       `;
 
+      const simPriceBanner = ctx.contentEl.querySelector('[data-sim-price-banner]');
       const balanceEl = ctx.contentEl.querySelector('[data-balance]');
       const openPnlEl = ctx.contentEl.querySelector('[data-open-pnl]');
       const symbolSelect = ctx.contentEl.querySelector('[data-symbol-select]');
@@ -293,6 +298,7 @@
       }
 
       function render(data) {
+        simPriceBanner.hidden = !data.isSimulatedPricing;
         animateNumber(balanceEl, lastBalance ?? data.balance, data.balance, { format: (n) => fmtUsd(n) });
         lastBalance = data.balance;
 

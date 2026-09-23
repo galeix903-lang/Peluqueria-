@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Vantex — Analiza. Practica. Sigue.</title>
 <meta name="description" content="Vantex: analiza gráficos de mercado con IA, practica con paper trading y sigue wallets y traders — sin arriesgar dinero real. Crea tu cuenta gratis." />
+<link rel="canonical" href="https://vantex.onrender.com/login" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Vantex" />
+<meta property="og:title" content="Vantex — Analiza. Practica. Sigue." />
+<meta property="og:description" content="Analiza gráficos de mercado con IA, practica con paper trading y sigue wallets y traders — sin arriesgar dinero real." />
+<meta property="og:url" content="https://vantex.onrender.com/login" />
+<meta property="og:image" content="https://vantex.onrender.com/favicon.svg" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Vantex — Analiza. Practica. Sigue." />
+<meta name="twitter:description" content="Analiza gráficos de mercado con IA, practica con paper trading y sigue wallets y traders — sin arriesgar dinero real." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -1574,7 +1584,31 @@
     }
     authModal.addEventListener('mousedown', (e) => { if (e.target === authModal) closeAuthModal(); });
     authModal.querySelector('[data-auth-modal-close]').addEventListener('click', closeAuthModal);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !authModal.hidden) closeAuthModal(); });
+    // Con el modal abierto, Tab no debe poder sacar el foco hacia la
+    // página de detrás (atenuada e invisible) — se atrapa dentro de la
+    // tarjeta, igual que en shared/modal.js.
+    document.addEventListener('keydown', (e) => {
+      if (authModal.hidden) return;
+      if (e.key === 'Escape') { closeAuthModal(); return; }
+      if (e.key !== 'Tab') return;
+      const panel = authModal.querySelector('.auth-card');
+      const focusable = [...panel.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )].filter((el) => el.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!panel.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
 
     document.querySelectorAll('[data-cta-signup]').forEach((btn) => btn.addEventListener('click', (e) => {
       e.preventDefault();

@@ -85,4 +85,12 @@ async function getPrice(symbol) {
   return price;
 }
 
-module.exports = { fetchPrices, getPrice, getHistory, SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID) };
+// Si CoinGecko no es alcanzable, fetchPrices() devuelve precios simulados
+// sin que quien lo llama lo note — esto es lo único que permite al resto
+// de la app (rutas, frontend) saber que lo que se está sirviendo ahora
+// mismo no son precios reales, para avisar en vez de callarlo.
+function isUsingFallbackPrices() {
+  return !!cache.isFallback;
+}
+
+module.exports = { fetchPrices, getPrice, getHistory, isUsingFallbackPrices, SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID) };
