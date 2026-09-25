@@ -54,11 +54,11 @@ function vantexIcon(name, { size = 22 } = {}) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 }
 
-// Logomark de marca: una línea de tendencia en zigzag (dos picos con un
-// valle entre ellos) que remata en una punta de flecha sólida, trazo
-// grueso de esquinas redondeadas. Se usa solo en los puntos de marca
-// reales (sidebar, favicon, cabecera, tarjeta de acceso), nunca como
-// icono genérico de interfaz.
+// Logomark de marca: el icono oficial de Vantex (imagen fija con su
+// propio fondo en degradado azul-violeta, la "V" y la flecha de
+// tendencia). Se usa solo en los puntos de marca reales (sidebar,
+// favicon, cabecera, tarjeta de acceso), nunca como icono genérico de
+// interfaz.
 function vantexLogo({ size = 24 } = {}) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><path d="M2 24 8 16 12 21 17 12 21 17 27 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 4 29 5 28 14z" fill="currentColor" /></svg>`;
+  return `<img src="/assets/vantex-mark.png" width="${size}" height="${size}" alt="Vantex" style="display:block; width:${size}px; height:${size}px;" />`;
 }

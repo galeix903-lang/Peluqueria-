@@ -43,15 +43,13 @@ html[data-intro-active] body {
 .intro__lite[hidden] { display: none; }
 .intro__lite-badge {
   width: 96px; height: 96px; border-radius: 26px;
-  background: linear-gradient(135deg, #6d63f5, #4f46e5);
-  color: #fff;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 0 0 1px rgba(124, 114, 240, .3), 0 20px 60px -12px rgba(99, 91, 232, .75);
   opacity: 0; transform: scale(.6);
   animation: intro-lite-badge 1s var(--ease-spring) forwards;
   animation-delay: .25s;
 }
-.intro__lite-badge svg { width: 46px; height: 46px; }
+.intro__lite-badge img { width: 96px; height: 96px; border-radius: 26px; }
 @keyframes intro-lite-badge {
   0% { opacity: 0; transform: scale(.6); }
   60% { opacity: 1; }

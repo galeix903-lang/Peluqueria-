@@ -99,7 +99,6 @@ button { font: inherit; cursor: pointer; }
 .sidebar__logo {
   width: 66px; height: 66px;
   border-radius: 19px;
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
   color: #fff;
   display: flex; align-items: center; justify-content: center;
   text-decoration: none;
@@ -107,7 +106,7 @@ button { font: inherit; cursor: pointer; }
   animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both, logoGlow 2.8s ease-in-out 1s infinite;
   transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.sidebar__logo svg { width: 33px; height: 33px; }
+.sidebar__logo img { width: 66px; height: 66px; border-radius: 19px; }
 .sidebar__logo:hover { transform: scale(1.1) rotate(-6deg); }
 .sidebar__nav { display: flex; flex-direction: column; gap: 22px; }
 

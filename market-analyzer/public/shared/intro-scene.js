@@ -3,28 +3,36 @@
   shared/intro.js, solo cuando de verdad se va a mostrar.
 
   Concepto: un puñado de partículas dispersas convergen para "ensamblar"
-  el mismo logomark del sidebar (una línea de tendencia en zigzag —dos
-  picos con un valle entre ellos— que remata en una punta de flecha, todo
-  extruido como tubos 3D del mismo grosor siguiendo su contorno —la
-  punta como un triángulo cerrado, no como una placa sólida, para que no
-  desentone en peso visual con el resto del trazo—), con un brillo
-  índigo sutil, una ligera rotación/parallax continua y otro grupo de
-  partículas ambiente que dan profundidad de fondo. Sin interacción del
-  usuario: se reproduce sola y llama a onComplete() al terminar.
+  una versión estilizada en 3D del icono real de Vantex —una "V" que
+  remata en una punta de flecha, con tres barras de gráfico asomando
+  dentro del hueco de la "V"—, extruida como tubos del mismo grosor
+  siguiendo su contorno (la punta como un triángulo cerrado, no como una
+  placa sólida, para que no desentone en peso visual con el resto del
+  trazo) más tres barras que aparecen con un fundido junto al tubo, con
+  un brillo índigo sutil, una ligera rotación/parallax continua y otro
+  grupo de partículas ambiente que dan profundidad de fondo. Sin
+  interacción del usuario: se reproduce sola y llama a onComplete() al
+  terminar.
 */
 import * as THREE from '../vendor/three.module.min.js';
 
-// Puntos del logomark (mismo trazado que shared/icons.js: vantexLogo),
-// ya expresados en el viewBox 32x32 del icono, convertidos a coordenadas
-// 3D centradas en el origen (y hacia arriba).
+// Puntos de la "V" + flecha, en un espacio 0-32 comparable al icono real
+// (public/assets/vantex-mark.png), convertidos a coordenadas 3D
+// centradas en el origen (y hacia arriba).
 const K = 0.16;
 function toVec3([svgX, svgY]) {
   return new THREE.Vector3((svgX - 16) * K, (16 - svgY) * K, 0);
 }
-// Línea en zigzag: pico -> valle -> pico -> subida final hacia la punta.
-const TREND_POINTS = [[2, 24], [8, 16], [12, 21], [17, 12], [21, 17], [27, 6]].map(toVec3);
-// Punta de flecha (triángulo cerrado), mismos vértices que su versión SVG plana.
-const ARROW_LOOP_POINTS = [[20, 4], [29, 5], [28, 14], [20, 4]].map(toVec3);
+// "V": brazo izquierdo -> vértice -> brazo derecho -> arranque de la flecha.
+const TREND_POINTS = [[5, 9], [16, 27], [24, 10]].map(toVec3);
+// Punta de flecha (triángulo cerrado) que continúa desde el final de la "V".
+const ARROW_LOOP_POINTS = [[21, 8], [30, 4], [27, 15], [21, 8]].map(toVec3);
+// Tres barras de gráfico dentro del hueco de la "V", creciendo de izquierda a derecha.
+const BAR_DEFS = [
+  { x: 12, yTop: 16, yBottom: 23 },
+  { x: 15.4, yTop: 12, yBottom: 23 },
+  { x: 18.8, yTop: 8, yBottom: 23 },
+];
 
 function buildPathCurve(points) {
   const curve = new THREE.CurvePath();
@@ -75,6 +83,27 @@ export function startScene(canvas, { quality = 'high', durationMs = 3000, onRead
   const trendMesh = new THREE.Mesh(trendGeo, material);
   const arrowMesh = new THREE.Mesh(arrowGeo, material);
   logoGroup.add(trendMesh, arrowMesh);
+
+  // Barras del gráfico: más claras y algo translúcidas, como en el icono plano.
+  const barMaterial = new THREE.MeshStandardMaterial({
+    color: 0xc7c3ff,
+    emissive: 0x4f46e5,
+    emissiveIntensity: 0,
+    metalness: .2,
+    roughness: .5,
+    transparent: true,
+    opacity: 0,
+  });
+  const barMeshes = BAR_DEFS.map(({ x, yTop, yBottom }) => {
+    const w = 2 * K;
+    const h = (yBottom - yTop) * K;
+    const geo = new THREE.BoxGeometry(w, h, tubeRadius * 2, 1, 1, 1);
+    const mesh = new THREE.Mesh(geo, barMaterial);
+    mesh.position.set((x - 16) * K, (16 - (yTop + yBottom) / 2) * K, 0);
+    logoGroup.add(mesh);
+    return mesh;
+  });
+  const barGeos = barMeshes.map((m) => m.geometry);
   logoGroup.scale.setScalar(.001);
 
   // ---------- Partículas ----------
@@ -171,6 +200,10 @@ export function startScene(canvas, { quality = 'high', durationMs = 3000, onRead
     const tubeInT = clamp01((elapsedMs - 900) / 800);
     material.opacity = tubeInT;
     material.emissiveIntensity = .55 + Math.sin(elapsedMs / 480) * .18 * clamp01((elapsedMs - 1700) / 300);
+    // Las barras aparecen justo después de que el tubo ya está presente,
+    // más translúcidas que el trazo principal (como en el icono plano).
+    const barsInT = clamp01((elapsedMs - 1200) / 700);
+    barMaterial.opacity = barsInT * .6;
     const scaleT = clamp01((elapsedMs - 900) / 850);
     logoGroup.scale.setScalar(Math.max(easeOutBack(scaleT), .001));
     // Las partículas convergentes se desvanecen justo cuando el tubo ya
@@ -195,6 +228,7 @@ export function startScene(canvas, { quality = 'high', durationMs = 3000, onRead
       const outT = clamp01((elapsedMs - (durationMs - 400)) / 400);
       const fade = 1 - outT;
       material.opacity = tubeInT * fade;
+      barMaterial.opacity = barsInT * .6 * fade;
       particleMat.opacity *= fade;
     }
 
@@ -223,6 +257,8 @@ export function startScene(canvas, { quality = 'high', durationMs = 3000, onRead
       particleMat.dispose();
       trendGeo.dispose();
       arrowGeo.dispose();
+      barGeos.forEach((g) => g.dispose());
+      barMaterial.dispose();
       material.dispose();
       renderer.dispose();
     }

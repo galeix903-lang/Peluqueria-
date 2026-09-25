@@ -84,12 +84,9 @@
   .site-nav__logo { display: inline-flex; align-items: center; gap: 10px; }
   .site-nav__logo-mark {
     width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
-    background: linear-gradient(135deg, #fff, #cfe0ff); color: var(--electric);
     display: flex; align-items: center; justify-content: center;
-    transition: background .3s, color .3s;
   }
-  .site-nav.is-scrolled .site-nav__logo-mark { background: linear-gradient(135deg, #6366f1, #3b82f6); color: #fff; }
-  .site-nav__logo-mark svg { width: 18px; height: 18px; }
+  .site-nav__logo-mark img { width: 34px; height: 34px; border-radius: 10px; }
   .site-nav__logo-word { font-size: 1.0625rem; font-weight: 800; letter-spacing: -.02em; color: #fff; transition: color .3s; }
   .site-nav.is-scrolled .site-nav__logo-word { color: var(--text); }
   .site-nav__links { display: flex; align-items: center; gap: 30px; }
@@ -637,9 +634,8 @@
   .auth-card__brand-mark {
     display: inline-flex; align-items: center; justify-content: center;
     width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
-    background: linear-gradient(135deg, #6366f1, #3b82f6); color: #fff;
   }
-  .auth-card__brand-mark svg { width: 15px; height: 15px; }
+  .auth-card__brand-mark img { width: 28px; height: 28px; border-radius: 9px; }
   .auth-card__brand-name { font-weight: 800; font-size: 1.0625rem; letter-spacing: -.01em; }
   .auth-card__tagline { text-align: center; font-size: .8125rem; color: var(--text-dim); margin: 0 0 28px; }
 
@@ -793,7 +789,7 @@
     <canvas class="intro__canvas" data-intro-canvas aria-hidden="true"></canvas>
     <div class="intro__lite" data-intro-lite hidden aria-hidden="true">
       <div class="intro__lite-badge">
-        <svg viewBox="0 0 32 32" fill="none"><path d="M2 24 8 16 12 21 17 12 21 17 27 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 4 29 5 28 14z" fill="currentColor" /></svg>
+        <img src="/assets/vantex-mark.png" alt="" width="96" height="96" />
       </div>
       <div class="intro__lite-dot" style="top:28%; left:32%; animation-delay:.1s, 1s;"></div>
       <div class="intro__lite-dot" style="top:64%; left:26%; animation-delay:.25s, 1.4s;"></div>
@@ -821,7 +817,7 @@
 
     <nav class="site-nav" data-site-nav>
       <a class="site-nav__logo" href="#top">
-        <span class="site-nav__logo-mark"><svg viewBox="0 0 32 32" fill="none"><path d="M2 24 8 16 12 21 17 12 21 17 27 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 4 29 5 28 14z" fill="currentColor" /></svg></span>
+        <span class="site-nav__logo-mark"><img src="/assets/vantex-mark.png" alt="" width="34" height="34" /></span>
         <span class="site-nav__logo-word">Vantex<span style="opacity:.6;">.Ai</span></span>
       </a>
       <div class="site-nav__links">
@@ -1248,7 +1244,7 @@
 
       <div class="auth-card__header">
         <div class="auth-card__brand">
-          <span class="auth-card__brand-mark"><svg width="15" height="15" viewBox="0 0 32 32" fill="none"><path d="M2 24 8 16 12 21 17 12 21 17 27 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 4 29 5 28 14z" fill="currentColor" /></svg></span>
+          <span class="auth-card__brand-mark"><img src="/assets/vantex-mark.png" alt="" width="28" height="28" /></span>
           <span class="auth-card__brand-name">Vantex<span style="opacity:.6;">.Ai</span></span>
         </div>
         <p class="auth-card__tagline">Analiza. Practica. Sigue.</p>

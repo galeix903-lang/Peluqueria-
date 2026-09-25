@@ -70,7 +70,7 @@ async function mountShell({ page, title }) {
   root.innerHTML = `
     <div class="app">
       <aside class="sidebar">
-        <a class="sidebar__logo" href="/dashboard" title="Vantex">${vantexLogo({ size: 33 })}</a>
+        <a class="sidebar__logo" href="/dashboard" title="Vantex">${vantexLogo({ size: 66 })}</a>
         <nav class="sidebar__nav">
           ${NAV_ITEMS.map((item) => `
             <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" style="--link-gradient:${item.gradient};" data-label="${item.label}" aria-label="${item.label}">
