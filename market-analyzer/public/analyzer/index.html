@@ -29,6 +29,14 @@
   .chip.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .chip:active { transform: scale(.95); }
 
+  .symbol-input {
+    border: 1px solid var(--border); background: var(--field-bg); color: var(--text);
+    padding: 7px 14px; border-radius: 999px; font-size: .8125rem; font-weight: 600;
+    width: 168px; max-width: 100%;
+  }
+  .symbol-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  .symbol-input::placeholder { color: var(--text-dim); font-weight: 500; }
+
   .dropzone {
     border: 2px dashed var(--border); border-radius: var(--radius);
     padding: 40px 32px; text-align: center; cursor: pointer;
@@ -93,7 +101,9 @@
   <script src="/shared/toast.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
-    const SUPPORTED_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];
+    // Ejemplos deliberadamente mixtos (cripto, acción, fondo, forex) para que
+    // quede claro que el analizador no está limitado a un solo tipo de activo.
+    const SUPPORTED_SYMBOLS = ['BTC', 'AAPL', 'SPY', 'EUR/USD'];
     const TIMEFRAMES = ['15m', '1H', '4H', '1D', '1W'];
     const STEPS = ['Leyendo gráfico…', 'Detectando patrones…', 'Generando análisis…'];
 
@@ -112,7 +122,8 @@
           <div style="display:flex; flex-wrap:wrap; gap:22px; margin-bottom:18px;">
             <div>
               <div class="text-meta" style="margin-bottom:8px;">Activo (opcional)</div>
-              <div class="chip-row" data-symbol-chips>
+              <input type="text" class="symbol-input" data-symbol-input placeholder="Cripto, acción, fondo, forex…" maxlength="20" />
+              <div class="chip-row" data-symbol-chips style="margin-top:8px;">
                 ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip" data-symbol="${s}">${s}</button>`).join('')}
               </div>
             </div>
@@ -181,15 +192,25 @@
       const processingEl = ctx.contentEl.querySelector('[data-processing]');
       let selectedFile = null;
       let quotaExhausted = false;
-      let selectedSymbol = null;
       let selectedTimeframe = '1D';
+      const symbolInput = ctx.contentEl.querySelector('[data-symbol-input]');
 
+      // El activo es texto libre (para admitir cualquier ticker: cripto,
+      // acción, fondo, forex…); los chips son solo un atajo que rellena el
+      // campo, no una lista cerrada de activos admitidos.
       ctx.contentEl.querySelectorAll('[data-symbol]').forEach((btn) => btn.addEventListener('click', () => {
-        const isSame = btn.classList.contains('is-active');
-        ctx.contentEl.querySelectorAll('[data-symbol]').forEach((b) => b.classList.remove('is-active'));
-        selectedSymbol = isSame ? null : btn.dataset.symbol;
-        if (!isSame) btn.classList.add('is-active');
+        const isSame = symbolInput.value.trim().toUpperCase() === btn.dataset.symbol.toUpperCase();
+        symbolInput.value = isSame ? '' : btn.dataset.symbol;
+        symbolInput.focus();
+        syncSymbolChips();
       }));
+      function syncSymbolChips() {
+        const current = symbolInput.value.trim().toUpperCase();
+        ctx.contentEl.querySelectorAll('[data-symbol]').forEach((b) => {
+          b.classList.toggle('is-active', b.dataset.symbol.toUpperCase() === current);
+        });
+      }
+      symbolInput.addEventListener('input', syncSymbolChips);
       ctx.contentEl.querySelectorAll('[data-timeframe]').forEach((btn) => btn.addEventListener('click', () => {
         ctx.contentEl.querySelectorAll('[data-timeframe]').forEach((b) => b.classList.remove('is-active'));
         btn.classList.add('is-active');
@@ -373,7 +394,8 @@
         try {
           const formData = new FormData();
           formData.append('image', selectedFile);
-          if (selectedSymbol) formData.append('symbolHint', selectedSymbol);
+          const symbolHint = symbolInput.value.trim();
+          if (symbolHint) formData.append('symbolHint', symbolHint);
           if (selectedTimeframe) formData.append('timeframe', selectedTimeframe);
           const { analysis } = await api('/analyzer', { method: 'POST', body: formData });
           finishSteps();

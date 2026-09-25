@@ -33,7 +33,7 @@ const ANALYSIS_TOOL = {
         type: 'boolean',
         description: 'true si la imagen es claramente un gráfico de precios de un activo financiero (velas, línea de precio con eje temporal, indicadores técnicos, etc.); false si es otra cosa (captura de una app, foto, imagen borrosa o irreconocible) o si tienes dudas serias de que lo sea.',
       },
-      asset: { type: 'string', description: 'Activo o par identificado en el gráfico, ej. "BTC/USDT". Si no se puede identificar con certeza, usa "Desconocido" en vez de adivinar.' },
+      asset: { type: 'string', description: 'Activo identificado en el gráfico, del tipo que sea (cripto como "BTC/USDT", acción como "AAPL", fondo/ETF como "SPY", forex como "EUR/USD", índice, materia prima, etc.), en el formato en que aparezca en la imagen. Si no se puede identificar con certeza, usa "Desconocido" en vez de adivinar.' },
       trend: { type: 'string', enum: ['alcista', 'bajista', 'lateral'] },
       support: { type: 'array', items: { type: 'number' }, description: 'Hasta 3 niveles de soporte visibles en el gráfico. Usa los números exactos del eje de precios si son legibles; si no lo son, indícalo en el resumen en vez de inventar cifras con falsa precisión.' },
       resistance: { type: 'array', items: { type: 'number' }, description: 'Hasta 3 niveles de resistencia visibles en el gráfico. Mismo criterio que support: cifras leídas del eje, nunca inventadas.' },
@@ -81,13 +81,40 @@ const MOCK_TEMPLATES = [
     summary: 'Serie de máximos decrecientes con pérdida del soporte de corto plazo; el rebote actual llega con volumen débil.',
     bias: 'venta', confidence: 61,
   },
+  // Plantillas no-cripto: el modo mock también debe demostrar que el
+  // analizador no está limitado a pares cripto (acciones, fondos/ETF, forex).
+  {
+    asset: 'AAPL', trend: 'alcista',
+    support: [212, 205], resistance: [228, 235],
+    reasoning: 'El gráfico de velas diarias muestra un eje de precios legible en dólares, con la acción formando mínimos crecientes por encima de la media móvil de 50 sesiones.',
+    isChart: true,
+    summary: 'Tendencia alcista de fondo con pullbacks poco profundos; el volumen se mantiene sano en los rebotes desde soporte.',
+    bias: 'compra', confidence: 63,
+  },
+  {
+    asset: 'SPY', trend: 'lateral',
+    support: [560, 552], resistance: [578, 585],
+    reasoning: 'Se observa un ETF de índice moviéndose en un rango lateral amplio en las últimas semanas, con el eje de precios en dólares claramente legible.',
+    isChart: true,
+    summary: 'El fondo cotiza en rango sin una ruptura clara todavía; conviene esperar confirmación antes de tomar posición direccional.',
+    bias: 'esperar', confidence: 50,
+  },
+  {
+    asset: 'EUR/USD', trend: 'bajista',
+    support: [1.052, 1.045], resistance: [1.068, 1.075],
+    reasoning: 'El par de divisas muestra una serie de máximos decrecientes en temporalidad diaria, con el eje de precios expresado en el formato habitual de forex (4 decimales).',
+    isChart: true,
+    summary: 'Presión bajista sostenida frente al soporte de corto plazo; una pérdida de ese nivel abriría paso a la siguiente zona de soporte.',
+    bias: 'venta', confidence: 57,
+  },
 ];
 
 function mockAnalysis({ symbolHint } = {}) {
   const base = MOCK_TEMPLATES[Math.floor(Math.random() * MOCK_TEMPLATES.length)];
-  // Si el usuario indicó el activo, se respeta en vez del de la plantilla
-  // — así la respuesta de ejemplo se siente coherente con lo que pidió.
-  const asset = symbolHint ? `${symbolHint.toUpperCase()}/USDT` : base.asset;
+  // Si el usuario indicó el activo, se respeta tal cual lo escribió (sin
+  // forzar un formato de par cripto) — así funciona igual de bien con un
+  // ticker de acción, un fondo o un par de forex.
+  const asset = symbolHint ? symbolHint.toUpperCase() : base.asset;
   return { ...base, asset };
 }
 
@@ -117,7 +144,7 @@ async function callClaudeVision(imageBuffer, mimeType, { symbolHint, timeframe }
           },
           {
             type: 'text',
-            text: `Analiza esta imagen como lo haría un analista técnico riguroso, pero solo a partir de lo que realmente puedas leer en ella — no completes con suposiciones lo que no se vea con claridad. Primero describe en el campo "reasoning" lo que observas literalmente (¿hay velas o línea de precio? ¿se lee un eje de precios con cifras? ¿qué rango cubre?) antes de concluir nada. Si la imagen no es claramente un gráfico de precios de un activo financiero, o el eje de precios no es legible, dilo explícitamente (isChart en false y/o confidence baja) en vez de inventar una lectura completa. Identifica el activo solo si es reconocible, la tendencia, niveles de soporte/resistencia (con las cifras exactas del eje si se leen, aproximadas si no, dejándolo claro en el resumen), y un sesgo (compra/venta/esperar) con una confianza calibrada de verdad a lo que puedes justificar con la imagen. ${hints} Registra el resultado con la herramienta record_chart_analysis.`,
+            text: `Analiza esta imagen como lo haría un analista técnico riguroso, pero solo a partir de lo que realmente puedas leer en ella — no completes con suposiciones lo que no se vea con claridad. El gráfico puede ser de cualquier tipo de activo (criptomoneda, acción, fondo/ETF, forex, índice, materia prima…): no asumas que es cripto por defecto, identifica el tipo de activo por lo que veas realmente en la imagen (ticker, nombre, formato del par, unidades). Primero describe en el campo "reasoning" lo que observas literalmente (¿hay velas o línea de precio? ¿se lee un eje de precios con cifras? ¿qué rango cubre?) antes de concluir nada. Si la imagen no es claramente un gráfico de precios de un activo financiero, o el eje de precios no es legible, dilo explícitamente (isChart en false y/o confidence baja) en vez de inventar una lectura completa. Identifica el activo solo si es reconocible, la tendencia, niveles de soporte/resistencia (con las cifras exactas del eje si se leen, aproximadas si no, dejándolo claro en el resumen), y un sesgo (compra/venta/esperar) con una confianza calibrada de verdad a lo que puedes justificar con la imagen. ${hints} Registra el resultado con la herramienta record_chart_analysis.`,
           },
         ],
       },
