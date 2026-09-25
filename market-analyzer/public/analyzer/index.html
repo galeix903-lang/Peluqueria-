@@ -294,6 +294,7 @@
         emptyHintEl.hidden = true;
         resultEl.hidden = false;
         resultEl.classList.remove('reveal-pop');
+        const lowConfidence = a.isChart === false || a.confidence < 35;
         resultEl.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
             <div>
@@ -306,6 +307,12 @@
               </div>
             </div>
           </div>
+          ${lowConfidence ? `
+            <div class="panel" style="margin:16px 0; background:var(--amber-bg); border-color:var(--amber); display:flex; align-items:center; gap:10px;">
+              ${vantexIcon('alertTriangle', { size: 16 })}
+              <span style="font-size:.8125rem; color:var(--text);">${a.isChart === false ? 'No hemos podido reconocer esto con claridad como un gráfico de precios.' : 'Confianza baja en esta lectura.'} Trátala como una aproximación, no como una conclusión firme.</span>
+            </div>
+          ` : ''}
           <p style="margin:16px 0 6px; color:var(--text-dim);">Confianza del análisis: ${a.confidence}%</p>
           <div class="confidence-bar"><span data-confidence-fill></span></div>
           ${levelsScale(a.support, a.resistance)}
