@@ -63,6 +63,55 @@ cualquier pantalla de la app a datos reales:
   Render y provisionar su Postgres gestionado lo tiene que hacer el
   usuario desde su propio dashboard.
 
+**Fase 2 — Autenticación real en la app móvil — COMPLETA y verificada.**
+- Nueva pantalla `(auth)/login.tsx` (login + signup, misma estética que
+  la web) y protección de rutas en `app/_layout.tsx`: sin sesión, solo
+  se puede ver `(auth)`; con sesión, redirige a `(tabs)`. Patrón
+  estándar de Expo Router basado en `useSegments`, no una comprobación
+  manual repetida en cada pantalla.
+- `src/services/authStorage.ts`: tokens en `expo-secure-store`
+  (keychain/keystore cifrado — nunca AsyncStorage para credenciales);
+  cae a `localStorage` solo en el target web (no soportado ahí por
+  SecureStore), exclusivamente para poder previsualizar en navegador
+  durante el desarrollo.
+- `src/services/api.ts`: cliente fetch que añade `Authorization: Bearer`
+  a cada petición y, si recibe un 401, intenta refrescar el access
+  token UNA vez (compartiendo el mismo intento entre peticiones en
+  paralelo) antes de reintentar — nunca deja al usuario con una sesión
+  caducada sin más.
+- `src/state/AuthContext.tsx`: sesión disponible en toda la app
+  (usuario, signup/login/logout); al abrir la app, si había un refresh
+  token guardado de una sesión anterior, se confirma solo contra
+  `/api/auth/me` sin pedir credenciales otra vez (sesión persistente de
+  verdad, no simulada).
+- Perfil (`(tabs)/profile.tsx`) ya muestra la cuenta real (nombre,
+  email, badge de plan, saldo) con un botón de cerrar sesión que
+  revoca el refresh token en el servidor. Inicio saluda por el nombre
+  real del usuario.
+- Backend: CORS añadido a `/api/*` (`server/index.js`) — necesario para
+  cualquier cliente que corra dentro de un navegador (incluida la vista
+  web de desarrollo de Expo); deliberadamente sin
+  `Access-Control-Allow-Credentials`, así que los endpoints de sesión
+  de cookie de la web siguen sin poder llamarse en cross-origin con
+  credenciales (sin abrir una vía de CSRF nueva).
+- **Verificado con Playwright contra el backend en Postgres de la Fase
+  1** (vista `expo start --web`, no solo código sin probar): sin sesión
+  → redirige a `/login`; signup → redirige a Inicio y saluda por el
+  nombre; Perfil muestra el email y el saldo reales; **recargar la
+  página entera conserva la sesión** (persistencia real, tokens
+  sobreviven un reload completo); cerrar sesión → redirige a `/login`;
+  volver a iniciar sesión con las mismas credenciales funciona; email
+  duplicado en signup y contraseña incorrecta en login muestran el
+  error del servidor tal cual, sin redirigir por error. Cero errores de
+  consola en todo el flujo. Regresión completa de la web repetida tras
+  añadir CORS, sin diferencias.
+- **Pendiente para fases siguientes**: "Olvidé mi contraseña" no está
+  implementado (necesitaría un servicio de envío de email que no
+  existe en el proyecto — no se ha simulado un botón sin función
+  real). Analyzer/Trading/Picks/Wallet/Copy siguen siendo pantallas de
+  estado ("esto se conecta en la Fase X"), eso es la Fase 3 en
+  adelante.
+
 ## Rediseño completo "producto real" — COMPLETO (5 fases)
 
 El usuario pidió una revisión y rediseño completo de la app (no solo

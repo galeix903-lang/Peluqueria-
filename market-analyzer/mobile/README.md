@@ -4,22 +4,23 @@ App nativa real para iOS/Android (no web empaquetada en un WebView),
 construida con Expo Router sobre la misma identidad de marca que
 `market-analyzer/public/` (la web de Vantex).
 
-## Estado actual: Fase 0 — scaffold
+## Estado actual: Fase 2 — autenticación real
 
-Lo que hay hoy: proyecto Expo (SDK 57, TypeScript) con navegación real
-por pestañas inferiores (Expo Router, file-based), branding aplicado
-(icono, splash, colores, tipografía Inter portada de `shared/style.css`)
-y 5 pantallas vacías pero honestas: cada una dice explícitamente qué
-falta conectar y en qué fase, en vez de simular datos o funciones que
-todavía no existen.
+Login, signup, logout, sesión persistente y protección de rutas ya son
+reales, contra el mismo backend Postgres que usa la web (ver
+`market-analyzer/README.md`, sección "Autenticación de la app móvil").
+`(auth)/login.tsx` es la única pantalla accesible sin sesión; en cuanto
+hay un usuario, `(tabs)/` (Inicio/Analyzer/Trading/Picks/Perfil) queda
+disponible y Perfil muestra la cuenta real (nombre, email, plan,
+saldo) con un botón de cerrar sesión de verdad.
 
 **Lo que NO hay todavía** (fases siguientes, ver `market-analyzer/PLAN.md`
 para el roadmap completo acordado con el usuario):
-- Sin autenticación real todavía (Fase 2 — necesita el backend por token
-  del punto de la Fase 1, distinto de las cookies de sesión que usa hoy
-  la web).
-- Sin conexión a ningún dato real (analyzer, trading, picks, wallet,
-  copy) — cada pantalla lo dice explícitamente.
+- Analyzer/Trading/Picks/Wallet/Copy siguen siendo pantallas honestas
+  de "esto se conecta en la Fase X", no datos simulados.
+- "Olvidé mi contraseña" no está implementado: necesitaría un servicio
+  de envío de email (Resend/SendGrid/...) que todavía no existe en el
+  proyecto — no se ha simulado un botón que no hace nada.
 - Sin build de EAS todavía (necesita una cuenta de Expo/EAS del usuario).
 
 ## Cómo ejecutarlo
@@ -36,6 +37,25 @@ Requiere un dispositivo con la app **Expo Go** instalada, o un simulador
 de iOS (solo en macOS) / emulador de Android, para probarlo como app
 nativa de verdad. La vista `--web` sirve para iterar rápido pero no
 sustituye probarlo en un dispositivo real antes de publicar.
+
+### A qué backend apunta
+
+`src/services/api.ts` lee `EXPO_PUBLIC_API_BASE_URL` (variable de
+entorno pública de Expo, se inlinea en el bundle del cliente); si no
+está puesta, usa por defecto `https://vantex.onrender.com` — el
+backend real ya desplegado. Para probar contra un backend en tu propio
+ordenador durante el desarrollo:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL="http://localhost:3100" npx expo start
+```
+
+Ojo: un dispositivo físico con Expo Go **no puede** alcanzar
+`localhost` de tu ordenador — para eso hace falta o bien
+`--tunnel`/una IP de tu red local, o probarlo con `--web` (el navegador
+sí puede llegar a `localhost`). Y si `vantex.onrender.com` todavía no
+tiene esta rama desplegada con su Postgres provisionado, signup/login
+fallarán ahí hasta que se despliegue — no es un fallo de la app.
 
 ## Identificadores (cambiables antes de la primera publicación)
 
@@ -54,17 +74,25 @@ no se puede cambiar después de la primera subida.
 ```
 mobile/
   app/                    Rutas (Expo Router: cada archivo es una pantalla)
-    _layout.tsx           Layout raíz (fuentes, splash, safe areas)
+    _layout.tsx           Layout raíz (fuentes, splash, safe areas, protección de rutas)
+    (auth)/
+      _layout.tsx
+      login.tsx           Login + signup (única pantalla accesible sin sesión)
     (tabs)/
       _layout.tsx         Bottom tabs: Inicio/Analyzer/Trading/Picks/Perfil
       index.tsx           Inicio
       analyzer.tsx
       trading.tsx
       picks.tsx
-      profile.tsx
+      profile.tsx          Cuenta real + cerrar sesión
   src/
     theme/                Paleta y radios — copia 1:1 de public/shared/style.css
     components/           Screen, PendingCard, VantexMark (reutilizables)
+    services/
+      api.ts                fetch con Authorization: Bearer + refresco automático del access token
+      authStorage.ts         guarda los tokens en SecureStore (localStorage solo en el target web)
+    state/
+      AuthContext.tsx        sesión (usuario, signup/login/logout) disponible en toda la app
   assets/                 icon.png, adaptive-icon-foreground.png, splash-icon.png
                           (generados a partir del icono real de la marca)
 ```
@@ -78,9 +106,8 @@ tamaños probados, pero si en algún momento hay una versión vectorial
 (SVG/AI/Figma) del logo, conviene regenerar los assets desde ahí para
 máxima nitidez a 1024px.
 
-## Siguiente paso (Fase 1, no empezado)
+## Siguiente paso (Fase 3, no empezado)
 
-Backend con base de datos real (Postgres) + autenticación por token
-(JWT), sin tocar la web (que sigue funcionando con su sesión de cookie
-actual) — es el bloqueante real para que esta app deje de ser un
-scaffold y empiece a mostrar datos de verdad.
+Conectar el AI Analyzer: selector de cámara/galería (`expo-image-picker`),
+subida de la imagen a `POST /api/analyzer` con el access token, y
+mostrar el resultado real (mismo motor que la web).

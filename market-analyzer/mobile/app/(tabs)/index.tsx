@@ -4,18 +4,21 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../src/components/Screen';
 import { PendingCard } from '../../src/components/PendingCard';
 import { VantexMark } from '../../src/components/VantexMark';
+import { useAuth } from '../../src/state/AuthContext';
 import { colors, gradients, radius } from '../../src/theme';
 
 export default function HomeScreen() {
+  const { user } = useAuth();
   return (
     <Screen title="Vantex.AI" subtitle="Analiza. Practica. Sigue.">
       <LinearGradient colors={gradients.brand} style={styles.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         <VantexMark size={44} />
-        <Text style={styles.heroTitle}>Bienvenido a Vantex</Text>
+        <Text style={styles.heroTitle}>{user ? `Hola, ${user.name}` : 'Bienvenido a Vantex'}</Text>
         <Text style={styles.heroBody}>
           El resumen de tu cuenta (saldo, P&L, posiciones abiertas) se conecta en la
-          siguiente fase, cuando el backend real esté listo — no se muestran cifras
-          de ejemplo aquí.
+          siguiente fase, cuando las pantallas de Trading/Analyzer lean datos reales
+          — el login ya es real (ver la pestaña Perfil), no se muestran cifras de
+          ejemplo aquí.
         </Text>
       </LinearGradient>
 
@@ -31,7 +34,7 @@ export default function HomeScreen() {
       <Text style={styles.sectionLabel}>Estado de esta fase</Text>
       <PendingCard
         icon="server"
-        message="Fase 0: navegación, marca e identidad visual. Los datos reales (auth, saldo, análisis) se conectan en las fases siguientes del roadmap, contra el mismo backend que ya usa la web."
+        message="Fase 2: login, sesión persistente y perfil ya son reales (backend en Postgres, mismo que la web). Analyzer/Trading/Picks/Wallet/Copy se conectan en las fases siguientes."
       />
     </Screen>
   );

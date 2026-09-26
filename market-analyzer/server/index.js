@@ -51,6 +51,22 @@ app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://vantex.onrender.com/sitemap.xml\n');
 });
 
+// CORS para la API: la app móvil (nativa) no lo necesita — CORS es una
+// restricción exclusiva del navegador — pero sí lo necesita cualquier
+// cliente que corra dentro de uno (la propia vista web de desarrollo de
+// Expo, o un futuro panel aparte). Deliberadamente SIN
+// Access-Control-Allow-Credentials: los endpoints de sesión (cookie)
+// siguen sin poder llamarse en cross-origin con credenciales desde un
+// navegador (evita CSRF); solo los de la app móvil, que no usan cookie
+// sino Authorization: Bearer, funcionan igual en cross-origin.
+app.use('/api', (req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+
 // El webhook de Stripe necesita el cuerpo crudo (sin parsear) para poder
 // verificar la firma, así que se monta ANTES de express.json() y con su
 // propio parser de solo esta ruta.
