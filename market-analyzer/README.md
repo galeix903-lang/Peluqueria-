@@ -7,14 +7,39 @@ Express en el servidor, HTML/CSS/JS plano en el cliente.
 
 ## Puesta en marcha
 
+Necesitas un Postgres corriendo (local o gestionado — ver "Base de
+datos" más abajo) antes de arrancar el servidor:
+
 ```bash
 npm install
-cp .env.example .env
+cp .env.example .env   # y pon tu DATABASE_URL real
 npm run dev
 ```
 
 Por defecto queda en `http://localhost:3100`. Crea una cuenta desde
-`/login` (tab "Crear cuenta") y ya tienes acceso al dashboard.
+`/login` (tab "Crear cuenta") y ya tienes acceso al dashboard. Las
+tablas se crean solas en el primer arranque (migraciones idempotentes,
+ver `server/migrations/`).
+
+## Base de datos
+
+Persistencia en Postgres (`server/db.js` + `server/store.js`) — ya no
+un fichero JSON plano. Para desarrollo local, la forma más simple es
+tener un Postgres instalado en tu máquina y crear una base vacía:
+
+```bash
+createuser vantex --pwprompt   # te pide la contraseña
+createdb vantex --owner vantex
+```
+
+y poner esa cadena en `.env` como `DATABASE_URL=postgres://vantex:<tu
+contraseña>@localhost:5432/vantex`. En Render, `render.yaml` ya
+provisiona una base de datos gestionada y rellena `DATABASE_URL` solo
+(ver "Ponerlo online" más abajo).
+
+Si vienes de una versión anterior que todavía usaba `data/db.json`,
+`npm run migrate:json` importa esos datos a Postgres conservando los
+mismos IDs (seguro de ejecutar más de una vez).
 
 ## Pasar el AI Analyzer de modo ejemplo a modo real
 
@@ -86,14 +111,13 @@ las claves).
    `https://vantex-xxxx.onrender.com` — esa es la que abres en cualquier
    navegador, móvil incluido.
 
-**Aviso del plan gratuito**: no tiene disco persistente, así que las
-cuentas y operaciones guardadas en `data/db.json` se reinician cada vez
-que el servicio se redepliega o "despierta" tras estar dormido por
-inactividad (los servicios gratuitos de Render se duermen a los 15 min sin
-tráfico y tardan ~30-60s en volver a arrancar la primera vez que alguien
-entra). Perfecto para probar y enseñar la app; si más adelante quieres que
-los datos sobrevivan a los redeploys, hay que pasar a un disco de pago o a
-una base de datos real (ver "Fase 2" en `PLAN.md`).
+**Aviso del plan gratuito**: el servicio web gratuito de Render se
+duerme a los 15 min sin tráfico y tarda ~30-60s en volver a arrancar la
+primera vez que alguien entra (los datos en sí ya no se pierden: viven
+en la base de datos gestionada, no en el disco del servicio). La base
+de datos Postgres gratuita de Render caduca a los 30 días si no se pasa
+a un plan de pago — merece la pena revisarlo en el dashboard antes de
+esa fecha si esto va a usarse en serio.
 
 ## Aparecer en Google
 
@@ -125,12 +149,17 @@ búsquedas de tu marca (`Vantex`) o con `site:vantex.onrender.com`.
 
 ```
 server/
-  index.js               bootstrap de Express, sesiones, sirve /public
-  store.js                persistencia en data/db.json (usuarios, posiciones,
-                           análisis, picks, wallets seguidas, copy follows)
-  middleware/requireAuth.js
+  index.js               bootstrap de Express, sesiones, migra la BD, sirve /public
+  db.js                   pool de Postgres + runner de migraciones idempotentes
+  store.js                capa de datos (Postgres) — usuarios, posiciones,
+                           análisis, picks, wallets seguidas, copy follows,
+                           refresh tokens de la app móvil
+  migrations/*.sql         esquema (CREATE TABLE IF NOT EXISTS)
+  scripts/migrate-json-to-pg.js   importa un data/db.json antiguo (ver "Base de datos")
+  middleware/requireAuth.js  sesión de cookie (web) O Bearer JWT (móvil) → req.userId
   routes/
-    auth.js               signup / login / logout / me (+ PATCH para el nombre)
+    auth.js               web: signup/login/logout/me (+PATCH nombre)
+                           móvil: /mobile/signup /login /refresh /logout (JWT)
     analyzer.js            sube una imagen, aplica el límite gratuito y devuelve el análisis
     trading.js              abrir/cerrar posiciones, SL/TP, histórico de precio
     picks.js                 lista de picks diarios
@@ -138,6 +167,7 @@ server/
     copy.js                    Copy Trading (simulado)
     billing.js                checkout / portal / webhook de Stripe (Vantex Pro)
   services/
+    tokens.js               emite el access token (JWT) y el refresh token (opaco) de la app móvil
     claude.js               llamada a Claude con visión (tool use) + modo mock
     market.js                precios en vivo (CoinGecko) con caché de 30s + histórico corto
     picksJob.js              genera los picks diarios (cron a las 08:00)
@@ -150,18 +180,31 @@ public/
                             nav + guardia de sesión, intro 3D (Three.js perezoso)
   login/ dashboard/ analyzer/ trading/ picks/ wallet/ copy/
   vendor/                   Three.js (vendorizado, usado solo por la intro)
+mobile/                     app nativa iOS/Android (Expo + Router) — ver mobile/README.md
 ```
+
+## Autenticación de la app móvil
+
+La web sigue usando cookie de sesión (`express-session`) sin ningún
+cambio. La app móvil (`mobile/`) usa un access token JWT de corta vida
+(2h) + un refresh token opaco de 30 días guardado hasheado en Postgres
+(`refresh_tokens`), con rotación: cada uso de un refresh token lo
+revoca y emite uno nuevo, así que un token viejo filtrado deja de
+servir en cuanto se usa una vez. Mismo `requireAuth` para las dos
+plataformas — solo cambia cómo prueban quién eres (`req.session.userId`
+o `Authorization: Bearer <token>`), el resto de cada ruta es idéntico.
 
 ## Notas importantes
 
 - **No es asesoría financiera**: todas las respuestas del analizador y de
   los picks incluyen un disclaimer fijo. Es una herramienta educativa/de
   entretenimiento, no debe presentarse como garantía de resultados.
-- **Persistencia simple**: los datos viven en `data/db.json` (un único
-  fichero, se crea solo al arrancar). Es suficiente para una demo o un
-  proyecto personal; si esto se convierte en un producto con usuarios
-  concurrentes de verdad, migrar `server/store.js` a SQLite/Postgres sin
-  tocar el resto del código (es la única capa que habla con el "disco").
+- **Persistencia real**: los datos viven en Postgres (`server/db.js` +
+  `server/store.js`), no en un fichero JSON. Aguanta usuarios
+  concurrentes de verdad; `server/store.js` sigue siendo la única capa
+  que habla con la base de datos, así que un cambio de proveedor
+  (ej. pasar de Render Postgres a otro gestionado) no toca el resto del
+  código.
 - **Imágenes**: las capturas que se suben al analizador se procesan en
   memoria y se envían a la IA — no se guardan en disco.
 - **Wallet Tracker y Copy Trading son simulados**: leer datos on-chain

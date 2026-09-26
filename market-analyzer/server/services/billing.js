@@ -36,7 +36,7 @@ async function createCheckoutSession(user, baseUrl, plan = 'pro') {
   if (resolveBillingMode() !== 'live') {
     // Simula el pago entero al instante: no hay tarjeta ni Stripe de por
     // medio, solo se marca al usuario con el plan elegido directamente.
-    store.setUserPlan(user.id, targetPlan);
+    await store.setUserPlan(user.id, targetPlan);
     return { url: `${baseUrl}/dashboard?upgraded=${targetPlan}&mock=1` };
   }
 
@@ -76,7 +76,7 @@ async function createPortalSession(user, baseUrl) {
   if (resolveBillingMode() !== 'live') {
     // No hay suscripción real que gestionar: el "portal" en modo mock es
     // simplemente volver a free, para poder probar el ciclo completo.
-    store.setUserPlan(user.id, 'free');
+    await store.setUserPlan(user.id, 'free');
     return { url: `${baseUrl}/dashboard?downgraded=1&mock=1` };
   }
 

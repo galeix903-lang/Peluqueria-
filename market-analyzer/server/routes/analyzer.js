@@ -34,9 +34,9 @@ router.post('/', upload.single('image'), asyncHandler(async (req, res) => {
   if (req.body.timeframe !== undefined && typeof req.body.timeframe !== 'string') {
     return res.status(400).json({ error: 'timeframe no válido.' });
   }
-  const user = store.findUserById(req.session.userId);
+  const user = await store.findUserById(req.userId);
   const limit = dailyLimitFor(user.plan);
-  if (Number.isFinite(limit) && store.countAnalysesToday(user.id) >= limit) {
+  if (Number.isFinite(limit) && (await store.countAnalysesToday(user.id)) >= limit) {
     return res.status(402).json({
       error: `Has usado tus ${limit} análisis de hoy.`,
       limitReached: true,
@@ -48,8 +48,8 @@ router.post('/', upload.single('image'), asyncHandler(async (req, res) => {
     const symbolHint = (req.body.symbolHint || '').trim().slice(0, 20) || undefined;
     const timeframe = (req.body.timeframe || '').trim().slice(0, 10) || undefined;
     const analysis = await analyzeChart(req.file.buffer, req.file.mimetype, { symbolHint, timeframe });
-    const record = store.addAnalysis({
-      userId: req.session.userId,
+    const record = await store.addAnalysis({
+      userId: req.userId,
       createdAt: new Date().toISOString(),
       timeframe: timeframe || null,
       ...analysis,
@@ -61,16 +61,16 @@ router.post('/', upload.single('image'), asyncHandler(async (req, res) => {
   }
 }));
 
-router.get('/history', (req, res) => {
-  const user = store.findUserById(req.session.userId);
-  const usedToday = store.countAnalysesToday(user.id);
+router.get('/history', asyncHandler(async (req, res) => {
+  const user = await store.findUserById(req.userId);
+  const usedToday = await store.countAnalysesToday(user.id);
   const limit = dailyLimitFor(user.plan);
   res.json({
-    analyses: store.listAnalyses(req.session.userId),
+    analyses: await store.listAnalyses(req.userId),
     plan: user.plan,
     dailyLimit: Number.isFinite(limit) ? limit : null,
     remainingToday: Number.isFinite(limit) ? Math.max(0, limit - usedToday) : null,
   });
-});
+}));
 
 module.exports = router;

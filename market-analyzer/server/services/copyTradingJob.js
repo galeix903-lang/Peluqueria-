@@ -20,17 +20,18 @@ function computePnl(position, currentPrice) {
 }
 
 async function runCopyTradingTick() {
-  const follows = store.listAllCopyFollows();
+  const follows = await store.listAllCopyFollows();
   if (!follows.length) return;
   const prices = await market.fetchPrices().catch(() => ({}));
 
   for (const follow of follows) {
     const trader = getTrader(follow.traderId);
     if (!trader) continue;
-    const user = store.findUserById(follow.userId);
+    const user = await store.findUserById(follow.userId);
     if (!user) continue;
 
-    const copiedOpen = store.listPositions(follow.userId)
+    const positions = await store.listPositions(follow.userId);
+    const copiedOpen = positions
       .filter((p) => p.status === 'open' && p.source === 'copy' && p.copiedFrom === follow.traderId);
 
     // Con cierta probabilidad, cierra una de las posiciones copiadas abiertas.
@@ -39,11 +40,11 @@ async function runCopyTradingTick() {
       const price = prices[pos.symbol];
       if (price != null) {
         const realizedPnl = computePnl(pos, price);
-        store.closePosition(follow.userId, pos.id, {
+        await store.closePosition(follow.userId, pos.id, {
           closePrice: price, closedAt: new Date().toISOString(), realizedPnl, closeReason: 'manual',
         });
-        const fresh = store.findUserById(follow.userId);
-        store.updateUserBalance(follow.userId, fresh.balance + pos.entryPrice * pos.size + realizedPnl);
+        const fresh = await store.findUserById(follow.userId);
+        await store.updateUserBalance(follow.userId, fresh.balance + pos.entryPrice * pos.size + realizedPnl);
       }
       continue;
     }
@@ -53,17 +54,17 @@ async function runCopyTradingTick() {
       const symbol = trader.symbols[Math.floor(Math.random() * trader.symbols.length)];
       const price = prices[symbol];
       if (price == null) continue;
-      const fresh = store.findUserById(follow.userId);
+      const fresh = await store.findUserById(follow.userId);
       const size = Number(((fresh.balance * RISK_FRACTION) / price).toFixed(6));
       const cost = price * size;
       if (!(size > 0) || cost > fresh.balance) continue;
       const side = Math.random() < 0.62 ? 'long' : 'short';
-      store.createPosition({
+      await store.createPosition({
         userId: follow.userId, symbol, side, size, entryPrice: price, costBasis: cost,
         status: 'open', openedAt: new Date().toISOString(),
         source: 'copy', copiedFrom: follow.traderId,
       });
-      store.updateUserBalance(follow.userId, fresh.balance - cost);
+      await store.updateUserBalance(follow.userId, fresh.balance - cost);
     }
   }
 }

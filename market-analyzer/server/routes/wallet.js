@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Wallets seguidas por el usuario, cada una con su snapshot simulado.
 router.get('/', asyncHandler(async (req, res) => {
-  const wallets = store.listTrackedWallets(req.session.userId);
+  const wallets = await store.listTrackedWallets(req.userId);
   const withSnapshot = await Promise.all(wallets.map(async (w) => ({
     ...w,
     snapshot: await fetchWalletSnapshot(w.address),
@@ -34,19 +34,19 @@ router.post('/', asyncHandler(async (req, res) => {
   const label = (req.body?.label || '').trim().slice(0, 40) || null;
   if (!address) return res.status(400).json({ error: 'Introduce una dirección de wallet.' });
   if (address.length > 80) return res.status(400).json({ error: 'La dirección es demasiado larga.' });
-  const existing = store.listTrackedWallets(req.session.userId);
+  const existing = await store.listTrackedWallets(req.userId);
   if (existing.some((w) => w.address.toLowerCase() === address.toLowerCase())) {
     return res.status(409).json({ error: 'Ya estás siguiendo esta wallet.' });
   }
-  const wallet = store.addTrackedWallet({ userId: req.session.userId, address, label });
+  const wallet = await store.addTrackedWallet({ userId: req.userId, address, label });
   const snapshot = await fetchWalletSnapshot(address);
   res.status(201).json({ wallet: { ...wallet, snapshot } });
 }));
 
-router.delete('/:id', (req, res) => {
-  const ok = store.removeTrackedWallet(req.session.userId, req.params.id);
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const ok = await store.removeTrackedWallet(req.userId, req.params.id);
   if (!ok) return res.status(404).json({ error: 'Wallet no encontrada.' });
   res.json({ ok: true });
-});
+}));
 
 module.exports = router;

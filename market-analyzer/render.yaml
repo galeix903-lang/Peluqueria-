@@ -2,13 +2,14 @@
 # este monorepo. En Render: "New +" -> "Blueprint" -> conecta este
 # repositorio de GitHub -> Render detecta este fichero solo.
 #
-# Nota sobre persistencia: el plan gratuito de Render no incluye disco
-# persistente, así que data/db.json se reinicia en cada redeploy o cuando
-# el servicio "duerme" por inactividad y vuelve a arrancar. Vale para
-# probar y enseñar la app; si quieres que las cuentas/operaciones
-# sobrevivan a los redeploys, el siguiente paso natural es un disco de
-# pago en Render o migrar server/store.js a una base de datos real
-# (ver la sección "Fase 2" de PLAN.md).
+# Base de datos: Postgres gestionado por Render (databases, abajo),
+# DATABASE_URL se rellena solo (fromDatabase). El plan "free" de Postgres
+# en Render caduca a los 30 días si no se pasa a uno de pago — para un
+# uso real conviene revisarlo en el dashboard antes de esa fecha.
+databases:
+  - name: vantex-db
+    plan: free
+
 services:
   - type: web
     name: vantex
@@ -18,7 +19,13 @@ services:
     buildCommand: npm install
     startCommand: npm start
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vantex-db
+          property: connectionString
       - key: SESSION_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: ANALYZER_MODE
         value: auto

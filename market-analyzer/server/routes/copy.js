@@ -6,8 +6,8 @@ const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  const follows = store.listCopyFollows(req.session.userId);
+router.get('/', asyncHandler(async (req, res) => {
+  const follows = await store.listCopyFollows(req.userId);
   const followedIds = new Set(follows.map((f) => f.traderId));
   const traders = TRADERS.map((t) => ({
     ...t,
@@ -15,31 +15,32 @@ router.get('/', (req, res) => {
     following: followedIds.has(t.id),
   }));
 
-  const copiedPositions = store.listPositions(req.session.userId).filter((p) => p.source === 'copy');
+  const positions = await store.listPositions(req.userId);
+  const copiedPositions = positions.filter((p) => p.source === 'copy');
   res.json({ traders, copiedPositions });
-});
+}));
 
 router.post('/:traderId/follow', asyncHandler(async (req, res) => {
-  const user = store.findUserById(req.session.userId);
+  const user = await store.findUserById(req.userId);
   if (user.plan === 'free') {
     return res.status(402).json({ error: 'Copy Trading es una función de los planes Pro y Business.', upgradeRequired: true });
   }
   const trader = TRADERS.find((t) => t.id === req.params.traderId);
   if (!trader) return res.status(404).json({ error: 'Trader no encontrado.' });
-  if (store.findCopyFollow(req.session.userId, trader.id)) {
+  if (await store.findCopyFollow(req.userId, trader.id)) {
     return res.status(409).json({ error: 'Ya sigues a este trader.' });
   }
-  store.addCopyFollow({ userId: req.session.userId, traderId: trader.id });
+  await store.addCopyFollow({ userId: req.userId, traderId: trader.id });
   // Primer impulso inmediato para que seguir a alguien se note al instante
   // en vez de esperar hasta 10 minutos al próximo ciclo del job.
   runCopyTradingTick().catch(() => {});
   res.status(201).json({ ok: true });
 }));
 
-router.post('/:traderId/unfollow', (req, res) => {
-  const ok = store.removeCopyFollow(req.session.userId, req.params.traderId);
+router.post('/:traderId/unfollow', asyncHandler(async (req, res) => {
+  const ok = await store.removeCopyFollow(req.userId, req.params.traderId);
   if (!ok) return res.status(404).json({ error: 'No seguías a este trader.' });
   res.json({ ok: true });
-});
+}));
 
 module.exports = router;

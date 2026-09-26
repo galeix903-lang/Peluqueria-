@@ -17,9 +17,9 @@ function pnlPercent(position, pnl) {
 
 // Liquida un cierre (manual o automático) contra el saldo del usuario —
 // misma lógica en los tres sitios que pueden cerrar una posición.
-function settleClose(user, position, closePrice, closeReason) {
+async function settleClose(user, position, closePrice, closeReason) {
   const realizedPnl = computePnl(position, closePrice);
-  const closed = store.closePosition(user.id, position.id, {
+  const closed = await store.closePosition(user.id, position.id, {
     closePrice,
     closedAt: new Date().toISOString(),
     realizedPnl,
@@ -27,7 +27,7 @@ function settleClose(user, position, closePrice, closeReason) {
   });
   const proceeds = position.entryPrice * position.size + realizedPnl;
   const newBalance = user.balance + proceeds;
-  store.updateUserBalance(user.id, newBalance);
+  await store.updateUserBalance(user.id, newBalance);
   return { closed, newBalance };
 }
 
@@ -38,8 +38,9 @@ function settleClose(user, position, closePrice, closeReason) {
 // lo cruzó, igual que haría un bróker con una orden stop en un activo de
 // baja frecuencia de refresco).
 async function checkAndAutoClose(userId, prices) {
-  const user = store.findUserById(userId);
-  const open = store.listPositions(userId).filter((p) => p.status === 'open');
+  const user = await store.findUserById(userId);
+  const positions = await store.listPositions(userId);
+  const open = positions.filter((p) => p.status === 'open');
   let currentUser = user;
   for (const position of open) {
     const price = prices[position.symbol];
@@ -52,7 +53,7 @@ async function checkAndAutoClose(userId, prices) {
       reason = 'tp';
     }
     if (reason) {
-      const { newBalance } = settleClose(currentUser, position, price, reason);
+      const { newBalance } = await settleClose(currentUser, position, price, reason);
       currentUser = { ...currentUser, balance: newBalance };
     }
   }
@@ -61,10 +62,10 @@ async function checkAndAutoClose(userId, prices) {
 // Balance + posiciones abiertas/cerradas, con P&L en vivo para las abiertas.
 router.get('/', asyncHandler(async (req, res) => {
   const prices = await market.fetchPrices().catch(() => ({}));
-  await checkAndAutoClose(req.session.userId, prices);
+  await checkAndAutoClose(req.userId, prices);
 
-  const user = store.findUserById(req.session.userId);
-  const positions = store.listPositions(req.session.userId);
+  const user = await store.findUserById(req.userId);
+  const positions = await store.listPositions(req.userId);
 
   const withPnl = positions.map((p) => {
     if (p.status === 'closed') {
@@ -120,14 +121,14 @@ router.post('/', asyncHandler(async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
-  const user = store.findUserById(req.session.userId);
+  const user = await store.findUserById(req.userId);
   const cost = entryPrice * Number(size);
   if (cost > user.balance) {
     return res.status(400).json({ error: 'Saldo virtual insuficiente para esta operación.' });
   }
 
-  const position = store.createPosition({
-    userId: req.session.userId,
+  const position = await store.createPosition({
+    userId: req.userId,
     symbol: symbol.toUpperCase(),
     side,
     size: Number(size),
@@ -138,14 +139,14 @@ router.post('/', asyncHandler(async (req, res) => {
     status: 'open',
     openedAt: new Date().toISOString(),
   });
-  store.updateUserBalance(req.session.userId, user.balance - cost);
+  await store.updateUserBalance(req.userId, user.balance - cost);
 
   res.status(201).json({ position });
 }));
 
 // Cerrar una posición al precio actual y liquidar el P&L contra el saldo.
 router.post('/:id/close', asyncHandler(async (req, res) => {
-  const positions = store.listPositions(req.session.userId);
+  const positions = await store.listPositions(req.userId);
   const position = positions.find((p) => p.id === req.params.id);
   if (!position) return res.status(404).json({ error: 'Posición no encontrada.' });
   if (position.status === 'closed') return res.status(409).json({ error: 'Esta posición ya está cerrada.' });
@@ -157,8 +158,8 @@ router.post('/:id/close', asyncHandler(async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
-  const user = store.findUserById(req.session.userId);
-  const { closed, newBalance } = settleClose(user, position, closePrice, 'manual');
+  const user = await store.findUserById(req.userId);
+  const { closed, newBalance } = await settleClose(user, position, closePrice, 'manual');
   res.json({ position: closed, balance: newBalance });
 }));
 

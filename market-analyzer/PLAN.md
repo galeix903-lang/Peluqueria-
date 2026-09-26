@@ -4,6 +4,65 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## App móvil nativa (Expo + Router) — EN CURSO
+
+El usuario pidió convertir Vantex en una app nativa real para iOS/
+Android (App Store/Google Play), no una web empaquetada. Auditoría
+completa hecha primero (framework real: Node/Express + HTML/JS plano
+sin build step, ninguna parte de la web reutilizable como componente).
+Decisión: Expo + Router + EAS, proyecto nuevo en `mobile/` (ver
+`mobile/README.md` para su propio estado y cómo ejecutarlo). Roadmap
+acordado: Fase 0 (scaffold) → Fase 1 (backend real) → Fase 2 (auth +
+Home en la app) → Fase 3 (AI Analyzer) → Fase 4 (Trading/Wallet/Copy/
+Picks) → Fase 5 (push, storage seguro, suscripciones, build de
+producción).
+
+**Fase 1 — Backend real (Postgres + auth por token) — COMPLETA y
+verificada.** Bloqueante que había que resolver antes de conectar
+cualquier pantalla de la app a datos reales:
+- `server/store.js` reescrito de fichero JSON plano a Postgres
+  (`server/db.js`: pool + migraciones idempotentes en
+  `server/migrations/001_init.sql`), manteniendo exactamente los mismos
+  nombres de función y misma forma de los objetos (camelCase) — las
+  rutas solo han tenido que añadir `await`, ningún cambio de
+  comportamiento para la web. `analyses`/`picks` guardan sus campos que
+  siguen evolucionando (reasoning/isChart/...) en una columna JSONB en
+  vez de una columna por campo, para no fragilizar el esquema.
+- Nueva autenticación por token para la app móvil, en paralelo a la
+  cookie de sesión de la web (que sigue funcionando igual):
+  `POST /api/auth/mobile/signup|login` devuelven un access token JWT de
+  2h + un refresh token opaco de 30 días guardado hasheado en Postgres
+  (`refresh_tokens`, con rotación: cada uso revoca el token y emite uno
+  nuevo). `requireAuth` acepta sesión O `Authorization: Bearer` y deja
+  `req.userId` listo para cualquier ruta — mismo código sirve a las dos
+  plataformas.
+- La comprobación de email único, que antes dependía de que store.js
+  fuera síncrono de un solo hilo, ahora la garantiza un índice único de
+  Postgres (`lower(email)`) + capturar el error `23505` — más robusto
+  incluso que antes (funciona con varios procesos del servidor, no solo
+  uno).
+- `server/scripts/migrate-json-to-pg.js`: importa un `data/db.json`
+  antiguo a Postgres conservando los IDs, por si había datos de antes de
+  este cambio que conservar.
+- `render.yaml` actualizado: provisiona una base de datos Postgres
+  gestionada de Render y rellena `DATABASE_URL` sola.
+- **Verificado**: Postgres real instalado y corriendo en el propio
+  entorno de desarrollo (no solo código sin probar) — migración
+  aplicada, las 7 tablas creadas; regresión funcional completa
+  (signup/login/trading/analyzer/picks/wallet/copy/perfil) repetida
+  contra el backend nuevo sin diferencias; el mismo test de
+  concurrencia que ya se había usado para el fichero JSON (8 altas en
+  paralelo con el mismo email) repetido contra Postgres: exactamente 1
+  cuenta creada; el mismo payload que antes tumbaba el proceso
+  (`{"email":{"$ne":null},...}`) sigue devolviendo un 4xx limpio; flujo
+  completo del token móvil probado con curl (signup → Bearer en ruta
+  protegida → refresh → reutilizar el token viejo falla → logout →
+  refresh tras logout falla). Auditoría de overflow sin regresiones.
+- **Pendiente para fases siguientes**: la app móvil todavía no llama a
+  ninguno de estos endpoints (eso es la Fase 2); desplegar esto en
+  Render y provisionar su Postgres gestionado lo tiene que hacer el
+  usuario desde su propio dashboard.
+
 ## Rediseño completo "producto real" — COMPLETO (5 fases)
 
 El usuario pidió una revisión y rediseño completo de la app (no solo

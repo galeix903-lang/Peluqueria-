@@ -44,7 +44,7 @@ async function refreshPicks() {
   for (const symbol of SYMBOLS) {
     try {
       const pick = await generatePick(symbol);
-      store.addPick({ ...pick, createdAt: new Date().toISOString() });
+      await store.addPick({ ...pick, createdAt: new Date().toISOString() });
     } catch (err) {
       console.error(`No se pudo generar el pick de ${symbol}:`, err.message);
     }

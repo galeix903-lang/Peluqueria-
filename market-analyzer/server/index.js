@@ -5,6 +5,8 @@ const FileStore = require('session-file-store')(session);
 
 const requireAuth = require('./middleware/requireAuth');
 const rateLimit = require('./middleware/rateLimit');
+const asyncHandler = require('./middleware/asyncHandler');
+const db = require('./db');
 const authRoutes = require('./routes/auth');
 const analyzerRoutes = require('./routes/analyzer');
 const tradingRoutes = require('./routes/trading');
@@ -52,7 +54,7 @@ app.get('/robots.txt', (req, res) => {
 // El webhook de Stripe necesita el cuerpo crudo (sin parsear) para poder
 // verificar la firma, así que se monta ANTES de express.json() y con su
 // propio parser de solo esta ruta.
-app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), billing.webhookHandler);
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), asyncHandler(billing.webhookHandler));
 
 app.use(express.json({ limit: '1mb' })); // deja sitio a la foto de perfil (se envía como data URL ya comprimida)
 app.use(session({
@@ -148,8 +150,19 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Error interno del servidor.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`market-analyzer escuchando en http://localhost:${PORT}`);
-  scheduleDailyPicks();
-  scheduleCopyTradingJob();
-});
+// Las migraciones son idempotentes (CREATE TABLE IF NOT EXISTS) y se
+// aplican solas en cada arranque — sin esto, un despliegue nuevo con la
+// base de datos vacía respondería con errores "relation does not exist"
+// en vez de funcionar.
+db.migrate()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`market-analyzer escuchando en http://localhost:${PORT}`);
+      scheduleDailyPicks();
+      scheduleCopyTradingJob();
+    });
+  })
+  .catch((err) => {
+    console.error('No se pudo preparar la base de datos:', err.message);
+    process.exit(1);
+  });

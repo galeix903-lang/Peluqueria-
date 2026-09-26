@@ -1,259 +1,325 @@
 /*
-  Persistencia simple en un fichero JSON — mismo patrón que el store.js del
-  "sistema de llamadas" hermano de este repo. Es suficiente para una demo/
-  portfolio con carga moderada; si esto crece a producción con muchos
-  usuarios concurrentes, migrar a SQLite/Postgres (los métodos de aquí
-  abajo son la única superficie que habría que reescribir).
+  Persistencia en Postgres (ver server/db.js). Sustituye al antiguo
+  fichero JSON plano manteniendo exactamente la misma superficie
+  pública (mismos nombres de función, mismas formas de objeto en
+  camelCase) para que las rutas que ya la usan no tengan que cambiar
+  más que añadir `await` — el mapeo camelCase↔snake_case y
+  columna↔JSONB vive aquí dentro, no se filtra a quien la llama.
 */
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
+const { query } = require('./db');
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
-
-function emptyDb() {
-  return { users: [], positions: [], analyses: [], picks: [], trackedWallets: [], copyFollows: [] };
+// NUMERIC llega de node-postgres como string (para no perder precisión);
+// todo el código que hace aritmética con estos campos espera un number,
+// como ya hacía con el fichero JSON.
+function num(v) {
+  return v === null || v === undefined ? null : Number(v);
+}
+function iso(v) {
+  return v ? new Date(v).toISOString() : null;
 }
 
-function load() {
-  try {
-    const raw = fs.readFileSync(DB_PATH, 'utf8');
-    return { ...emptyDb(), ...JSON.parse(raw) };
-  } catch (e) {
-    return emptyDb();
-  }
+function rowToUser(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email,
+    passwordHash: row.password_hash,
+    name: row.name,
+    bio: row.bio,
+    avatar: row.avatar,
+    balance: num(row.balance),
+    plan: row.plan,
+    stripeCustomerId: row.stripe_customer_id,
+    stripeSubscriptionId: row.stripe_subscription_id,
+    createdAt: iso(row.created_at),
+  };
 }
 
-function save(db) {
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+function rowToPosition(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    symbol: row.symbol,
+    side: row.side,
+    size: num(row.size),
+    entryPrice: num(row.entry_price),
+    costBasis: num(row.cost_basis),
+    stopLoss: num(row.stop_loss),
+    takeProfit: num(row.take_profit),
+    status: row.status,
+    closePrice: num(row.close_price),
+    realizedPnl: num(row.realized_pnl),
+    closeReason: row.close_reason,
+    source: row.source,
+    copiedFrom: row.copied_from,
+    openedAt: iso(row.opened_at),
+    closedAt: iso(row.closed_at),
+  };
 }
 
-function id() {
-  return crypto.randomUUID();
+function rowToAnalysis(row) {
+  if (!row) return null;
+  return { id: row.id, userId: row.user_id, timeframe: row.timeframe, createdAt: iso(row.created_at), ...row.data };
+}
+
+function rowToPick(row) {
+  if (!row) return null;
+  return { id: row.id, createdAt: iso(row.created_at), ...row.data };
+}
+
+function rowToTrackedWallet(row) {
+  if (!row) return null;
+  return { id: row.id, userId: row.user_id, address: row.address, label: row.label, createdAt: iso(row.created_at) };
+}
+
+function rowToCopyFollow(row) {
+  if (!row) return null;
+  return { id: row.id, userId: row.user_id, traderId: row.trader_id, createdAt: iso(row.created_at) };
 }
 
 // ---------- Usuarios ----------
-function findUserByEmail(email) {
-  const db = load();
-  return db.users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
+async function findUserByEmail(email) {
+  const { rows } = await query('SELECT * FROM users WHERE lower(email) = lower($1)', [email]);
+  return rowToUser(rows[0]);
 }
 
-function findUserById(userId) {
-  const db = load();
-  return db.users.find((u) => u.id === userId) || null;
+async function findUserById(userId) {
+  const { rows } = await query('SELECT * FROM users WHERE id = $1', [userId]);
+  return rowToUser(rows[0]);
 }
 
-function createUser({ email, passwordHash, name }) {
-  const db = load();
-  // Repite la comprobación de email único aquí (no solo en la ruta) sin
-  // ningún await de por medio: dos signups concurrentes con el mismo
-  // email pueden haber pasado los dos el check de la ruta (que sí tiene
-  // un await a la bcrypt.hash entre medias), pero como JS es de un solo
-  // hilo y esta función es síncrona de principio a fin, solo una de las
-  // dos peticiones puede ejecutar este load()+push()+save() sin que la
-  // otra se cuele en medio — así que como mucho una gana.
-  if (db.users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-    return null;
+async function findUserByStripeCustomerId(customerId) {
+  const { rows } = await query('SELECT * FROM users WHERE stripe_customer_id = $1', [customerId]);
+  return rowToUser(rows[0]);
+}
+
+async function createUser({ email, passwordHash, name }) {
+  try {
+    const { rows } = await query(
+      `INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING *`,
+      [email, passwordHash, name || email.split('@')[0]]
+    );
+    return rowToUser(rows[0]);
+  } catch (err) {
+    // 23505 = unique_violation — el índice único sobre lower(email) es
+    // quien garantiza de verdad que dos altas concurrentes con el mismo
+    // correo no puedan ganar las dos (antes esto lo garantizaba que
+    // store.js fuera síncrono de un solo hilo; con Postgres la garantía
+    // la da la base de datos, y además funciona con varios procesos).
+    if (err.code === '23505') return null;
+    throw err;
   }
-  const user = {
-    id: id(),
-    email,
-    passwordHash,
-    name: name || email.split('@')[0],
-    bio: null,
-    avatar: null,
-    balance: 100000, // saldo virtual inicial de paper trading
-    plan: 'free', // 'free' | 'plus' (mostrado como "Pro") | 'pro' (mostrado como "Business")
-    stripeCustomerId: null,
-    createdAt: new Date().toISOString(),
-  };
-  db.users.push(user);
-  save(db);
-  return user;
 }
 
-// Actualiza los campos de perfil que llegan definidos (name/bio/avatar),
-// sin tocar los que no — así una petición que solo cambia la bio no
-// borra el avatar, y viceversa.
-function updateUserProfile(userId, { name, bio, avatar } = {}) {
-  const db = load();
-  const user = db.users.find((u) => u.id === userId);
-  if (!user) return null;
-  if (name !== undefined) user.name = name;
-  if (bio !== undefined) user.bio = bio;
-  if (avatar !== undefined) user.avatar = avatar;
-  save(db);
-  return user;
+async function updateUserProfile(userId, { name, bio, avatar } = {}) {
+  const { rows } = await query(
+    `UPDATE users SET
+       name = COALESCE($2, name),
+       bio = CASE WHEN $3::boolean THEN $4 ELSE bio END,
+       avatar = CASE WHEN $5::boolean THEN $6 ELSE avatar END
+     WHERE id = $1 RETURNING *`,
+    [userId, name ?? null, bio !== undefined, bio ?? null, avatar !== undefined, avatar ?? null]
+  );
+  return rowToUser(rows[0]);
 }
 
-function updateUserBalance(userId, newBalance) {
-  const db = load();
-  const user = db.users.find((u) => u.id === userId);
-  if (!user) return null;
-  user.balance = newBalance;
-  save(db);
-  return user;
+async function updateUserBalance(userId, newBalance) {
+  const { rows } = await query('UPDATE users SET balance = $2 WHERE id = $1 RETURNING *', [userId, newBalance]);
+  return rowToUser(rows[0]);
 }
 
-function findUserByStripeCustomerId(customerId) {
-  const db = load();
-  return db.users.find((u) => u.stripeCustomerId === customerId) || null;
-}
-
-function setUserPlan(userId, plan, extra = {}) {
-  const db = load();
-  const user = db.users.find((u) => u.id === userId);
-  if (!user) return null;
-  user.plan = plan;
-  Object.assign(user, extra);
-  save(db);
-  return user;
+async function setUserPlan(userId, plan, extra = {}) {
+  const { rows } = await query(
+    `UPDATE users SET
+       plan = $2,
+       stripe_customer_id = COALESCE($3, stripe_customer_id),
+       stripe_subscription_id = COALESCE($4, stripe_subscription_id)
+     WHERE id = $1 RETURNING *`,
+    [userId, plan, extra.stripeCustomerId ?? null, extra.stripeSubscriptionId ?? null]
+  );
+  return rowToUser(rows[0]);
 }
 
 // ---------- Posiciones (paper trading) ----------
-function listPositions(userId) {
-  const db = load();
-  return db.positions.filter((p) => p.userId === userId).sort((a, b) => b.openedAt.localeCompare(a.openedAt));
+async function listPositions(userId) {
+  const { rows } = await query('SELECT * FROM positions WHERE user_id = $1 ORDER BY opened_at DESC', [userId]);
+  return rows.map(rowToPosition);
 }
 
-function createPosition(position) {
-  const db = load();
-  const record = { id: id(), ...position };
-  db.positions.push(record);
-  save(db);
-  return record;
+async function createPosition(position) {
+  const { rows } = await query(
+    `INSERT INTO positions
+       (user_id, symbol, side, size, entry_price, cost_basis, stop_loss, take_profit, status, source, copied_from, opened_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+     RETURNING *`,
+    [
+      position.userId, position.symbol, position.side, position.size, position.entryPrice,
+      position.costBasis ?? null, position.stopLoss ?? null, position.takeProfit ?? null,
+      position.status || 'open', position.source ?? null, position.copiedFrom ?? null,
+      position.openedAt,
+    ]
+  );
+  return rowToPosition(rows[0]);
 }
 
-function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl, closeReason = 'manual' }) {
-  const db = load();
-  const pos = db.positions.find((p) => p.id === positionId && p.userId === userId);
-  if (!pos) return null;
-  pos.status = 'closed';
-  pos.closePrice = closePrice;
-  pos.closedAt = closedAt;
-  pos.realizedPnl = realizedPnl;
-  pos.closeReason = closeReason;
-  save(db);
-  return pos;
+async function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl, closeReason = 'manual' }) {
+  const { rows } = await query(
+    `UPDATE positions SET status = 'closed', close_price = $3, closed_at = $4, realized_pnl = $5, close_reason = $6
+     WHERE id = $2 AND user_id = $1 RETURNING *`,
+    [userId, positionId, closePrice, closedAt, realizedPnl, closeReason]
+  );
+  return rowToPosition(rows[0]);
 }
 
 // ---------- Análisis (historial del AI Analyzer) ----------
-function addAnalysis(analysis) {
-  const db = load();
-  const record = { id: id(), ...analysis };
-  db.analyses.push(record);
-  save(db);
-  return record;
+async function addAnalysis(analysis) {
+  const { userId, timeframe, createdAt, ...data } = analysis;
+  const { rows } = await query(
+    `INSERT INTO analyses (user_id, timeframe, data, created_at) VALUES ($1,$2,$3,COALESCE($4, now())) RETURNING *`,
+    [userId, timeframe ?? null, JSON.stringify(data), createdAt ?? null]
+  );
+  return rowToAnalysis(rows[0]);
 }
 
-function listAnalyses(userId, limit = 20) {
-  const db = load();
-  return db.analyses
-    .filter((a) => a.userId === userId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, limit);
+async function listAnalyses(userId, limit = 20) {
+  const { rows } = await query(
+    'SELECT * FROM analyses WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+    [userId, limit]
+  );
+  return rows.map(rowToAnalysis);
 }
 
-// Cuenta los análisis de hoy para aplicar el límite del plan gratuito.
-// Reutiliza los mismos registros que guarda addAnalysis — no hace falta
-// ningún contador aparte.
-function countAnalysesToday(userId) {
-  const db = load();
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  return db.analyses.filter((a) => a.userId === userId && a.createdAt.slice(0, 10) === today).length;
+// Cuenta los análisis de hoy (día UTC, mismo criterio que antes con
+// `createdAt.slice(0,10)` sobre un ISO string) para el límite del plan gratuito.
+async function countAnalysesToday(userId) {
+  const startOfDayUtc = new Date();
+  startOfDayUtc.setUTCHours(0, 0, 0, 0);
+  const { rows } = await query(
+    'SELECT COUNT(*)::int AS count FROM analyses WHERE user_id = $1 AND created_at >= $2',
+    [userId, startOfDayUtc.toISOString()]
+  );
+  return rows[0].count;
 }
 
 // ---------- Picks (Handpicked Bets) ----------
-function listPicks(limit = 20) {
-  const db = load();
-  return db.picks.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
+async function listPicks(limit = 20) {
+  const { rows } = await query('SELECT * FROM picks ORDER BY created_at DESC LIMIT $1', [limit]);
+  return rows.map(rowToPick);
 }
 
-function addPick(pick) {
-  const db = load();
-  const record = { id: id(), ...pick };
-  db.picks.push(record);
-  save(db);
-  return record;
+async function addPick(pick) {
+  const { createdAt, ...data } = pick;
+  const { rows } = await query(
+    'INSERT INTO picks (data, created_at) VALUES ($1, COALESCE($2, now())) RETURNING *',
+    [JSON.stringify(data), createdAt ?? null]
+  );
+  return rowToPick(rows[0]);
 }
 
 // ---------- Wallet Tracker (simulado) ----------
-function listTrackedWallets(userId) {
-  const db = load();
-  return db.trackedWallets.filter((w) => w.userId === userId).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+async function listTrackedWallets(userId) {
+  const { rows } = await query('SELECT * FROM tracked_wallets WHERE user_id = $1 ORDER BY created_at', [userId]);
+  return rows.map(rowToTrackedWallet);
 }
 
-function addTrackedWallet({ userId, address, label }) {
-  const db = load();
-  const record = { id: id(), userId, address, label: label || null, createdAt: new Date().toISOString() };
-  db.trackedWallets.push(record);
-  save(db);
-  return record;
+async function addTrackedWallet({ userId, address, label }) {
+  const { rows } = await query(
+    'INSERT INTO tracked_wallets (user_id, address, label) VALUES ($1,$2,$3) RETURNING *',
+    [userId, address, label || null]
+  );
+  return rowToTrackedWallet(rows[0]);
 }
 
-function removeTrackedWallet(userId, walletId) {
-  const db = load();
-  const before = db.trackedWallets.length;
-  db.trackedWallets = db.trackedWallets.filter((w) => !(w.id === walletId && w.userId === userId));
-  save(db);
-  return db.trackedWallets.length < before;
+async function removeTrackedWallet(userId, walletId) {
+  const { rowCount } = await query('DELETE FROM tracked_wallets WHERE id = $1 AND user_id = $2', [walletId, userId]);
+  return rowCount > 0;
 }
 
 // ---------- Copy Trading (simulado) ----------
-function listCopyFollows(userId) {
-  const db = load();
-  return db.copyFollows.filter((f) => f.userId === userId);
+async function listCopyFollows(userId) {
+  const { rows } = await query('SELECT * FROM copy_follows WHERE user_id = $1', [userId]);
+  return rows.map(rowToCopyFollow);
 }
 
-function findCopyFollow(userId, traderId) {
-  const db = load();
-  return db.copyFollows.find((f) => f.userId === userId && f.traderId === traderId) || null;
+async function findCopyFollow(userId, traderId) {
+  const { rows } = await query('SELECT * FROM copy_follows WHERE user_id = $1 AND trader_id = $2', [userId, traderId]);
+  return rowToCopyFollow(rows[0]);
 }
 
-function addCopyFollow({ userId, traderId }) {
-  const db = load();
-  const record = { id: id(), userId, traderId, createdAt: new Date().toISOString() };
-  db.copyFollows.push(record);
-  save(db);
-  return record;
+async function addCopyFollow({ userId, traderId }) {
+  const { rows } = await query(
+    'INSERT INTO copy_follows (user_id, trader_id) VALUES ($1,$2) RETURNING *',
+    [userId, traderId]
+  );
+  return rowToCopyFollow(rows[0]);
 }
 
-function removeCopyFollow(userId, traderId) {
-  const db = load();
-  const before = db.copyFollows.length;
-  db.copyFollows = db.copyFollows.filter((f) => !(f.userId === userId && f.traderId === traderId));
-  save(db);
-  return db.copyFollows.length < before;
+async function removeCopyFollow(userId, traderId) {
+  const { rowCount } = await query('DELETE FROM copy_follows WHERE user_id = $1 AND trader_id = $2', [userId, traderId]);
+  return rowCount > 0;
 }
 
-function listAllCopyFollows() {
-  const db = load();
-  return db.copyFollows;
+async function listAllCopyFollows() {
+  const { rows } = await query('SELECT * FROM copy_follows', []);
+  return rows.map(rowToCopyFollow);
 }
 
-// ---------- Actividad reciente (para el aviso público de "en vivo") ----------
-// Se deriva de las colecciones ya existentes (altas, análisis, posiciones)
-// en vez de llevar un log aparte: así lo que se muestra es siempre un
-// evento real que ya ocurrió, nunca un dato inventado, y no hay un
-// segundo sitio donde se pueda desincronizar. No expone email, nombre,
+// ---------- Refresh tokens (auth de la app móvil) ----------
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+async function createRefreshToken({ userId, token, expiresAt, userAgent }) {
+  await query(
+    'INSERT INTO refresh_tokens (user_id, token_hash, expires_at, user_agent) VALUES ($1,$2,$3,$4)',
+    [userId, hashToken(token), expiresAt, userAgent || null]
+  );
+}
+
+// Solo válido si existe, no ha caducado y no ha sido revocado — así un
+// token robado de un dispositivo se puede invalidar sin tocar los demás.
+async function findValidRefreshToken(token) {
+  const { rows } = await query(
+    `SELECT * FROM refresh_tokens WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > now()`,
+    [hashToken(token)]
+  );
+  return rows[0] || null;
+}
+
+async function revokeRefreshToken(token) {
+  await query('UPDATE refresh_tokens SET revoked_at = now() WHERE token_hash = $1', [hashToken(token)]);
+}
+
+async function revokeAllRefreshTokensForUser(userId) {
+  await query('UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL', [userId]);
+}
+
+// ---------- Actividad reciente y estadísticas públicas ----------
+// Se deriva de las tablas ya existentes (altas, análisis, posiciones) en
+// vez de llevar un log aparte: lo que se muestra es siempre un evento
+// real que ya ocurrió, nunca un dato inventado. No expone email, nombre,
 // importes ni resultado — solo el tipo de evento, el símbolo si aplica y
 // la fecha.
-// Contadores agregados reales (nº de cuentas), para el sello de confianza
-// de la landing — nunca una puntuación inventada tipo "4.9/5".
-function getStats() {
-  const db = load();
-  return { accounts: db.users.length };
+async function listRecentActivity(limit = 12) {
+  const { rows } = await query(
+    `(SELECT 'signup' AS type, NULL AS symbol, created_at AS at FROM users)
+     UNION ALL
+     (SELECT 'analysis' AS type, data->>'asset' AS symbol, created_at AS at FROM analyses)
+     UNION ALL
+     (SELECT 'trade_open' AS type, symbol, opened_at AS at FROM positions)
+     ORDER BY at DESC LIMIT $1`,
+    [limit]
+  );
+  return rows.map((r) => ({ type: r.type, symbol: r.symbol, at: iso(r.at) }));
 }
 
-function listRecentActivity(limit = 12) {
-  const db = load();
-  const events = [
-    ...db.users.map((u) => ({ type: 'signup', at: u.createdAt })),
-    ...db.analyses.map((a) => ({ type: 'analysis', symbol: a.asset || null, at: a.createdAt })),
-    ...db.positions.map((p) => ({ type: 'trade_open', symbol: p.symbol || null, at: p.openedAt })),
-  ].filter((e) => e.at);
-  return events.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+// Contador agregado real (nº de cuentas) para el sello de confianza de
+// la landing — nunca una puntuación inventada tipo "4.9/5".
+async function getStats() {
+  const { rows } = await query('SELECT COUNT(*)::int AS accounts FROM users', []);
+  return { accounts: rows[0].accounts };
 }
 
 module.exports = {
@@ -280,6 +346,10 @@ module.exports = {
   addCopyFollow,
   removeCopyFollow,
   listAllCopyFollows,
+  createRefreshToken,
+  findValidRefreshToken,
+  revokeRefreshToken,
+  revokeAllRefreshTokensForUser,
   listRecentActivity,
   getStats,
 };

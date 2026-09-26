@@ -1,6 +1,7 @@
 const express = require('express');
 const store = require('../store');
 const billing = require('../services/billing');
+const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
 
@@ -8,8 +9,8 @@ function baseUrl(req) {
   return `${req.protocol}://${req.get('host')}`;
 }
 
-router.post('/checkout', async (req, res) => {
-  const user = store.findUserById(req.session.userId);
+router.post('/checkout', asyncHandler(async (req, res) => {
+  const user = await store.findUserById(req.userId);
   const plan = req.body && req.body.plan === 'plus' ? 'plus' : 'pro';
   try {
     const { url } = await billing.createCheckoutSession(user, baseUrl(req), plan);
@@ -18,23 +19,23 @@ router.post('/checkout', async (req, res) => {
     console.error('Error creando el checkout:', err.message);
     res.status(502).json({ error: 'No se pudo iniciar el pago. Inténtalo de nuevo en unos segundos.' });
   }
-});
+}));
 
-router.post('/portal', async (req, res) => {
-  const user = store.findUserById(req.session.userId);
+router.post('/portal', asyncHandler(async (req, res) => {
+  const user = await store.findUserById(req.userId);
   try {
     const { url } = await billing.createPortalSession(user, baseUrl(req));
     res.json({ url });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-});
+}));
 
 // Manejador aparte para el webhook de Stripe: no lleva requireAuth (Stripe
 // no manda cookie de sesión) y se monta en server/index.js con el cuerpo
 // crudo, antes de express.json(), porque la verificación de firma
 // necesita los bytes exactos que envió Stripe.
-function webhookHandler(req, res) {
+async function webhookHandler(req, res) {
   if (billing.resolveBillingMode() !== 'live') {
     // En modo mock no hay Stripe real que mande webhooks; se ignora.
     return res.status(200).end();
@@ -52,25 +53,25 @@ function webhookHandler(req, res) {
     const session = event.data.object;
     const plan = session.metadata && session.metadata.plan === 'plus' ? 'plus' : 'pro';
     if (session.client_reference_id) {
-      store.setUserPlan(session.client_reference_id, plan, {
+      await store.setUserPlan(session.client_reference_id, plan, {
         stripeCustomerId: session.customer,
         stripeSubscriptionId: session.subscription,
       });
     }
   } else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
-    const user = store.findUserByStripeCustomerId(subscription.customer);
+    const user = await store.findUserByStripeCustomerId(subscription.customer);
     if (user) {
       const stillActive = subscription.status === 'active' || subscription.status === 'trialing';
       if (!stillActive) {
-        store.setUserPlan(user.id, 'free');
+        await store.setUserPlan(user.id, 'free');
       } else {
         // Averigua qué precio tiene la suscripción activa para saber si
         // es el plan Plus o el Pro (no hay otra pista fiable en este evento).
         const item = subscription.items && subscription.items.data && subscription.items.data[0];
         const priceId = item && item.price && item.price.id;
         const plan = priceId && priceId === billing.priceIdForPlan('plus') ? 'plus' : 'pro';
-        store.setUserPlan(user.id, plan);
+        await store.setUserPlan(user.id, plan);
       }
     }
   }

@@ -6,12 +6,12 @@ const asyncHandler = require('../middleware/asyncHandler');
 const router = express.Router();
 
 router.get('/', asyncHandler(async (req, res) => {
-  let picks = store.listPicks();
+  let picks = await store.listPicks();
   if (picks.length === 0) {
     // Primera vez que se pide y el cron diario todavía no ha corrido:
     // generamos picks al vuelo para no dejar la pantalla vacía.
     await refreshPicks();
-    picks = store.listPicks();
+    picks = await store.listPicks();
   }
   res.json({ picks });
 }));
