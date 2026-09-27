@@ -148,6 +148,51 @@ cualquier pantalla de la app a datos reales:
   Cero errores de consola en todo el flujo. Regresión completa de la
   web repetida sin diferencias.
 
+**Fase 4 — Trading + Picks + Wallet Tracker + Copy Trading reales —
+COMPLETA y verificada.**
+- **Paper Trading** (`(tabs)/trading.tsx`): balance real, chips de
+  símbolo, sparkline propio (`src/components/Sparkline.tsx`, SVG puro
+  con `react-native-svg`, histórico corto real de `GET /api/trading/
+  chart/:symbol` — nunca inventado), ticket de orden (lado/tamaño/SL/
+  TP opcionales) con `ConfirmModal` antes de enviar, lista de
+  posiciones abiertas con P&L en vivo y cierre manual (también
+  confirmado), historial de cerradas con el motivo (manual/SL/TP), y el
+  mismo aviso de "precios simulados" que la web cuando CoinGecko no
+  responde. Sondeo cada 15s como la web, para reflejar el auto-cierre
+  por SL/TP sin que el usuario haga nada.
+- **Handpicked Bets** (`(tabs)/picks.tsx`): lista real de `GET /api/
+  picks`, mismas badges/confianza/disclaimer que la web.
+- **Wallet Tracker** (`app/wallet.tsx`) y **Copy Trading**
+  (`app/copy.tsx`): pantallas nuevas fuera del grupo `(tabs)` — se
+  llega desde las tarjetas de Inicio, replicando la misma decisión de
+  navegación ya tomada en la web (no saturar la barra inferior con 7
+  accesos). Wallet: seguir por dirección, snapshot con holdings/
+  actividad simulados, badge "Modo simulado", dejar de seguir con
+  confirmación. Copy: banner "Simulado — sin fondos reales", lista de
+  traders con stats, seguir/dejar de seguir, y el plan gratuito
+  bloquea seguir con el mismo mensaje que la web (sin fingir un cobro,
+  remite a la web para mejorar el plan).
+- Nuevos componentes reutilizables: `ConfirmModal` (mismo criterio de
+  "nunca se envía nada sin confirmar" que ya usa la web),
+  `BackHeader` (con `accessibilityLabel` para las dos pantallas fuera
+  de las tabs), `Sparkline`, y `src/utils/format.ts` (fmtUsd/fmtPct
+  compartidos, sustituye copias sueltas en Perfil).
+- **Verificado con Playwright** (`expo start --web`, contra el backend
+  real en Postgres, con una wallet siguiendo el proceso completo de
+  abrir→confirmar→abrir posición→confirmar→cerrar, en vez de solo
+  comprobar que la pantalla carga): balance visible, aviso de precios
+  simulados visible (CoinGecko bloqueado en este sandbox), posición
+  abierta y cerrada correctamente con el historial reflejando el cierre
+  manual; picks reales visibles; wallet seguida con su badge simulado y
+  navegación de vuelta con el botón de atrás; Copy Trading con el
+  banner simulado, lista de traders, y el bloqueo del plan gratuito al
+  intentar seguir a uno (402 correctamente manejado, mensaje de mejora
+  de plan mostrado). Cero errores de consola. Regresión completa de la
+  web repetida sin diferencias.
+- **Pendiente para fases siguientes**: notificaciones push,
+  almacenamiento de preferencias, arquitectura de suscripciones
+  (StoreKit/Play Billing) y build de producción con EAS — Fase 5.
+
 ## Rediseño completo "producto real" — COMPLETO (5 fases)
 
 El usuario pidió una revisión y rediseño completo de la app (no solo

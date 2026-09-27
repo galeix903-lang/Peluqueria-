@@ -4,12 +4,9 @@ import { Screen } from '../../src/components/Screen';
 import { PendingCard } from '../../src/components/PendingCard';
 import { useAuth } from '../../src/state/AuthContext';
 import { colors, radius } from '../../src/theme';
+import { fmtUsd } from '../../src/utils/format';
 
 const PLAN_LABEL: Record<string, string> = { free: 'Gratis', plus: 'Pro', pro: 'Business' };
-
-function fmtUsd(n: number) {
-  return n.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
-}
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();

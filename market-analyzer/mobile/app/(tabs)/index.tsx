@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Screen } from '../../src/components/Screen';
 import { PendingCard } from '../../src/components/PendingCard';
 import { VantexMark } from '../../src/components/VantexMark';
@@ -9,45 +10,44 @@ import { colors, gradients, radius } from '../../src/theme';
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const router = useRouter();
+
   return (
     <Screen title="Vantex.AI" subtitle="Analiza. Practica. Sigue.">
       <LinearGradient colors={gradients.brand} style={styles.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         <VantexMark size={44} />
         <Text style={styles.heroTitle}>{user ? `Hola, ${user.name}` : 'Bienvenido a Vantex'}</Text>
         <Text style={styles.heroBody}>
-          El resumen de tu cuenta (saldo, P&L, posiciones abiertas) se conecta en la
-          siguiente fase, cuando las pantallas de Trading/Analyzer lean datos reales
-          — el login ya es real (ver la pestaña Perfil), no se muestran cifras de
-          ejemplo aquí.
+          El saldo y el P&L en vivo se ven en la pestaña Trading — aquí solo el acceso rápido a cada herramienta.
         </Text>
       </LinearGradient>
 
       <Text style={styles.sectionLabel}>Herramientas</Text>
       <View style={styles.grid}>
-        <ToolCard icon="cpu" label="AI Analyzer" />
-        <ToolCard icon="trending-up" label="Paper Trading" />
-        <ToolCard icon="star" label="Handpicked Bets" />
-        <ToolCard icon="search" label="Wallet Tracker" />
-        <ToolCard icon="users" label="Copy Trading" />
+        <ToolCard icon="cpu" label="AI Analyzer" onPress={() => router.push('/analyzer')} />
+        <ToolCard icon="trending-up" label="Paper Trading" onPress={() => router.push('/trading')} />
+        <ToolCard icon="star" label="Handpicked Bets" onPress={() => router.push('/picks')} />
+        <ToolCard icon="search" label="Wallet Tracker" onPress={() => router.push('/wallet')} />
+        <ToolCard icon="users" label="Copy Trading" onPress={() => router.push('/copy')} />
       </View>
 
       <Text style={styles.sectionLabel}>Estado de esta fase</Text>
       <PendingCard
-        icon="server"
-        message="Fase 2: login, sesión persistente y perfil ya son reales (backend en Postgres, mismo que la web). Analyzer/Trading/Picks/Wallet/Copy se conectan en las fases siguientes."
+        icon="check-circle"
+        message="Fase 4: Analyzer, Trading, Picks, Wallet Tracker y Copy Trading ya leen y escriben datos reales del mismo backend que la web. Solo quedan las notificaciones push y las compras dentro de la app."
       />
     </Screen>
   );
 }
 
-function ToolCard({ icon, label }: { icon: keyof typeof Feather.glyphMap; label: string }) {
+function ToolCard({ icon, label, onPress }: { icon: keyof typeof Feather.glyphMap; label: string; onPress: () => void }) {
   return (
-    <View style={styles.toolCard}>
+    <TouchableOpacity style={styles.toolCard} onPress={onPress}>
       <View style={styles.toolIconWrap}>
         <Feather name={icon} size={20} color={colors.accent} />
       </View>
       <Text style={styles.toolLabel}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
