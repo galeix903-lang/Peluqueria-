@@ -4,7 +4,7 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
-## App móvil nativa (Expo + Router) — EN CURSO
+## App móvil nativa (Expo + Router) — COMPLETA (Fases 0-5)
 
 El usuario pidió convertir Vantex en una app nativa real para iOS/
 Android (App Store/Google Play), no una web empaquetada. Auditoría
@@ -192,6 +192,79 @@ COMPLETA y verificada.**
 - **Pendiente para fases siguientes**: notificaciones push,
   almacenamiento de preferencias, arquitectura de suscripciones
   (StoreKit/Play Billing) y build de producción con EAS — Fase 5.
+
+**Fase 5 — Notificaciones push + preferencias + suscripciones
+(documentadas) + build de producción — COMPLETA y verificada.**
+- **Notificaciones push reales**: nueva tabla `push_tokens`
+  (`server/migrations/002_push_tokens.sql`), funciones en `store.js`
+  (`registerPushToken` con `ON CONFLICT (token)` para re-asociar un
+  dispositivo reinstalado, `listPushTokensForUser`, `removePushToken`,
+  `deletePushToken`), `server/services/pushNotifications.js`
+  (`sendPushToUser`, POST a la API de Expo Push, nunca lanza — un fallo
+  de envío no puede romper el flujo que lo dispara), y
+  `server/routes/notifications.js` (`POST/DELETE /register-token`,
+  `POST /test`). Disparo real: el auto-cierre por stop-loss/take-profit
+  en `checkAndAutoClose()` (`server/routes/trading.js`, el mismo trigger
+  real ya existente desde la Fase 4, nunca uno inventado) llama a
+  `sendPushToUser` con el resultado (símbolo, motivo, P&L). Cliente:
+  `mobile/src/services/notifications.ts` pide permiso, obtiene el token
+  de Expo (requiere `projectId` de EAS) y lo registra; nunca finge éxito
+  — cada motivo de fallo (sin dispositivo físico, permiso denegado, sin
+  `projectId` de EAS, error de red) se traduce a un mensaje honesto en
+  la nueva sección "Notificaciones" de Perfil (`(tabs)/profile.tsx`,
+  interruptor + botón "Enviarme una notificación de prueba").
+- **Preferencias persistentes no sensibles**:
+  `mobile/src/services/preferences.ts` sobre
+  `@react-native-async-storage/async-storage` (nunca tokens/
+  credenciales, eso sigue exclusivamente en SecureStore vía
+  `authStorage.ts`) — último símbolo usado en Trading (se recuerda al
+  volver a la pestaña) y si las notificaciones están activadas (para
+  volver a pedir el token, de forma idempotente, si se reabre la app).
+- **Suscripciones**: solo arquitectura documentada
+  (`mobile/SUBSCRIPTIONS.md`), sin código de pagos, por instrucción
+  explícita del usuario ("NO implementes pagos ficticios"). Documenta
+  por qué no se puede implementar ya (faltan las cuentas de Apple
+  Developer/Google Play Console y sus credenciales de verificación de
+  recibos, que solo el propio usuario puede crear), la librería prevista
+  (`react-native-iap`, StoreKit 2/Play Billing) y el flujo completo
+  (compra nativa → recibo verificado en el backend → mismo
+  `store.setUserPlan` que ya usa el webhook de Stripe en la web, sin
+  duplicar la lógica de qué significa cada plan).
+- **Build de producción**: `mobile/eas.json` con perfiles `development`/
+  `preview`/`production`; pasos manuales documentados en
+  `mobile/README.md` (`eas login`/`eas init`/`eas build`/`eas submit`,
+  con la nota de que `eas init` es quien añade el `projectId` que
+  necesitan las notificaciones push).
+- **Verificado con Playwright** (`expo start --web`, contra el backend
+  real en Postgres): sección de notificaciones visible en Perfil con el
+  interruptor y el botón de prueba (deshabilitado hasta activarlas); al
+  intentar activarlas en este entorno (sin permiso real de notificaciones
+  del navegador headless) se muestra el mensaje honesto correspondiente
+  en vez de fingir que quedaron activadas — confirma que la lógica
+  defensiva funciona en la práctica, no solo en el código. Regresión
+  completa de la Fase 4 (trading abrir/cerrar, picks, wallet seguir/
+  dejar de seguir, copy trading con bloqueo de plan gratuito) repetida
+  sin diferencias. Backend probado también directamente con `curl` end
+  to end: signup móvil → registrar token → `POST /test` (falla con un
+  502 y mensaje claro porque este sandbox bloquea la salida a
+  `exp.host`, el comportamiento esperado y correcto) → dar de baja el
+  token.
+- **Limitación honestamente documentada** (en `mobile/README.md` y
+  `mobile/SUBSCRIPTIONS.md`): la entrega real de una notificación a un
+  dispositivo físico no se ha podido probar en este entorno de
+  desarrollo (proxy de salida bloquea `exp.host`, y además Expo Go no
+  soporta push remoto en este SDK — hace falta una development build).
+  Tampoco se ha podido ejecutar ningún `eas build` real (requiere la
+  cuenta de Expo del propio usuario). El código en sí — registro,
+  guardado, envío, manejo de errores — está verificado hasta esa
+  frontera.
+
+Con esto, el roadmap de 5 fases acordado con el usuario para la app
+móvil nativa queda completo dentro de lo construible en este entorno de
+desarrollo; lo que falta (compras reales, build firmado, entrega real de
+push) depende de acciones del propio usuario fuera de aquí (cuentas de
+Apple/Google, `eas login`), documentadas paso a paso en
+`mobile/README.md` y `mobile/SUBSCRIPTIONS.md`.
 
 ## Rediseño completo "producto real" — COMPLETO (5 fases)
 

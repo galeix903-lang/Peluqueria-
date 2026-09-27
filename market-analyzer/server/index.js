@@ -13,6 +13,7 @@ const tradingRoutes = require('./routes/trading');
 const picksRoutes = require('./routes/picks');
 const walletRoutes = require('./routes/wallet');
 const copyRoutes = require('./routes/copy');
+const notificationsRoutes = require('./routes/notifications');
 const activityRoutes = require('./routes/activity');
 const billing = require('./routes/billing');
 const { scheduleDailyPicks } = require('./services/picksJob');
@@ -112,6 +113,7 @@ app.use('/api/trading', requireAuth, tradingRoutes);
 app.use('/api/picks', requireAuth, picksRoutes);
 app.use('/api/wallet', requireAuth, walletRoutes);
 app.use('/api/copy', requireAuth, copyRoutes);
+app.use('/api/notifications', requireAuth, notificationsRoutes);
 app.use('/api/billing', requireAuth, billing.router);
 
 // Rutas "bonitas" sin .html para cada pantalla — van antes de

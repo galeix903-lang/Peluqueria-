@@ -1,15 +1,75 @@
+import { useEffect, useState } from 'react';
 import { Feather } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Screen } from '../../src/components/Screen';
 import { PendingCard } from '../../src/components/PendingCard';
 import { useAuth } from '../../src/state/AuthContext';
 import { colors, radius } from '../../src/theme';
 import { fmtUsd } from '../../src/utils/format';
+import { preferences } from '../../src/services/preferences';
+import { disablePushNotifications, sendTestNotification, setupPushNotifications } from '../../src/services/notifications';
 
 const PLAN_LABEL: Record<string, string> = { free: 'Gratis', plus: 'Pro', pro: 'Business' };
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const [notifEnabled, setNotifEnabled] = useState(false);
+  const [notifBusy, setNotifBusy] = useState(false);
+  const [notifStatus, setNotifStatus] = useState<string | null>(null);
+  const [pushToken, setPushToken] = useState<string | null>(null);
+  const [testBusy, setTestBusy] = useState(false);
+  const [testStatus, setTestStatus] = useState<string | null>(null);
+
+  // Si ya estaban activadas en una sesión anterior, se vuelve a pedir el
+  // token (idempotente en el backend, ver ON CONFLICT en store.js) para
+  // tener el valor del token a mano y poder darlo de baja si el usuario
+  // lo desactiva ahora; nunca se marca "activado" sin comprobarlo de verdad.
+  useEffect(() => {
+    preferences.getNotificationsEnabled().then(async (wasEnabled) => {
+      if (!wasEnabled) return;
+      const result = await setupPushNotifications();
+      if (result.ok) {
+        setNotifEnabled(true);
+        setPushToken(result.token);
+      } else {
+        setNotifEnabled(false);
+        await preferences.setNotificationsEnabled(false);
+      }
+    });
+  }, []);
+
+  async function onToggleNotifications(next: boolean) {
+    setNotifStatus(null);
+    setTestStatus(null);
+    if (!next) {
+      setNotifEnabled(false);
+      await preferences.setNotificationsEnabled(false);
+      if (pushToken) await disablePushNotifications(pushToken);
+      setPushToken(null);
+      return;
+    }
+    setNotifBusy(true);
+    const result = await setupPushNotifications();
+    setNotifBusy(false);
+    if (result.ok) {
+      setNotifEnabled(true);
+      setPushToken(result.token);
+      await preferences.setNotificationsEnabled(true);
+    } else {
+      setNotifEnabled(false);
+      setNotifStatus(result.message);
+      await preferences.setNotificationsEnabled(false);
+    }
+  }
+
+  async function onTestNotification() {
+    setTestBusy(true);
+    setTestStatus(null);
+    const result = await sendTestNotification();
+    setTestBusy(false);
+    setTestStatus(result.message);
+  }
+
   if (!user) return null; // RootLayoutNav redirige a /login antes de que esto se pinte
 
   return (
@@ -32,6 +92,41 @@ export default function ProfileScreen() {
           <Text style={styles.statLabel}>Saldo (paper trading)</Text>
           <Text style={styles.statValue}>{fmtUsd(user.balance)}</Text>
         </View>
+      </View>
+
+      <Text style={styles.sectionLabel}>Notificaciones</Text>
+      <View style={styles.notifCard}>
+        <View style={styles.notifRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.notifTitle}>Alertas de stop-loss / take-profit</Text>
+            <Text style={styles.notifBody}>Avisa cuando una posición se cierra sola en Paper Trading.</Text>
+          </View>
+          {notifBusy ? (
+            <ActivityIndicator color={colors.accent} />
+          ) : (
+            <Switch
+              value={notifEnabled}
+              onValueChange={onToggleNotifications}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#fff"
+            />
+          )}
+        </View>
+        {notifStatus ? <Text style={styles.notifStatus}>{notifStatus}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.testBtn, !notifEnabled && styles.testBtnDisabled]}
+          disabled={!notifEnabled || testBusy}
+          onPress={onTestNotification}
+        >
+          {testBusy ? <ActivityIndicator color={colors.accent} /> : (
+            <>
+              <Feather name="bell" size={14} color={notifEnabled ? colors.accent : colors.textDim} />
+              <Text style={[styles.testBtnText, !notifEnabled && { color: colors.textDim }]}>Enviarme una notificación de prueba</Text>
+            </>
+          )}
+        </TouchableOpacity>
+        {testStatus ? <Text style={styles.notifStatus}>{testStatus}</Text> : null}
       </View>
 
       <PendingCard
@@ -68,6 +163,24 @@ const styles = StyleSheet.create({
   },
   statLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.textDim, marginBottom: 4 },
   statValue: { fontSize: 20, fontFamily: 'Inter_800ExtraBold', color: colors.text },
+  sectionLabel: {
+    fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.textDim,
+    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10,
+  },
+  notifCard: {
+    padding: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: colors.surface, marginBottom: 16, gap: 10,
+  },
+  notifRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  notifTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: colors.text },
+  notifBody: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.textDim, marginTop: 2, lineHeight: 17 },
+  notifStatus: { fontSize: 12, fontFamily: 'Inter_400Regular', color: colors.textDim, lineHeight: 17 },
+  testBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    paddingVertical: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.fieldBg,
+  },
+  testBtnDisabled: { opacity: 0.6 },
+  testBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: colors.accent },
   logoutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     marginTop: 20, paddingVertical: 14, borderRadius: radius.md,

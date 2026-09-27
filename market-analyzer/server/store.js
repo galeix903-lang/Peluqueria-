@@ -296,6 +296,36 @@ async function revokeAllRefreshTokensForUser(userId) {
   await query('UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL', [userId]);
 }
 
+// ---------- Notificaciones push (app móvil) ----------
+// ON CONFLICT (token): si el mismo dispositivo se re-registra (reinstala
+// la app, o el usuario cierra y vuelve a abrir sesión), simplemente
+// actualiza el dueño del token en vez de duplicar la fila.
+async function registerPushToken({ userId, token, platform }) {
+  const { rows } = await query(
+    `INSERT INTO push_tokens (user_id, token, platform) VALUES ($1,$2,$3)
+     ON CONFLICT (token) DO UPDATE SET user_id = $1, platform = $3
+     RETURNING *`,
+    [userId, token, platform || null]
+  );
+  return rows[0];
+}
+
+async function listPushTokensForUser(userId) {
+  const { rows } = await query('SELECT * FROM push_tokens WHERE user_id = $1', [userId]);
+  return rows;
+}
+
+async function removePushToken(userId, token) {
+  const { rowCount } = await query('DELETE FROM push_tokens WHERE user_id = $1 AND token = $2', [userId, token]);
+  return rowCount > 0;
+}
+
+// Usado al recibir un "DeviceNotRegistered" de la API de Expo: el token
+// ya no es válido en ningún dispositivo, se borra sin importar el dueño.
+async function deletePushToken(token) {
+  await query('DELETE FROM push_tokens WHERE token = $1', [token]);
+}
+
 // ---------- Actividad reciente y estadísticas públicas ----------
 // Se deriva de las tablas ya existentes (altas, análisis, posiciones) en
 // vez de llevar un log aparte: lo que se muestra es siempre un evento
@@ -352,4 +382,8 @@ module.exports = {
   revokeAllRefreshTokensForUser,
   listRecentActivity,
   getStats,
+  registerPushToken,
+  listPushTokensForUser,
+  removePushToken,
+  deletePushToken,
 };

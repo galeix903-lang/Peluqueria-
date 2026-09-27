@@ -46,6 +46,13 @@
           "photosPermission": "Vantex necesita acceso a tus fotos para subir la captura de un gráfico.",
           "cameraPermission": "Vantex necesita la cámara para fotografiar un gráfico y analizarlo."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/adaptive-icon-foreground.png",
+          "color": "#4f46e5"
+        }
       ]
     ]
   }

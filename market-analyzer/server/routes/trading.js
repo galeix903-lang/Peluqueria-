@@ -2,6 +2,7 @@ const express = require('express');
 const store = require('../store');
 const market = require('../services/market');
 const asyncHandler = require('../middleware/asyncHandler');
+const { sendPushToUser } = require('../services/pushNotifications');
 
 const router = express.Router();
 
@@ -53,8 +54,15 @@ async function checkAndAutoClose(userId, prices) {
       reason = 'tp';
     }
     if (reason) {
-      const { newBalance } = await settleClose(currentUser, position, price, reason);
+      const { closed, newBalance } = await settleClose(currentUser, position, price, reason);
       currentUser = { ...currentUser, balance: newBalance };
+      const label = reason === 'sl' ? 'Stop-loss' : 'Take-profit';
+      const pnlTxt = closed.realizedPnl >= 0 ? `+$${closed.realizedPnl.toFixed(2)}` : `-$${Math.abs(closed.realizedPnl).toFixed(2)}`;
+      sendPushToUser(userId, {
+        title: `${label} ejecutado: ${position.symbol}`,
+        body: `Tu posición de ${position.symbol} se cerró sola (${label}). Resultado: ${pnlTxt}.`,
+        data: { type: 'position_auto_closed', positionId: position.id, reason },
+      }).catch(() => {});
     }
   }
 }

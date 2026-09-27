@@ -5,6 +5,7 @@ import { Screen } from '../../src/components/Screen';
 import { ConfirmModal } from '../../src/components/ConfirmModal';
 import { Sparkline } from '../../src/components/Sparkline';
 import { api, ApiError } from '../../src/services/api';
+import { preferences } from '../../src/services/preferences';
 import { colors, radius } from '../../src/theme';
 import { fmtUsd, fmtPct } from '../../src/utils/format';
 
@@ -64,7 +65,17 @@ export default function TradingScreen() {
     return () => clearInterval(id);
   }, [loadTrading]);
 
+  // Recuerda el último símbolo usado (solo una preferencia de comodidad,
+  // no un dato sensible) para no tener que reelegirlo cada vez que se
+  // abre la pestaña.
   useEffect(() => {
+    preferences.getLastSymbol().then((saved) => {
+      if (saved) setSymbol(saved);
+    });
+  }, []);
+
+  useEffect(() => {
+    preferences.setLastSymbol(symbol);
     api.get(`/api/trading/chart/${symbol}`)
       .then((d) => setSparkline((d.history || []).map((h: any) => h.price)))
       .catch(() => setSparkline([]));
