@@ -4,23 +4,26 @@ App nativa real para iOS/Android (no web empaquetada en un WebView),
 construida con Expo Router sobre la misma identidad de marca que
 `market-analyzer/public/` (la web de Vantex).
 
-## Estado actual: Fase 2 — autenticación real
+## Estado actual: Fase 3 — AI Analyzer real
 
-Login, signup, logout, sesión persistente y protección de rutas ya son
-reales, contra el mismo backend Postgres que usa la web (ver
-`market-analyzer/README.md`, sección "Autenticación de la app móvil").
-`(auth)/login.tsx` es la única pantalla accesible sin sesión; en cuanto
-hay un usuario, `(tabs)/` (Inicio/Analyzer/Trading/Picks/Perfil) queda
-disponible y Perfil muestra la cuenta real (nombre, email, plan,
-saldo) con un botón de cerrar sesión de verdad.
+Login/signup/logout/sesión persistente (Fase 2) y ahora el AI Analyzer
+también son reales: cámara o galería (`expo-image-picker`) → sube la
+imagen a `POST /api/analyzer` con el access token → mismo motor de
+análisis que la web (Claude Vision o modo mock según haya
+`ANTHROPIC_API_KEY`), con historial, cuota diaria del plan gratuito y
+el mismo aviso de "confianza baja / no parece un gráfico" que la web.
 
 **Lo que NO hay todavía** (fases siguientes, ver `market-analyzer/PLAN.md`
 para el roadmap completo acordado con el usuario):
-- Analyzer/Trading/Picks/Wallet/Copy siguen siendo pantallas honestas
-  de "esto se conecta en la Fase X", no datos simulados.
+- Trading/Picks/Wallet/Copy siguen siendo pantallas honestas de "esto
+  se conecta en la Fase X", no datos simulados.
 - "Olvidé mi contraseña" no está implementado: necesitaría un servicio
   de envío de email (Resend/SendGrid/...) que todavía no existe en el
   proyecto — no se ha simulado un botón que no hace nada.
+- Compras dentro de la app (planes Pro/Business) no implementadas: para
+  iOS/Android hace falta StoreKit/Play Billing, no un checkout de
+  Stripe en un WebView — cuando la cuota gratuita se agota, la app lo
+  dice claramente y remite a la web en vez de fingir un cobro.
 - Sin build de EAS todavía (necesita una cuenta de Expo/EAS del usuario).
 
 ## Cómo ejecutarlo
@@ -90,6 +93,7 @@ mobile/
     components/           Screen, PendingCard, VantexMark (reutilizables)
     services/
       api.ts                fetch con Authorization: Bearer + refresco automático del access token
+                            (incluye postForm para subir la imagen del gráfico como multipart)
       authStorage.ts         guarda los tokens en SecureStore (localStorage solo en el target web)
     state/
       AuthContext.tsx        sesión (usuario, signup/login/logout) disponible en toda la app
@@ -106,8 +110,9 @@ tamaños probados, pero si en algún momento hay una versión vectorial
 (SVG/AI/Figma) del logo, conviene regenerar los assets desde ahí para
 máxima nitidez a 1024px.
 
-## Siguiente paso (Fase 3, no empezado)
+## Siguiente paso (Fase 4, no empezado)
 
-Conectar el AI Analyzer: selector de cámara/galería (`expo-image-picker`),
-subida de la imagen a `POST /api/analyzer` con el access token, y
-mostrar el resultado real (mismo motor que la web).
+Conectar Paper Trading (gráfico táctil con gestos/zoom, ticket de
+orden), Wallet Tracker, Copy Trading y Picks a sus endpoints reales
+(`/api/trading`, `/api/wallet`, `/api/copy`, `/api/picks`), mismo
+patrón ya usado en Analyzer.

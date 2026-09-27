@@ -112,6 +112,42 @@ cualquier pantalla de la app a datos reales:
   estado ("esto se conecta en la Fase X"), eso es la Fase 3 en
   adelante.
 
+**Fase 3 — AI Analyzer real en la app móvil — COMPLETA y verificada.**
+- Pantalla Analyzer reescrita: mismo campo de activo libre (chips
+  mixtos BTC/AAPL/SPY/EUR·USD como atajo, no lista cerrada — igual que
+  la web) + chips de temporalidad, `expo-image-picker` para cámara o
+  galería con los textos de permiso de iOS/Android declarados en
+  `app.json`, previsualización de la imagen elegida, y subida real a
+  `POST /api/analyzer` (mismo endpoint que usa la web) con el access
+  token.
+- `src/services/api.ts` gana `postForm()`: sube la imagen como
+  `multipart/form-data` sin que el envoltorio de refresco de token dejе
+  de funcionar (comparte la misma lógica de reintento que las demás
+  peticiones). En el target web construye un `Blob` real a partir del
+  `uri` que devuelve el picker; en nativo usa el objeto
+  `{uri,name,type}` que espera el `fetch` de React Native — misma
+  llamada, dos formas de construir el cuerpo según la plataforma.
+- Resultado, banner de confianza baja/"no parece un gráfico", cuota
+  diaria del plan gratuito, aviso de cuota agotada e historial
+  reabrible: todo con el mismo comportamiento que la web, adaptado a
+  componentes nativos (nada de WebView).
+- Cuota agotada: el aviso dirige a la web para mejorar el plan en vez
+  de fingir un cobro — las compras dentro de la app (StoreKit/Play
+  Billing) todavía no están implementadas a propósito (ver PLAN.md
+  sección de suscripciones más abajo).
+- **Verificado con Playwright** (`expo start --web`, contra el backend
+  real en Postgres): seleccionar un chip de activo y confirmarlo en el
+  resultado (sin forzar sufijo cripto); el evento de selector de
+  archivo del navegador se dispara de verdad al pulsar "Elegir de la
+  galería" (confirma que el shim web de `expo-image-picker` usa un
+  `<input type=file>` real, interceptable); previsualización se
+  muestra; análisis completo con badges/confianza/soportes-resistencias/
+  resumen/aviso de "modo de ejemplo"; historial se actualiza y la cuota
+  decrementa (3→2→1→0); al agotar la cuota gratuita aparece el aviso y
+  desaparece el botón de analizar, sin ocultar el último resultado.
+  Cero errores de consola en todo el flujo. Regresión completa de la
+  web repetida sin diferencias.
+
 ## Rediseño completo "producto real" — COMPLETO (5 fases)
 
 El usuario pidió una revisión y rediseño completo de la app (no solo

@@ -84,4 +84,8 @@ export const api = {
   post: (path: string, body?: unknown) => request(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   patch: (path: string, body?: unknown) => request(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   del: (path: string) => request(path, { method: 'DELETE' }),
+  // Para subir la imagen del gráfico: el FormData ya trae su propio
+  // Content-Type con el boundary del multipart, así que request() no debe
+  // tocarlo (ver el chequeo isFormData ahí dentro).
+  postForm: (path: string, formData: FormData) => request(path, { method: 'POST', body: formData as any }),
 };
