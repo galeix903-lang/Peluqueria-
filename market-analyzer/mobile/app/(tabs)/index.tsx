@@ -34,7 +34,7 @@ export default function HomeScreen() {
       <Text style={styles.sectionLabel}>Estado de esta fase</Text>
       <PendingCard
         icon="check-circle"
-        message="Fase 5: notificaciones push (alertas de stop-loss/take-profit), preferencias persistentes y build de producción con EAS ya están listas. Solo quedan las compras dentro de la app, que requieren cuentas propias de Apple/Google (ver SUBSCRIPTIONS.md)."
+        message="Fase 6: ya puedes editar tu nombre, bio y foto de perfil de verdad. Solo quedan recuperar contraseña y las compras dentro de la app, que requieren un servicio de email y cuentas propias de Apple/Google respectivamente."
       />
     </Screen>
   );

@@ -12,12 +12,15 @@ export type User = {
   plan: string;
 };
 
+type ProfilePatch = { name?: string; bio?: string | null; avatar?: string | null };
+
 type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
   signup: (email: string, password: string, name?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (patch: ProfilePatch) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -70,8 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  // Mismo endpoint que ya usa el modal de ajustes de la web
+  // (PATCH /api/auth/me) — funciona igual con el Bearer token de la app,
+  // requireAuth ya acepta ambos. Solo se envían los campos que cambian.
+  const updateProfile = useCallback(async (patch: ProfilePatch) => {
+    const data = await api.patch('/api/auth/me', patch);
+    setUser(data.user);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, signup, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, signup, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

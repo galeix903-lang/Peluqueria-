@@ -4,11 +4,23 @@ App nativa real para iOS/Android (no web empaquetada en un WebView),
 construida con Expo Router sobre la misma identidad de marca que
 `market-analyzer/public/` (la web de Vantex).
 
-## Estado actual: Fase 5 — notificaciones, preferencias y build de producción
+## Estado actual: Fase 6 — editar perfil real
 
-Login/signup/logout/sesión persistente (Fase 2), AI Analyzer (Fase 3) y
-Paper Trading/Picks/Wallet Tracker/Copy Trading (Fase 4) ya eran reales;
-ahora también lo son:
+Login/signup/logout/sesión persistente (Fase 2), AI Analyzer (Fase 3),
+Paper Trading/Picks/Wallet Tracker/Copy Trading (Fase 4) y notificaciones
+push/preferencias (Fase 5) ya eran reales; ahora también lo es:
+- **Editar perfil** (`(tabs)/profile.tsx`): nombre, bio (160 caracteres,
+  con contador) y foto de perfil, contra el mismo
+  `PATCH /api/auth/me` que ya usaba el modal de ajustes de la web — sin
+  cambios en el backend, `requireAuth` ya aceptaba tanto la cookie de la
+  web como el Bearer token de la app. La foto se recorta a cuadrado,
+  se reduce a 400px de ancho con `expo-image-manipulator` y se envía
+  como data URL en base64 (mismo formato y mismo límite de tamaño que ya
+  validaba el backend); se puede tomar con la cámara o elegir de la
+  galería, y quitar la foto actual. "Cancelar" descarta cualquier
+  cambio sin guardarlo.
+
+Lo de la Fase 5 sigue igual:
 - **Notificaciones push reales** (`expo-notifications`): al activarlas
   en Perfil, el dispositivo se registra contra
   `POST /api/notifications/register-token` (backend real, tabla
@@ -98,7 +110,7 @@ mobile/
       analyzer.tsx
       trading.tsx          Ticket de orden + posiciones + sparkline
       picks.tsx
-      profile.tsx          Cuenta real + cerrar sesión
+      profile.tsx          Cuenta real, editar nombre/bio/foto, notificaciones, cerrar sesión
     wallet.tsx             Wallet Tracker (fuera de las tabs, se llega desde Inicio)
     copy.tsx                Copy Trading (fuera de las tabs, se llega desde Inicio)
   src/
@@ -175,10 +187,12 @@ ya creadas las cuentas de Apple Developer Program y Google Play Console.
 
 ## Siguiente paso
 
-Con Fase 5 completa, el roadmap acordado con el usuario llega a su fin
-en cuanto a lo que se puede construir dentro de este entorno de
-desarrollo. Lo que queda pendiente depende de acciones del propio
-usuario fuera de aquí: crear sus cuentas de Apple/Google, ejecutar
-`eas init`/`eas build`/`eas submit`, y — si quiere compras dentro de la
-app — dar de alta los productos de suscripción en App Store
-Connect/Play Console (ver [`SUBSCRIPTIONS.md`](./SUBSCRIPTIONS.md)).
+Con la Fase 6 completa, todo lo que se puede construir dentro de este
+entorno de desarrollo está hecho: auth, las 5 herramientas, notificaciones
+push, preferencias, y ahora edición de perfil real. Lo único que queda
+"Próximamente" en la app (recuperar contraseña, compras dentro de la app)
+depende de acciones del propio usuario fuera de aquí: dar de alta un
+servicio de email para recuperar contraseña, crear sus cuentas de
+Apple/Google, ejecutar `eas init`/`eas build`/`eas submit`, y — si quiere
+compras dentro de la app — dar de alta los productos de suscripción en
+App Store Connect/Play Console (ver [`SUBSCRIPTIONS.md`](./SUBSCRIPTIONS.md)).

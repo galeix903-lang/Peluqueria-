@@ -4,7 +4,7 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
-## App móvil nativa (Expo + Router) — COMPLETA (Fases 0-5)
+## App móvil nativa (Expo + Router) — COMPLETA (Fases 0-6)
 
 El usuario pidió convertir Vantex en una app nativa real para iOS/
 Android (App Store/Google Play), no una web empaquetada. Auditoría
@@ -259,12 +259,57 @@ COMPLETA y verificada.**
   guardado, envío, manejo de errores — está verificado hasta esa
   frontera.
 
-Con esto, el roadmap de 5 fases acordado con el usuario para la app
-móvil nativa queda completo dentro de lo construible en este entorno de
-desarrollo; lo que falta (compras reales, build firmado, entrega real de
-push) depende de acciones del propio usuario fuera de aquí (cuentas de
-Apple/Google, `eas login`), documentadas paso a paso en
-`mobile/README.md` y `mobile/SUBSCRIPTIONS.md`.
+**Fase 6 — Editar perfil real (nombre/bio/foto) — COMPLETA y
+verificada.** Al terminar la Fase 5, el usuario pidió elegir el alcance
+de la siguiente fase; entre editar perfil, recuperar contraseña, o una
+auditoría de accesibilidad/rendimiento, eligió editar perfil.
+- **Backend**: sin cambios — `PATCH /api/auth/me` (`server/routes/
+  auth.js`) ya aceptaba `name`/`bio`/`avatar` (validación de longitud y
+  de que `avatar` sea una data URL `image/*` de como mucho 400.000
+  caracteres) y ya lo usaba el modal de ajustes de la web; `requireAuth`
+  ya acepta tanto la cookie de sesión como el Bearer token móvil, así
+  que no hacía falta ninguna ruta nueva.
+- **Mobile**: `AuthContext` gana `updateProfile(patch)` (llama al PATCH
+  y actualiza el `user` en memoria). `(tabs)/profile.tsx` gana un modo
+  de edición (botón "Editar perfil"): nombre y bio (160 caracteres, con
+  contador) en `TextInput`, y foto de perfil vía `expo-image-picker`
+  (cámara o galería, recorte cuadrado) redimensionada a 400px de ancho
+  con `expo-image-manipulator` (paquete nuevo) antes de codificarla en
+  base64 — deja margen de sobra bajo el límite de 400KB del backend sin
+  necesidad de subir la foto original de varios MB de una cámara de
+  móvil. "Quitar foto" envía `avatar: null` explícito. "Cancelar"
+  descarta el borrador sin llamar al backend; solo los campos
+  realmente cambiados se envían en el `PATCH`.
+- **Bug encontrado y corregido durante la verificación**: la tarjeta de
+  perfil en modo lectura nunca mostraba la bio (el campo se guardaba
+  bien en Postgres — confirmado con `psql` directo — pero no había
+  ningún `<Text>` para pintarla), así que el primer pase de Playwright
+  reportaba "no persiste" cuando en realidad era un hueco de
+  renderizado, no de guardado. Corregido añadiendo la línea de bio a la
+  tarjeta de perfil.
+- **Verificado con Playwright** (`expo start --web`, backend real en
+  Postgres): editar nombre+bio+guardar refleja el cambio al instante;
+  recargar la página conserva nombre y bio (confirma que persiste en el
+  servidor, no solo en el estado de React); "Cancelar" tras cambiar el
+  nombre descarta el cambio sin guardar nada. Probado también
+  directamente con `curl` contra `PATCH /api/auth/me`: nombre+bio,
+  avatar con una data URL de prueba, y `avatar: null` para quitarla —
+  los tres casos devuelven y persisten el valor esperado. Regresión
+  completa de las Fases 4 y 5 (trading, picks, wallet, copy trading,
+  sección de notificaciones) repetida sin diferencias. Cero errores de
+  consola.
+- **Pendiente, ya documentado y fuera del alcance de esta fase**:
+  "Olvidé mi contraseña" (necesita un servicio de email) y las compras
+  dentro de la app (necesitan cuentas de Apple/Google) — ver
+  `mobile/README.md` y `mobile/SUBSCRIPTIONS.md`.
+
+Con esto, el roadmap acordado con el usuario para la app móvil nativa
+(Fases 0-6) queda completo dentro de lo construible en este entorno de
+desarrollo; lo que falta (recuperar contraseña, compras reales, build
+firmado, entrega real de push) depende de acciones del propio usuario
+fuera de aquí (un proveedor de email, cuentas de Apple/Google, `eas
+login`), documentadas paso a paso en `mobile/README.md` y
+`mobile/SUBSCRIPTIONS.md`.
 
 ## Rediseño completo "producto real" — COMPLETO (5 fases)
 
