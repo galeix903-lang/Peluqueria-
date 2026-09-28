@@ -93,4 +93,94 @@ function isUsingFallbackPrices() {
   return !!cache.isFallback;
 }
 
-module.exports = { fetchPrices, getPrice, getHistory, isUsingFallbackPrices, SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID) };
+// ---------- Velas OHLCV reales (para el motor de análisis técnico) ----------
+// A diferencia de fetchPrices() (precio puntual), esto trae velas reales
+// (open/high/low/close) del endpoint /ohlc de CoinGecko — indispensable
+// para calcular ATR, estructura de máximos/mínimos y soportes/
+// resistencias reales, no aproximados a partir de un único precio.
+// CoinGecko no ofrece volumen en /ohlc, así que se casa cada vela con la
+// muestra de volumen más cercana en el tiempo de /market_chart (mismo
+// activo, mismo rango) — una aproximación honesta, nunca un volumen
+// inventado: si /market_chart falla, la vela simplemente no lleva volumen
+// en vez de rellenarlo con un número cualquiera.
+const CANDLE_CACHE_TTL_MS = 2 * 60 * 1000;
+const candleCache = {}; // key: `${symbol}:${days}` -> { data, fetchedAt }
+
+function nearestVolume(volumeSamples, timestamp) {
+  if (!volumeSamples || !volumeSamples.length) return null;
+  let best = null;
+  let bestDiff = Infinity;
+  for (const [t, v] of volumeSamples) {
+    const diff = Math.abs(t - timestamp);
+    if (diff < bestDiff) { bestDiff = diff; best = v; }
+  }
+  return best;
+}
+
+async function fetchCandlesRaw(symbol, days) {
+  const geckoId = SYMBOL_TO_COINGECKO_ID[symbol.toUpperCase()];
+  if (!geckoId) return null;
+
+  const [ohlcRes, chartRes] = await Promise.all([
+    fetch(`https://api.coingecko.com/api/v3/coins/${geckoId}/ohlc?vs_currency=usd&days=${days}`),
+    fetch(`https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart?vs_currency=usd&days=${days}`).catch(() => null),
+  ]);
+  if (!ohlcRes.ok) throw new Error(`CoinGecko /ohlc respondió ${ohlcRes.status}`);
+  const ohlcData = await ohlcRes.json(); // [[time, open, high, low, close], ...]
+  if (!Array.isArray(ohlcData) || ohlcData.length === 0) return null;
+
+  let volumeSamples = null;
+  if (chartRes && chartRes.ok) {
+    const chartData = await chartRes.json();
+    volumeSamples = chartData?.total_volumes || null;
+  }
+
+  return ohlcData.map(([time, open, high, low, close]) => ({
+    time, open, high, low, close,
+    volume: nearestVolume(volumeSamples, time),
+  }));
+}
+
+async function getCandles(symbol, days) {
+  const key = `${symbol.toUpperCase()}:${days}`;
+  const cached = candleCache[key];
+  if (cached && Date.now() - cached.fetchedAt < CANDLE_CACHE_TTL_MS) {
+    return cached.data;
+  }
+  try {
+    const candles = await fetchCandlesRaw(symbol, days);
+    candleCache[key] = { data: candles, fetchedAt: Date.now() };
+    return candles;
+  } catch (err) {
+    // Sin red hacia CoinGecko: nunca se inventan velas. Si había algo en
+    // caché (aunque esté vencido) se devuelve eso; si no, null — quien
+    // llama debe tratar null como "no hay datos reales disponibles" y
+    // caer al camino de análisis visual, nunca simular velas.
+    if (cached) return cached.data;
+    return null;
+  }
+}
+
+// Dos contextos de temporalidad, ambos con datos 100% reales:
+// - mainTrend: velas de 4h de los últimos 30 días (~180 velas) — la
+//   ventana más ancha que el /ohlc gratuito de CoinGecko da en 4h antes
+//   de saltar a velas de 4 días. Usada para tendencia/estructura/ATR.
+// - shortTerm: velas de 30 min de los últimos 2 días (~96 velas) — para
+//   momentum/RSI/MACD de corto plazo y confirmación de entrada.
+async function getMultiTimeframeCandles(symbol) {
+  const [mainTrend, shortTerm] = await Promise.all([
+    getCandles(symbol, 30),
+    getCandles(symbol, 2),
+  ]);
+  return { mainTrend, shortTerm };
+}
+
+function hasRealDataFor(symbol) {
+  return !!SYMBOL_TO_COINGECKO_ID[symbol?.toUpperCase()];
+}
+
+module.exports = {
+  fetchPrices, getPrice, getHistory, isUsingFallbackPrices,
+  getCandles, getMultiTimeframeCandles, hasRealDataFor,
+  SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID),
+};

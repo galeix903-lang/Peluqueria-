@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const store = require('../store');
-const { analyzeChart } = require('../services/claude');
+const { analyzeChart } = require('../services/analysisPipeline');
 const asyncHandler = require('../middleware/asyncHandler');
 
 // Límite diario de análisis por plan — Infinity para Pro (sin límite).

@@ -1,22 +1,24 @@
 /*
-  Analiza una captura de un gráfico de mercado y devuelve un objeto con
-  forma fija (ver ANALYSIS_TOOL más abajo). Dos modos:
+  Llamada a Claude Vision para el CAMINO VISUAL del analizador (ver
+  server/services/analysisPipeline.js para la orquestación completa).
+
+  Este archivo solo sabe hablar con el modelo — no decide la señal final
+  ni calcula la confianza que se le muestra al usuario; eso lo gobierna
+  analysisPipeline.js a partir de lo que el modelo devuelve aquí, porque
+  no hay forma de verificar que la autoevaluación de confianza del propio
+  modelo sea correcta. Dos modos:
 
   - real: llama a Claude (con visión) usando "tool use" forzado, para que
     la respuesta sea siempre JSON válido con esa forma exacta.
   - mock: sin llamar a ninguna API, devuelve un ejemplo realista (elegido
     entre varias plantillas) para poder desarrollar y probar el resto del
     producto sin necesitar una API key todavía.
-
-  El modo se decide en cada llamada según ANALYZER_MODE y si hay
-  ANTHROPIC_API_KEY configurada — así, añadir la key en `.env` activa el
-  modo real sin tocar código.
 */
 const DISCLAIMER = 'Esto es información educativa generada por IA, no es asesoría financiera. Opera bajo tu propio criterio y asumiendo el riesgo.';
 
 const ANALYSIS_TOOL = {
   name: 'record_chart_analysis',
-  description: 'Registra el análisis estructurado de un gráfico de mercado.',
+  description: 'Registra la lectura visual de un gráfico de mercado, campo por campo, sin inventar nada que no se vea con claridad en la imagen.',
   input_schema: {
     type: 'object',
     properties: {
@@ -33,18 +35,22 @@ const ANALYSIS_TOOL = {
         type: 'boolean',
         description: 'true si la imagen es claramente un gráfico de precios de un activo financiero (velas, línea de precio con eje temporal, indicadores técnicos, etc.); false si es otra cosa (captura de una app, foto, imagen borrosa o irreconocible) o si tienes dudas serias de que lo sea.',
       },
+      priceAxisLegible: {
+        type: 'boolean',
+        description: 'true SOLO si puedes leer cifras reales y concretas en el eje de precios (no una estimación). false si el eje no tiene números legibles, está cortado, o tendrías que adivinar la escala.',
+      },
       asset: { type: 'string', description: 'Activo identificado en el gráfico, del tipo que sea (cripto como "BTC/USDT", acción como "AAPL", fondo/ETF como "SPY", forex como "EUR/USD", índice, materia prima, etc.), en el formato en que aparezca en la imagen. Si no se puede identificar con certeza, usa "Desconocido" en vez de adivinar.' },
       trend: { type: 'string', enum: ['alcista', 'bajista', 'lateral'] },
-      support: { type: 'array', items: { type: 'number' }, description: 'Hasta 3 niveles de soporte visibles en el gráfico. Usa los números exactos del eje de precios si son legibles; si no lo son, indícalo en el resumen en vez de inventar cifras con falsa precisión.' },
-      resistance: { type: 'array', items: { type: 'number' }, description: 'Hasta 3 niveles de resistencia visibles en el gráfico. Mismo criterio que support: cifras leídas del eje, nunca inventadas.' },
+      support: { type: 'array', items: { type: 'number' }, description: 'Hasta 3 niveles de soporte visibles en el gráfico. Usa los números exactos del eje de precios si priceAxisLegible es true; si no, deja el array vacío en vez de inventar cifras con falsa precisión.' },
+      resistance: { type: 'array', items: { type: 'number' }, description: 'Hasta 3 niveles de resistencia visibles en el gráfico. Mismo criterio que support.' },
       summary: { type: 'string', description: 'Explicación breve (2-4 frases) de la lectura técnica del gráfico, mencionando explícitamente cualquier limitación (eje no legible, imagen recortada, activo no identificado, etc.) si la hay.' },
-      bias: { type: 'string', enum: ['compra', 'venta', 'esperar'] },
-      confidence: {
+      visualBias: { type: 'string', enum: ['compra', 'venta', 'esperar'], description: 'Lectura visual del sesgo — esto NO es la señal final que verá el usuario, es un input que el sistema calibra después. Usa "esperar" si la imagen no da para más.' },
+      modelConfidence: {
         type: 'number',
-        description: 'Confianza de 0 a 100, calibrada de verdad: usa valores bajos (<35) si la imagen no es un gráfico claro, si el eje de precios no se lee, o si el activo/tendencia no son evidentes. No uses cifras altas por defecto.',
+        description: 'Tu confianza de 0 a 100 en tu propia lectura visual. Sé estricto: usa valores bajos (<35) si la imagen no es un gráfico claro, si el eje de precios no se lee, o si el activo/tendencia no son evidentes. No uses cifras altas por defecto — el sistema no confiará ciegamente en este número, pero una cifra inflada sí puede sesgar el resultado final, así que sé honesto.',
       },
     },
-    required: ['reasoning', 'isChart', 'asset', 'trend', 'support', 'resistance', 'summary', 'bias', 'confidence'],
+    required: ['reasoning', 'isChart', 'priceAxisLegible', 'asset', 'trend', 'support', 'resistance', 'summary', 'visualBias', 'modelConfidence'],
   },
 };
 
@@ -61,25 +67,25 @@ const MOCK_TEMPLATES = [
     asset: 'BTC/USDT', trend: 'alcista',
     support: [61200, 59500], resistance: [64800, 67000],
     reasoning: 'La imagen muestra velas japonesas sobre un eje de precios legible entre ~58.000 y ~68.000, con máximos y mínimos sucesivamente más altos y volumen creciente en los impulsos.',
-    isChart: true,
+    isChart: true, priceAxisLegible: true,
     summary: 'Estructura de máximos y mínimos crecientes; el precio respeta la media móvil de 50 y el volumen acompaña los impulsos alcistas.',
-    bias: 'compra', confidence: 68,
+    visualBias: 'compra', modelConfidence: 62,
   },
   {
     asset: 'ETH/USDT', trend: 'lateral',
     support: [3150, 3020], resistance: [3400, 3550],
     reasoning: 'Se observa un rango lateral bien delimitado en el eje de precios, con varios toques claros en la zona alta y baja del rango y sin expansión de volumen en los extremos.',
-    isChart: true,
+    isChart: true, priceAxisLegible: true,
     summary: 'Rango bien definido entre soporte y resistencia en las últimas semanas, sin volumen suficiente para confirmar una ruptura clara todavía.',
-    bias: 'esperar', confidence: 54,
+    visualBias: 'esperar', modelConfidence: 48,
   },
   {
     asset: 'SOL/USDT', trend: 'bajista',
     support: [128, 118], resistance: [142, 150],
     reasoning: 'La serie de velas muestra máximos decrecientes y una ruptura reciente del soporte de corto plazo, con un rebote posterior de volumen débil.',
-    isChart: true,
+    isChart: true, priceAxisLegible: true,
     summary: 'Serie de máximos decrecientes con pérdida del soporte de corto plazo; el rebote actual llega con volumen débil.',
-    bias: 'venta', confidence: 61,
+    visualBias: 'venta', modelConfidence: 55,
   },
   // Plantillas no-cripto: el modo mock también debe demostrar que el
   // analizador no está limitado a pares cripto (acciones, fondos/ETF, forex).
@@ -87,25 +93,25 @@ const MOCK_TEMPLATES = [
     asset: 'AAPL', trend: 'alcista',
     support: [212, 205], resistance: [228, 235],
     reasoning: 'El gráfico de velas diarias muestra un eje de precios legible en dólares, con la acción formando mínimos crecientes por encima de la media móvil de 50 sesiones.',
-    isChart: true,
+    isChart: true, priceAxisLegible: true,
     summary: 'Tendencia alcista de fondo con pullbacks poco profundos; el volumen se mantiene sano en los rebotes desde soporte.',
-    bias: 'compra', confidence: 63,
+    visualBias: 'compra', modelConfidence: 58,
   },
   {
     asset: 'SPY', trend: 'lateral',
     support: [560, 552], resistance: [578, 585],
     reasoning: 'Se observa un ETF de índice moviéndose en un rango lateral amplio en las últimas semanas, con el eje de precios en dólares claramente legible.',
-    isChart: true,
+    isChart: true, priceAxisLegible: true,
     summary: 'El fondo cotiza en rango sin una ruptura clara todavía; conviene esperar confirmación antes de tomar posición direccional.',
-    bias: 'esperar', confidence: 50,
+    visualBias: 'esperar', modelConfidence: 45,
   },
   {
     asset: 'EUR/USD', trend: 'bajista',
     support: [1.052, 1.045], resistance: [1.068, 1.075],
     reasoning: 'El par de divisas muestra una serie de máximos decrecientes en temporalidad diaria, con el eje de precios expresado en el formato habitual de forex (4 decimales).',
-    isChart: true,
+    isChart: true, priceAxisLegible: true,
     summary: 'Presión bajista sostenida frente al soporte de corto plazo; una pérdida de ese nivel abriría paso a la siguiente zona de soporte.',
-    bias: 'venta', confidence: 57,
+    visualBias: 'venta', modelConfidence: 52,
   },
 ];
 
@@ -144,7 +150,7 @@ async function callClaudeVision(imageBuffer, mimeType, { symbolHint, timeframe }
           },
           {
             type: 'text',
-            text: `Analiza esta imagen como lo haría un analista técnico riguroso, pero solo a partir de lo que realmente puedas leer en ella — no completes con suposiciones lo que no se vea con claridad. El gráfico puede ser de cualquier tipo de activo (criptomoneda, acción, fondo/ETF, forex, índice, materia prima…): no asumas que es cripto por defecto, identifica el tipo de activo por lo que veas realmente en la imagen (ticker, nombre, formato del par, unidades). Primero describe en el campo "reasoning" lo que observas literalmente (¿hay velas o línea de precio? ¿se lee un eje de precios con cifras? ¿qué rango cubre?) antes de concluir nada. Si la imagen no es claramente un gráfico de precios de un activo financiero, o el eje de precios no es legible, dilo explícitamente (isChart en false y/o confidence baja) en vez de inventar una lectura completa. Identifica el activo solo si es reconocible, la tendencia, niveles de soporte/resistencia (con las cifras exactas del eje si se leen, aproximadas si no, dejándolo claro en el resumen), y un sesgo (compra/venta/esperar) con una confianza calibrada de verdad a lo que puedes justificar con la imagen. ${hints} Registra el resultado con la herramienta record_chart_analysis.`,
+            text: `Analiza esta imagen como lo haría un analista técnico riguroso, pero solo a partir de lo que realmente puedas leer en ella — no completes con suposiciones lo que no se vea con claridad. El gráfico puede ser de cualquier tipo de activo (criptomoneda, acción, fondo/ETF, forex, índice, materia prima…): no asumas que es cripto por defecto, identifica el tipo de activo por lo que veas realmente en la imagen (ticker, nombre, formato del par, unidades). Primero describe en el campo "reasoning" lo que observas literalmente (¿hay velas o línea de precio? ¿se lee un eje de precios con cifras? ¿qué rango cubre?) antes de concluir nada. Si la imagen no es claramente un gráfico de precios de un activo financiero, o el eje de precios no es legible, dilo explícitamente (isChart y/o priceAxisLegible en false) en vez de inventar una lectura completa. Identifica el activo solo si es reconocible, la tendencia, niveles de soporte/resistencia (solo con cifras exactas leídas del eje, nunca aproximadas de memoria), y un sesgo visual (compra/venta/esperar) con una confianza calibrada de verdad a lo que puedes justificar con la imagen — sé especialmente estricto con modelConfidence, este sistema penaliza las respuestas infladas. ${hints} Registra el resultado con la herramienta record_chart_analysis.`,
           },
         ],
       },
@@ -156,10 +162,4 @@ async function callClaudeVision(imageBuffer, mimeType, { symbolHint, timeframe }
   return toolUse.input;
 }
 
-async function analyzeChart(imageBuffer, mimeType, context = {}) {
-  const mode = resolveMode();
-  const result = mode === 'live' ? await callClaudeVision(imageBuffer, mimeType, context) : mockAnalysis(context);
-  return { ...result, mock: mode !== 'live', disclaimer: DISCLAIMER };
-}
-
-module.exports = { analyzeChart, resolveMode, DISCLAIMER };
+module.exports = { callClaudeVision, mockAnalysis, resolveMode, DISCLAIMER };

@@ -4,6 +4,126 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## Motor de análisis v2 — señal determinista BUY/SELL/WAIT — COMPLETO
+
+El usuario pidió una revisión y optimización PROFUNDA del sistema de
+análisis (no del diseño visual): respuestas más acertadas, consistentes,
+simples, basadas exclusivamente en datos reales disponibles, sin
+inventar información, con una señal principal inequívoca (🟢 COMPRAR /
+🔴 VENDER / ⚪ ESPERAR) como primera conclusión visible, con motivo y
+confianza calibrada de verdad.
+
+**Diagnóstico (antes de tocar código)**: el AI Analyzer de Vantex era
+100% "visión de captura" — el usuario sube una foto de un gráfico y
+Claude la interpreta a ojo. No existía ningún pipeline de datos
+OHLCV/indicadores en toda la aplicación; lo único parecido eran precios
+spot en vivo de 5 criptos (`server/services/market.js`, ya usado por
+Paper Trading) sin velas ni volumen. Pedir al modelo que reportara
+RSI/MACD/EMA "reales" a partir de solo una imagen chocaba directamente
+con "no inventar datos". La salida era además un `bias` de texto libre
+sin motor de scoring ni reglas de confluencia — todo dependía del juicio
+de una sola llamada al LLM.
+
+**Decisión de arquitectura**: pipeline de DOS caminos, ambos devolviendo
+el mismo contrato unificado (`signal`/`confidence`/`risk`/`trend`/
+`momentum`/`volume`/`structure`/`support`/`resistance`/`reasons`/
+`mainReason`/`source`), implementado en
+`server/services/analysisPipeline.js`:
+
+- **Camino REAL_DATA** (los 5 símbolos con datos reales que Vantex ya
+  sigue — BTC/ETH/SOL/BNB/XRP): `market.js` gana `getCandles`/
+  `getMultiTimeframeCandles` (velas OHLC reales de CoinGecko, 4h/30d
+  para tendencia+estructura y 30min/2d para momentum de corto plazo, con
+  volumen emparejado desde `/market_chart` — nunca inventado, si no hay
+  volumen el campo queda `UNAVAILABLE` en vez de rellenarse). Sobre esas
+  velas, tres módulos deterministas nuevos, sin ningún LLM de por medio:
+  - `server/services/indicators.js`: EMA/RSI(Wilder)/MACD/ATR/volumen
+    relativo — funciones puras, cada una probada con velas sintéticas.
+  - `server/services/structure.js`: swings de máximos/mínimos,
+    agrupación en niveles de soporte/resistencia por número de toques,
+    estructura de tendencia (HH/HL vs LH/LL), y detección de ruptura que
+    exige que el nivel se haya respetado como frontera en la MAYORÍA del
+    histórico (no solo una ventana corta) y que el cierre reciente esté
+    ya de forma sostenida al otro lado — así una ruptura de verdad nunca
+    se confunde con el cruce normal de cada ciclo de un mercado lateral.
+  - `server/services/signalEngine.js`: motor de scoring (pesos
+    tendencia 35% / momentum 25% / precio-estructura 25% / volumen 15%,
+    volatilidad usada para el riesgo, no para la dirección) que exige
+    confluencia real (si hay tantas señales en contra como a favor →
+    ESPERAR sea cual sea el score) y aplica la regla explícita del
+    usuario: RSI>70 NO es venta automática ni RSI<30 compra automática
+    — el momentum se puntúa por dirección reciente y MACD, un RSI
+    extremo solo penaliza la confianza. Multi-timeframe: la tendencia de
+    4h/30d manda; el momentum de 30min/2d solo puede reducir la
+    confianza y dejar constancia si contradice al principal, nunca
+    voltear la señal él solo. Cero llamadas a un LLM en este camino —
+    más rápido y sin superficie de alucinación posible.
+- **Camino VISUAL** (cualquier otro activo — la mayoría de capturas
+  reales: acciones, forex, alts sin cobertura, o sin símbolo indicado):
+  Claude Vision sigue leyendo la imagen (`server/services/claude.js`,
+  schema rehecho: `priceAxisLegible` explícito, `visualBias`/
+  `modelConfidence` en vez de una `confidence` en la que el pipeline
+  confiaría a ciegas), pero la confianza mostrada al usuario NUNCA es la
+  que reporta el modelo tal cual — `analysisPipeline.js` la gobierna a
+  partir de señales objetivas (¿se lee el eje?, ¿hay niveles?, ¿se
+  identificó el activo?) mezcladas solo al 45% con la autoevaluación del
+  modelo, con un TOPE DURO de 60% de confianza (el camino visual nunca
+  puede presentarse como igual de fiable que el real), y la señal se
+  fuerza a ESPERAR si la confianza gobernada queda por debajo de 35%.
+  `momentum`/`volume`/`structure` se marcan `UNAVAILABLE` en este camino
+  — nunca se finge haber calculado algo que solo se leyó a ojo.
+- **Fallback honesto**: si un símbolo tiene cobertura real pero
+  CoinGecko no responde en ese momento (o está bloqueado, como en este
+  sandbox de desarrollo), nunca se inventan velas — cae al camino visual
+  con una nota explícita ("no se pudieron obtener datos de mercado en
+  tiempo real para X"), nunca en silencio.
+
+**Bugs reales encontrados y corregidos durante las pruebas** (con
+velas sintéticas, `server/scripts/test-signal-engine.js`, 18 escenarios
+— tendencia fuerte alcista/bajista, lateral, ruptura alcista/bajista,
+falsa ruptura, RSI extremo, señales contradictorias, pocos datos, sin
+volumen, alta/baja volatilidad, determinismo):
+1. El scoring de momentum por RSI tenía rangos solapados y asimétricos
+   (45-70 y 30-55 se pisaban) que podían dar momentum "positivo" en
+   plena tendencia bajista — reescrito simétrico alrededor de 50.
+2. La detección de ruptura solo miraba la vela anterior — un impulso de
+   varias velas ya la había dejado atrás. Reescrita para exigir que el
+   nivel se respetara en la MAYORÍA del histórico completo (no una
+   ventana corta) y que el tramo reciente esté ya sostenido al otro
+   lado — esto también corrigió falsas rupturas en mercados laterales
+   (cada ciclo cruza sus propios niveles, eso no es una ruptura).
+3. Los niveles de soporte/resistencia usados para detectar ruptura
+   ahora exigen 2+ toques (un solo swing no es un nivel real).
+
+**Frontend** (web `public/analyzer/index.html` + móvil `mobile/app/
+(tabs)/analyzer.tsx`, mismo contrato, mismo criterio en ambos):
+resultado reestructurado con la señal como lo primero y más grande que
+se ve (badge grande 🟢/🔴/⚪ + COMPRAR/VENDER/ESPERAR), confianza justo
+debajo, motivo principal en una frase, una nota que dice explícitamente
+si la señal viene de datos reales o de una lectura visual, una rejilla
+de 4 hechos (Tendencia/Momentum/Volumen/Estructura), riesgo, precio
+cuando está disponible, niveles de soporte/resistencia, y una lista
+corta (máximo 5) de las señales que de verdad justifican la conclusión
+— nunca un párrafo largo. Chips de símbolo marcados con ★ para los que
+tienen datos reales detrás. Historial también migrado a mostrar el
+badge de señal en vez del `bias` de texto libre anterior.
+
+**Verificado**: 18/18 pruebas del motor determinista con velas
+sintéticas; test de integración del pipeline completo (mockeando
+`market.getMultiTimeframeCandles`) confirmando que un símbolo con velas
+reales usa el camino REAL_DATA sin ninguna llamada a Claude, que la
+caída a visual cuando CoinGecko no responde deja la nota honesta
+esperada, y que un símbolo sin cobertura ni siquiera intenta la petición
+de mercado; Playwright de extremo a extremo en web y móvil (señal
+visible, confianza, nota de fuente, hechos, riesgo, historial con
+badge, cero errores de consola); regresión completa de Trading/Picks/
+Wallet/Copy/notificaciones/edición de perfil repetida sin diferencias.
+**Limitación honesta**: este sandbox bloquea la salida a CoinGecko, así
+que el camino REAL_DATA está verificado con velas sintéticas y un test
+de integración con la capa de red mockeada, pero no se ha podido
+comprobar aquí contra CoinGecko en vivo — en producción (Render, mismo
+proveedor que ya usa Paper Trading con éxito) debería funcionar igual.
+
 ## App móvil nativa (Expo + Router) — COMPLETA (Fases 0-6)
 
 El usuario pidió convertir Vantex en una app nativa real para iOS/

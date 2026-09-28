@@ -103,9 +103,23 @@
   <script>
     // Ejemplos deliberadamente mixtos (cripto, acción, fondo, forex) para que
     // quede claro que el analizador no está limitado a un solo tipo de activo.
-    const SUPPORTED_SYMBOLS = ['BTC', 'AAPL', 'SPY', 'EUR/USD'];
+    // Los marcados con ★ tienen datos de mercado reales (velas OHLCV) detrás:
+    // para esos, la señal sale de un motor de cálculo determinista, no de que
+    // la IA "opine" mirando la captura — ver server/services/analysisPipeline.js.
+    const REAL_DATA_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];
+    const SUPPORTED_SYMBOLS = ['BTC', 'ETH', 'AAPL', 'SPY', 'EUR/USD'];
     const TIMEFRAMES = ['15m', '1H', '4H', '1D', '1W'];
     const STEPS = ['Leyendo gráfico…', 'Detectando patrones…', 'Generando análisis…'];
+    const SIGNAL_META = {
+      BUY: { emoji: '🟢', label: 'COMPRAR', cls: 'buy' },
+      SELL: { emoji: '🔴', label: 'VENDER', cls: 'sell' },
+      WAIT: { emoji: '⚪', label: 'ESPERAR', cls: 'wait' },
+    };
+    const TREND_LABEL = { BULLISH: 'Alcista', BEARISH: 'Bajista', SIDEWAYS: 'Lateral' };
+    const MOMENTUM_LABEL = { POSITIVE: 'Positivo', NEGATIVE: 'Negativo', NEUTRAL: 'Neutral', UNAVAILABLE: 'No disponible' };
+    const VOLUME_LABEL = { CONFIRMING: 'Confirmando', WEAK: 'Débil', UNAVAILABLE: 'No disponible' };
+    const STRUCTURE_LABEL = { BULLISH: 'Alcista', BEARISH: 'Bajista', MIXED: 'Mixta', UNAVAILABLE: 'No disponible' };
+    const RISK_LABEL = { LOW: 'Bajo', MEDIUM: 'Medio', HIGH: 'Alto' };
 
     mountShell({ page: 'analyzer', title: 'AI Analyzer' }).then((ctx) => {
       if (!ctx) return;
@@ -124,8 +138,9 @@
               <div class="text-meta" style="margin-bottom:8px;">Activo (opcional)</div>
               <input type="text" class="symbol-input" data-symbol-input placeholder="Cripto, acción, fondo, forex…" maxlength="20" />
               <div class="chip-row" data-symbol-chips style="margin-top:8px;">
-                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip" data-symbol="${s}">${s}</button>`).join('')}
+                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip" data-symbol="${s}" title="${REAL_DATA_SYMBOLS.includes(s) ? 'Datos de mercado reales' : 'Lectura visual de la imagen'}">${s}${REAL_DATA_SYMBOLS.includes(s) ? ' ★' : ''}</button>`).join('')}
               </div>
+              <div class="text-meta" style="margin-top:6px; color:var(--text-dim);">★ = señal calculada con datos de mercado reales, no solo lectura de la imagen</div>
             </div>
             <div>
               <div class="text-meta" style="margin-bottom:8px;">Temporalidad</div>
@@ -315,46 +330,67 @@
         emptyHintEl.hidden = true;
         resultEl.hidden = false;
         resultEl.classList.remove('reveal-pop');
-        const lowConfidence = a.isChart === false || a.confidence < 35;
+        const sig = SIGNAL_META[a.signal] || SIGNAL_META.WAIT;
+        const isReal = a.source === 'REAL_DATA';
         resultEl.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
             <div>
               <div style="font-weight:800; font-size:1.1rem;">${a.asset}</div>
               <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
-                <span class="badge badge--${a.trend}">${a.trend}</span>
-                <span class="badge badge--${a.bias}">${a.bias}</span>
                 ${a.timeframe ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${a.timeframe}</span>` : ''}
                 ${a.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
               </div>
             </div>
           </div>
-          ${lowConfidence ? `
-            <div class="panel" style="margin:16px 0; background:var(--amber-bg); border-color:var(--amber); display:flex; align-items:center; gap:10px;">
-              ${vantexIcon('alertTriangle', { size: 16 })}
-              <span style="font-size:.8125rem; color:var(--text);">${a.isChart === false ? 'No hemos podido reconocer esto con claridad como un gráfico de precios.' : 'Confianza baja en esta lectura.'} Trátala como una aproximación, no como una conclusión firme.</span>
-            </div>
-          ` : ''}
-          <p style="margin:16px 0 6px; color:var(--text-dim);">Confianza del análisis: ${a.confidence}%</p>
-          <div class="confidence-bar"><span data-confidence-fill></span></div>
+
+          <div class="signal-hero signal-hero--${sig.cls}">
+            <div class="signal-hero__label">${sig.emoji} ${sig.label}</div>
+            <div class="signal-hero__confidence">Confianza: ${a.confidence}%</div>
+            ${a.mainReason ? `<div class="signal-hero__reason">${a.mainReason}</div>` : ''}
+          </div>
+
+          <div class="source-note ${isReal ? '' : 'source-note--visual'}">
+            ${vantexIcon(isReal ? 'check' : 'alertTriangle', { size: 15 })}
+            <span>${isReal
+              ? 'Señal calculada con datos de mercado reales (velas e indicadores), no solo con la imagen.'
+              : 'Lectura visual de la imagen: no verificada con datos de mercado en tiempo real. Trátala como una aproximación.'}</span>
+          </div>
+
+          ${a.isChart === false ? '' : `
+          <div class="signal-facts">
+            <div class="signal-fact"><div class="label">Tendencia</div><div class="value">${TREND_LABEL[a.trend] || a.trend}</div></div>
+            <div class="signal-fact"><div class="label">Momentum</div><div class="value">${MOMENTUM_LABEL[a.momentum] || a.momentum}</div></div>
+            <div class="signal-fact"><div class="label">Volumen</div><div class="value">${VOLUME_LABEL[a.volume] || a.volume}</div></div>
+            <div class="signal-fact"><div class="label">Estructura</div><div class="value">${STRUCTURE_LABEL[a.structure] || a.structure}</div></div>
+          </div>
+          <div style="margin-bottom:14px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <span class="text-meta">Riesgo:</span>
+            <span class="badge badge--${(a.risk || 'medium').toLowerCase()}">${RISK_LABEL[a.risk] || a.risk}</span>
+            ${a.price ? `<span class="text-meta" style="margin-left:auto;">Precio: $${Number(a.price).toLocaleString('es-ES', { maximumFractionDigits: 2 })}</span>` : ''}
+          </div>
           ${levelsScale(a.support, a.resistance)}
           <div class="result-grid">
             <div>
               <div class="label">Soportes</div>
-              <div class="value">${(a.support || []).join(' · ') || '—'}</div>
+              <div class="value">${(a.support || []).map((v) => v.toLocaleString('es-ES')).join(' · ') || '—'}</div>
             </div>
             <div>
               <div class="label">Resistencias</div>
-              <div class="value">${(a.resistance || []).join(' · ') || '—'}</div>
+              <div class="value">${(a.resistance || []).map((v) => v.toLocaleString('es-ES')).join(' · ') || '—'}</div>
             </div>
           </div>
-          <p style="line-height:1.5;">${a.summary}</p>
+          `}
+          ${(a.reasons || []).length ? `
+            <div class="label" style="margin-bottom:6px;">${a.isChart === false ? 'Motivo' : 'Señales que justifican la conclusión'}</div>
+            <ul style="margin:0 0 14px; padding-left:20px; line-height:1.6;">
+              ${a.reasons.map((r) => `<li>${r}</li>`).join('')}
+            </ul>
+          ` : ''}
+          ${a.summary && a.summary !== a.mainReason ? `<p style="line-height:1.5; color:var(--text-dim);">${a.summary}</p>` : ''}
           <p class="disclaimer">${a.disclaimer}</p>
         `;
         void resultEl.offsetWidth;
         resultEl.classList.add('reveal-pop');
-        requestAnimationFrame(() => {
-          resultEl.querySelector('[data-confidence-fill]').style.width = `${a.confidence}%`;
-        });
         resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
@@ -368,7 +404,7 @@
                 <div class="history-item">
                   <div>
                     <strong>${a.asset}</strong>
-                    <span class="badge badge--${a.bias}" style="margin-left:8px;">${a.bias}</span>
+                    <span class="badge badge--${(a.signal || 'wait').toLowerCase()}" style="margin-left:8px;">${(SIGNAL_META[a.signal] || SIGNAL_META.WAIT).label}</span>
                     <div class="history-item__meta">${new Date(a.createdAt).toLocaleString('es-ES')}${a.timeframe ? ' · ' + a.timeframe : ''}</div>
                   </div>
                   ${vantexIcon('chevronRight', { size: 16 })}
