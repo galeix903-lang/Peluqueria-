@@ -89,9 +89,22 @@ router.get('/', asyncHandler(async (req, res) => {
     };
   });
 
+  // Estadísticas agregadas reales del propio historial de operaciones —
+  // nunca una cifra de "rendimiento" inventada. Con 0 operaciones
+  // cerradas, winRate es null (no 0%, que insinuaría un historial real
+  // con un 0% de aciertos en vez de "todavía no hay datos").
+  const closedPositions = withPnl.filter((p) => p.status === 'closed');
+  const wins = closedPositions.filter((p) => (p.realizedPnl || 0) > 0).length;
+  const stats = {
+    totalTrades: closedPositions.length,
+    winRate: closedPositions.length ? Math.round((wins / closedPositions.length) * 100) : null,
+    totalRealizedPnl: closedPositions.reduce((sum, p) => sum + (p.realizedPnl || 0), 0),
+  };
+
   res.json({
     balance: user.balance,
     positions: withPnl,
+    stats,
     supportedSymbols: market.SUPPORTED_SYMBOLS,
     // Si CoinGecko no responde, market.fetchPrices() cae a precios
     // simulados con un pequeño paseo aleatorio en vez de romper la
@@ -99,6 +112,28 @@ router.get('/', asyncHandler(async (req, res) => {
     // precios no son reales, en vez de mostrarlos como si lo fueran.
     isSimulatedPricing: market.isUsingFallbackPrices(),
   });
+}));
+
+// Precios en vivo de los símbolos soportados (para el resumen de mercado
+// del dashboard) — el mismo mapa que ya usa el ticket de Paper Trading,
+// sin necesitar sesión de trading abierta para consultarlo.
+router.get('/prices', asyncHandler(async (req, res) => {
+  const prices = await market.fetchPrices().catch(() => ({}));
+  // % de cambio real sobre el propio histórico corto en memoria (mismo
+  // buffer que alimenta el sparkline del ticket) — nunca un cambio
+  // inventado; si todavía no hay al menos 2 muestras, queda en null.
+  const changes = {};
+  for (const symbol of market.SUPPORTED_SYMBOLS) {
+    const history = market.getHistory(symbol);
+    if (history.length >= 2) {
+      const first = history[0].price;
+      const last = history[history.length - 1].price;
+      changes[symbol] = first ? ((last - first) / first) * 100 : null;
+    } else {
+      changes[symbol] = null;
+    }
+  }
+  res.json({ prices, changes, isSimulatedPricing: market.isUsingFallbackPrices() });
 }));
 
 // Histórico corto de precio de un símbolo, para el sparkline del ticket.

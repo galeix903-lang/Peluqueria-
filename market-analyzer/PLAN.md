@@ -4,6 +4,103 @@
 > estado real de avance. Sirve para retomar el trabajo desde otra
 > conversación sin perder contexto: basta con leer este fichero.
 
+## Auditoría de producto completa + implementación — EN CURSO
+
+El usuario pidió actuar como un equipo completo (PM, full-stack, UX,
+AI product, CRO, QA, performance, security) y hacer una auditoría real
+de todo Vantex — no un informe, sino auditar → decidir → implementar →
+probar. Prioridad explícita: functionality > data quality > UX > clarity
+> performance > design polish, con el AI Analyzer como "prioridad
+absoluta". Es un encargo de 36 secciones — un proyecto de varias
+semanas condensado; este documento se actualiza fase a fase según se
+completa cada bloque, no todo de una vez.
+
+**Hallazgo más grave de la auditoría**: "Handpicked Bets"
+(`server/services/picksJob.js`) le pedía a Claude una lectura "genérica
+pero plausible" de BTC/ETH **sin ningún dato de precio real** — inventaba
+una recomendación de la nada, incluso en modo live. Es el ejemplo
+perfecto de "parece profesional pero no funciona de verdad" que el
+usuario pidió priorizar. Corregido de raíz (ver más abajo).
+
+**Completado y verificado en esta pasada** (Fases 1-4 de las 12 del
+encargo — audit, arquitectura/funcionalidad, AI Analyzer, dashboard):
+
+1. **AI Analyzer — lenguaje de sesgo + escenarios + niveles clave**
+   (`server/services/signalEngine.js`, `analysisPipeline.js`,
+   `public/analyzer/index.html`, `mobile/app/(tabs)/analyzer.tsx`):
+   - Se sustituye COMPRAR/VENDER/ESPERAR (con emoji de semáforo) por
+     "Sesgo alcista/Sesgo bajista/Neutral" — Vantex presenta escenarios
+     y probabilidades, nunca una orden ni una certeza. El enum interno
+     `BUY/SELL/WAIT` no cambia (evita tocar las 18 pruebas ya validadas
+     del motor); solo cambia la capa de presentación.
+   - Nueva función `buildScenarios()` en signalEngine.js: genera
+     PRINCIPAL/ALTERNATIVO/INVALIDACIÓN siempre a partir de los mismos
+     support/resistance ya calculados con datos reales — nunca una
+     frase de relleno. También calcula "zona de entrada", "objetivos" y
+     un "contexto de riesgo" (distancia % hasta la invalidación).
+   - Bug real encontrado y corregido durante la verificación: la zona
+     de entrada podía salir absurdamente ancha (soporte real pero muy
+     lejano del precio actual) — se acota a un rango cercano al precio
+     salvo que el nivel esté a <=3%.
+   - Estructura en dos niveles: tarjeta "quick summary" (activo + sesgo
+     + confianza + 3 señales clave, entendible en 5 segundos) seguida
+     de "análisis detallado" (por qué, estructura, niveles, escenarios,
+     riesgo) — mismo criterio en ambos frontends.
+   - Puente "Simular este escenario en Paper Trading": desde un análisis
+     REAL_DATA de un símbolo con Trading real, un botón rellena el
+     ticket de Trading (símbolo/lado/stop-loss/take-profit) vía query
+     params — el usuario siempre confirma antes de abrir nada, nunca se
+     envía sola. Implementado en ambos frontends (`useLocalSearchParams`
+     en móvil, `URLSearchParams` en web).
+2. **Market Scanner reemplaza a Handpicked Bets** (`server/services/
+   marketScanner.js` nuevo, `picksJob.js` eliminado): escanea en vivo
+   los 5 símbolos con datos reales usando el MISMO motor determinista
+   del AI Analyzer — cero LLM, cero invención. Sin persistencia (no es
+   "el pick del día" guardado, es el estado actual recalculado cada
+   vez). Si no hay datos de mercado disponibles, lo dice explícitamente
+   (`unavailable: true`) en vez de mostrar una lectura inventada — se
+   verificó que efectivamente NO fabrica nada cuando CoinGecko no
+   responde (este sandbox), y que SÍ genera resultados reales cuando se
+   mockea la capa de red con velas sintéticas. Mismo cambio en ambos
+   frontends y en la navegación (sidebar, tabs, tarjetas del dashboard).
+3. **Dashboard rediseñado** (`public/dashboard/index.html`): pasa de
+   "cuadrícula de herramientas" a resumen de inteligencia de mercado —
+   Mercado (precios reales de los 5 símbolos con datos reales + % de
+   cambio sobre el histórico real, nunca inventado), Tu último análisis
+   (el más reciente del propio historial), vista previa del Market
+   Scanner, estadísticas de Paper Trading (saldo/P&L/posiciones + nuevo
+   win rate real sobre operaciones cerradas), CTA contextual según lo
+   que le falte al usuario, y una fila secundaria simplificada para
+   Wallet Tracker/Copy Trading. Nuevo endpoint `GET /api/trading/prices`
+   (precios + % de cambio real) y `stats` añadido a `GET /api/trading`
+   (winRate/totalTrades/totalRealizedPnl, `null` si no hay operaciones
+   cerradas todavía — nunca un 0% que insinúe un historial real).
+4. **Auditoría de seguridad puntual**: confirmado que ninguna clave de
+   API está expuesta en el frontend (web ni móvil), y que las dos rutas
+   nuevas (`/api/trading/prices`, `/api/picks`) están protegidas por
+   `requireAuth` igual que el resto de la API privada.
+5. **Verificado**: 18/18 pruebas del motor de señal siguen pasando;
+   Playwright de extremo a extremo en web y móvil para Analyzer
+   (escenarios, niveles, puente a Trading), Market Scanner (estado
+   vacío honesto + resultados reales con red mockeada) y Dashboard;
+   regresión completa de Trading/Wallet/Copy Trading repetida sin
+   diferencias en ambos frontends.
+
+**Pendiente de esta auditoría** (fases 5-12 del encargo, no abordadas
+todavía en esta pasada): Analysis History como sección de primer nivel
+(hoy vive dentro del propio Analyzer, ya funcional con reapertura
+completa al pulsar); Paper Trading — llevar el "Simular este escenario"
+más allá del prellenado (comparar resultado real vs. escenario, ver
+Track Record); Track Record (comparar escenarios pasados con lo que
+ocurrió realmente — requiere diseño cuidadoso para no convertirse en
+marketing engañoso, tal y como pidió explícitamente el usuario); pulido
+de landing/conversión (el hero y la demo ilustrativa ya eran honestos y
+razonablemente buenos en la auditoría, pendiente de un pase de copy
+para el nuevo lenguaje de sesgo); onboarding de primer uso; estructura
+de monetización (Free/Pro/Premium ya existe vía Stripe, sin cambios
+todavios); repaso de mobile/performance/seguridad más profundo; QA
+final como "usuario que descubre Vantex por primera vez".
+
 ## Motor de análisis v2 — señal determinista BUY/SELL/WAIT — COMPLETO
 
 El usuario pidió una revisión y optimización PROFUNDA del sistema de

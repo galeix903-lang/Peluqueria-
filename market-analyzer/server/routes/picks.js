@@ -1,19 +1,26 @@
+/*
+  Antes "Handpicked Bets": server/services/picksJob.js le pedía a un LLM
+  una lectura "genérica pero plausible" de BTC/ETH sin ningún dato de
+  precio real detrás — inventaba una recomendación de la nada, justo lo
+  que una auditoría de producto marcó como el problema más grave de
+  Vantex. Ahora es un Market Scanner real: escanea en vivo los símbolos
+  con datos de mercado reales usando el mismo motor determinista del AI
+  Analyzer. Se mantiene la ruta /api/picks (no rompe nada que ya apunte
+  aquí); el nombre de producto es "Market Scanner".
+*/
 const express = require('express');
-const store = require('../store');
-const { refreshPicks } = require('../services/picksJob');
 const asyncHandler = require('../middleware/asyncHandler');
+const { scanMarket } = require('../services/marketScanner');
 
 const router = express.Router();
 
 router.get('/', asyncHandler(async (req, res) => {
-  let picks = await store.listPicks();
-  if (picks.length === 0) {
-    // Primera vez que se pide y el cron diario todavía no ha corrido:
-    // generamos picks al vuelo para no dejar la pantalla vacía.
-    await refreshPicks();
-    picks = await store.listPicks();
-  }
-  res.json({ picks });
+  const results = await scanMarket();
+  res.json({
+    results,
+    unavailable: results.length === 0,
+    updatedAt: new Date().toISOString(),
+  });
 }));
 
 module.exports = router;

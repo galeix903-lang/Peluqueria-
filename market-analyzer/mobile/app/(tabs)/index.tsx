@@ -26,8 +26,8 @@ export default function HomeScreen() {
       <View style={styles.grid}>
         <ToolCard icon="cpu" label="AI Analyzer" onPress={() => router.push('/analyzer')} />
         <ToolCard icon="trending-up" label="Paper Trading" onPress={() => router.push('/trading')} />
-        <ToolCard icon="star" label="Handpicked Bets" onPress={() => router.push('/picks')} />
-        <ToolCard icon="search" label="Wallet Tracker" onPress={() => router.push('/wallet')} />
+        <ToolCard icon="search" label="Market Scanner" onPress={() => router.push('/picks')} />
+        <ToolCard icon="eye" label="Wallet Tracker" onPress={() => router.push('/wallet')} />
         <ToolCard icon="users" label="Copy Trading" onPress={() => router.push('/copy')} />
       </View>
 

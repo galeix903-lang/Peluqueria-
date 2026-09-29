@@ -25,6 +25,7 @@ const VANTEX_ICON_PATHS = {
   alertTriangle: '<path d="M12 9v4.5" /><path d="M12 16.7v.1" /><path d="M10.3 3.9 2.5 18a1.8 1.8 0 0 0 1.6 2.7h15.8a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0z" />',
   arrowUp: '<path d="M12 19V5" /><path d="M6 11l6-6 6 6" />',
   arrowDown: '<path d="M12 5v14" /><path d="M18 13l-6 6-6-6" />',
+  arrowRight: '<path d="M5 12h14" /><path d="M13 6l6 6-6 6" />',
   users: '<circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" /><circle cx="17.5" cy="9" r="2.6" /><path d="M15 13.8c2.7.2 4.7 2.2 4.7 5.2" />',
   search: '<circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.3-4.3" />',
   clock: '<circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" />',

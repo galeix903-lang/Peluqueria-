@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Screen } from '../../src/components/Screen';
 import { ConfirmModal } from '../../src/components/ConfirmModal';
 import { Sparkline } from '../../src/components/Sparkline';
@@ -29,6 +30,8 @@ type Position = {
 const REFRESH_MS = 15000;
 
 export default function TradingScreen() {
+  const params = useLocalSearchParams<{ symbol?: string; side?: string; stopLoss?: string; takeProfit?: string }>();
+  const router = useRouter();
   const [balance, setBalance] = useState<number | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [supportedSymbols, setSupportedSymbols] = useState<string[]>([]);
@@ -73,6 +76,19 @@ export default function TradingScreen() {
       if (saved) setSymbol(saved);
     });
   }, []);
+
+  // Puente "Simular este escenario" desde el AI Analyzer: rellena el
+  // ticket con el símbolo/lado/SL/TP del análisis (tiene prioridad sobre
+  // el último símbolo recordado), pero nunca lo envía solo — el usuario
+  // siempre confirma antes de abrir nada.
+  useEffect(() => {
+    if (!params.symbol && !params.side && !params.stopLoss && !params.takeProfit) return;
+    if (params.symbol) setSymbol(params.symbol);
+    if (params.side === 'short' || params.side === 'long') setSide(params.side);
+    if (params.stopLoss) setStopLoss(String(Number(params.stopLoss)));
+    if (params.takeProfit) setTakeProfit(String(Number(params.takeProfit)));
+    router.setParams({ symbol: undefined, side: undefined, stopLoss: undefined, takeProfit: undefined });
+  }, [params.symbol, params.side, params.stopLoss, params.takeProfit]);
 
   useEffect(() => {
     preferences.setLastSymbol(symbol);

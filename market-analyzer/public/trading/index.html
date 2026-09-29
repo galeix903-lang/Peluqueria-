@@ -183,6 +183,29 @@
         sideInput.value = btn.dataset.side;
       }));
 
+      // Puente "Simular este escenario" desde el AI Analyzer: rellena el
+      // ticket con el símbolo/lado/SL/TP del análisis, nunca lo envía solo
+      // — el usuario siempre confirma antes de abrir nada.
+      function applyPrefillFromAnalysis(supportedSymbols) {
+        const params = new URLSearchParams(location.search);
+        const symbol = params.get('symbol');
+        if (symbol && supportedSymbols.includes(symbol)) symbolSelect.value = symbol;
+        const side = params.get('side');
+        if (side === 'short' || side === 'long') {
+          sideButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.side === side));
+          sideInput.value = side;
+        }
+        const sl = params.get('stopLoss');
+        if (sl && stopLossInput) stopLossInput.value = Number(sl).toFixed(sl < 100 ? 4 : 2);
+        const tp = params.get('takeProfit');
+        const tpInput = form.querySelector('input[name="takeProfit"]');
+        if (tp && tpInput) tpInput.value = Number(tp).toFixed(tp < 100 ? 4 : 2);
+        if (symbol || side || sl || tp) {
+          history.replaceState(null, '', location.pathname);
+          showToast({ type: 'info', message: 'Ticket rellenado desde tu análisis. Revisa los datos antes de abrir la posición.' });
+        }
+      }
+
       async function loadSparkline() {
         const symbol = symbolSelect.value;
         if (!symbol) return;
@@ -303,7 +326,10 @@
         lastBalance = data.balance;
 
         symbolSelect.innerHTML = data.supportedSymbols.map((s) => `<option value="${s}">${s}</option>`).join('');
-        if (firstLoad) loadSparkline();
+        if (firstLoad) {
+          applyPrefillFromAnalysis(data.supportedSymbols);
+          loadSparkline();
+        }
 
         const open = data.positions.filter((p) => p.status === 'open');
         const totalOpenPnl = open.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);

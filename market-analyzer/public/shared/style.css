@@ -436,12 +436,16 @@ button { font: inherit; cursor: pointer; }
 .signal-hero--buy { background: var(--green-bg); border-color: var(--green); }
 .signal-hero--sell { background: var(--red-bg); border-color: var(--red); }
 .signal-hero--wait { background: var(--amber-bg); border-color: var(--amber); }
-.signal-hero__label { font-size: 2rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.signal-hero__label { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.75rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.signal-hero__label svg { width: 26px; height: 26px; flex-shrink: 0; }
 .signal-hero--buy .signal-hero__label { color: var(--green); }
 .signal-hero--sell .signal-hero__label { color: var(--red); }
 .signal-hero--wait .signal-hero__label { color: var(--amber); }
 .signal-hero__confidence { font-size: 1rem; font-weight: 700; color: var(--text); margin-top: 6px; }
 .signal-hero__reason { font-size: .875rem; color: var(--text-dim); margin-top: 10px; max-width: 480px; line-height: 1.5; }
+.signal-hero__keysignals { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; margin-top: 14px; }
+.signal-hero__keysignals span { display: inline-flex; align-items: center; gap: 6px; font-size: .8125rem; font-weight: 600; color: var(--text); }
+.signal-hero__keysignals svg { width: 12px; height: 12px; color: var(--text-dim); flex-shrink: 0; }
 
 .signal-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0; }
 .signal-fact { padding: 10px 14px; border-radius: 12px; background: var(--field-bg); border: 1px solid var(--border); }
@@ -450,6 +454,19 @@ button { font: inherit; cursor: pointer; }
 
 .source-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 12px; background: var(--field-bg); font-size: .8125rem; color: var(--text-dim); margin-bottom: 14px; }
 .source-note--visual { background: var(--amber-bg); color: var(--text); }
+
+/* ---------- Análisis detallado (segundo nivel, debajo del resumen rápido) ---------- */
+.detail-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 16px; }
+.detail-divider::before, .detail-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.detail-divider span { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-dim); white-space: nowrap; }
+.detail-block { margin-bottom: 20px; }
+.detail-block__title { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); margin-bottom: 10px; }
+.scenario-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--border); font-size: .875rem; line-height: 1.5; }
+.scenario-row:first-of-type { border-top: none; padding-top: 0; }
+.scenario-row__tag { flex-shrink: 0; font-size: .6875rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .02em; margin-top: 1px; }
+.scenario-row__tag--primary { background: var(--accent-dim); color: var(--accent); }
+.scenario-row__tag--alt { background: var(--field-bg); color: var(--text-dim); }
+.scenario-row__tag--invalid { background: var(--red-bg); color: var(--red); }
 
 /* ---------- Modal de mejora de plan ---------- */
 .upgrade-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }

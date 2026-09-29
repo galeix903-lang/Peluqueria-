@@ -16,7 +16,6 @@ const copyRoutes = require('./routes/copy');
 const notificationsRoutes = require('./routes/notifications');
 const activityRoutes = require('./routes/activity');
 const billing = require('./routes/billing');
-const { scheduleDailyPicks } = require('./services/picksJob');
 const { scheduleCopyTradingJob } = require('./services/copyTradingJob');
 
 // Red de seguridad de última instancia: con los handlers async envueltos
@@ -176,7 +175,6 @@ db.migrate()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`market-analyzer escuchando en http://localhost:${PORT}`);
-      scheduleDailyPicks();
       scheduleCopyTradingJob();
     });
   })

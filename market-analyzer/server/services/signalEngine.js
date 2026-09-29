@@ -142,6 +142,91 @@ const REASON_TEMPLATES = {
 };
 function fmt(n) { return n >= 100 ? Math.round(n).toLocaleString('es-ES') : n.toFixed(4); }
 
+// Escenarios y niveles clave: SIEMPRE derivados de los mismos support/
+// resistance ya calculados con datos reales — nunca una frase genérica
+// de relleno. Presenta el futuro como escenarios condicionales ("si pasa
+// X, entonces Y"), nunca como una certeza, y siempre incluye qué
+// invalidaría la lectura actual.
+function buildScenarios({ signal, price, support, resistance }) {
+  const nearestSupport = support?.[0] ?? null;
+  const nextSupport = support?.[1] ?? null;
+  const nearestResistance = resistance?.[0] ?? null;
+  const nextResistance = resistance?.[1] ?? null;
+
+  if (nearestSupport == null && nearestResistance == null) {
+    return {
+      primary: 'No hay niveles de soporte/resistencia suficientes en los datos disponibles para plantear un escenario concreto.',
+      alternative: null,
+      invalidation: null,
+      keyLevels: { entryArea: null, invalidation: null, targets: [], riskContext: null },
+    };
+  }
+
+  if (signal === 'BUY') {
+    return {
+      primary: nearestResistance != null
+        ? `Mientras el precio se mantenga por encima de $${fmt(nearestSupport)}, el sesgo alcista se mantiene y el próximo nivel relevante es $${fmt(nearestResistance)}.`
+        : `Mientras el precio se mantenga por encima de $${fmt(nearestSupport)}, el sesgo alcista se mantiene.`,
+      alternative: nextSupport != null
+        ? `Un rechazo en resistencia sin ruptura, seguido de la pérdida de $${fmt(nearestSupport)}, abriría paso a un escenario más lateral o bajista hacia $${fmt(nextSupport)}.`
+        : `Un rechazo en resistencia sin ruptura, seguido de la pérdida de $${fmt(nearestSupport)}, debilitaría el sesgo alcista actual.`,
+      invalidation: `Un cierre sostenido por debajo de $${fmt(nearestSupport)} invalidaría el sesgo alcista actual.`,
+      keyLevels: {
+        // Zona de entrada = cerca del precio actual. Solo se extiende
+        // hasta el soporte si está razonablemente cerca (<=3%) — si el
+        // soporte más próximo queda muy lejos, un rango "entrada entre
+        // soporte y precio" sería tan ancho que dejaría de ser útil.
+        entryArea: price != null
+          ? (nearestSupport != null && (price - nearestSupport) / price <= 0.03 ? [nearestSupport, price] : [price * 0.995, price])
+          : null,
+        invalidation: nearestSupport,
+        targets: [nearestResistance, nextResistance].filter((v) => v != null),
+        riskContext: nearestSupport != null && price != null ? `Riesgo hasta invalidación: $${fmt(Math.abs(price - nearestSupport))} (${(Math.abs(price - nearestSupport) / price * 100).toFixed(1)}%).` : null,
+      },
+    };
+  }
+
+  if (signal === 'SELL') {
+    return {
+      primary: nearestSupport != null
+        ? `Mientras el precio se mantenga por debajo de $${fmt(nearestResistance)}, el sesgo bajista se mantiene y el próximo nivel relevante es $${fmt(nearestSupport)}.`
+        : `Mientras el precio se mantenga por debajo de $${fmt(nearestResistance)}, el sesgo bajista se mantiene.`,
+      alternative: nextResistance != null
+        ? `Un rechazo en soporte sin ruptura, seguido de la recuperación de $${fmt(nearestResistance)}, abriría paso a un escenario más lateral o alcista hacia $${fmt(nextResistance)}.`
+        : `Un rechazo en soporte sin ruptura, seguido de la recuperación de $${fmt(nearestResistance)}, debilitaría el sesgo bajista actual.`,
+      invalidation: `Un cierre sostenido por encima de $${fmt(nearestResistance)} invalidaría el sesgo bajista actual.`,
+      keyLevels: {
+        entryArea: price != null
+          ? (nearestResistance != null && (nearestResistance - price) / price <= 0.03 ? [price, nearestResistance] : [price, price * 1.005])
+          : null,
+        invalidation: nearestResistance,
+        targets: [nearestSupport, nextSupport].filter((v) => v != null),
+        riskContext: nearestResistance != null && price != null ? `Riesgo hasta invalidación: $${fmt(Math.abs(nearestResistance - price))} (${(Math.abs(nearestResistance - price) / price * 100).toFixed(1)}%).` : null,
+      },
+    };
+  }
+
+  // WAIT: se presentan las dos condiciones que sacarían al activo del
+  // rango, sin comprometerse con ninguna dirección todavía.
+  return {
+    primary: nearestResistance != null && nearestSupport != null
+      ? `Mientras el precio se mueva entre $${fmt(nearestSupport)} y $${fmt(nearestResistance)}, no hay suficiente confirmación para un sesgo direccional.`
+      : 'No hay suficiente confirmación para un sesgo direccional con los datos actuales.',
+    alternative: nearestResistance != null
+      ? `Una ruptura confirmada por encima de $${fmt(nearestResistance)} con volumen abriría un escenario alcista.`
+      : null,
+    invalidation: nearestSupport != null
+      ? `Una pérdida confirmada de $${fmt(nearestSupport)} con volumen abriría un escenario bajista.`
+      : null,
+    keyLevels: {
+      entryArea: null,
+      invalidation: null,
+      targets: [nearestResistance, nearestSupport].filter((v) => v != null),
+      riskContext: 'Sin una dirección clara, el contexto de riesgo favorece esperar confirmación antes de dimensionar cualquier operación.',
+    },
+  };
+}
+
 // Motor de scoring: combina las 4 dimensiones direccionales con pesos
 // fijos (trend > momentum ≈ price > volume) y exige confluencia real
 // para cruzar el umbral de BUY/SELL — un único indicador nunca basta.
@@ -154,6 +239,7 @@ function computeSignal({ candles, timeframeNote }) {
       reasons: ['No hay suficientes velas históricas para calcular indicadores fiables.'],
       mainReason: 'Datos insuficientes para generar una señal fiable.',
       dataQuality: 'LOW', timeframeNote,
+      scenarios: { primary: 'No hay datos suficientes para plantear un escenario.', alternative: null, invalidation: null, keyLevels: { entryArea: null, invalidation: null, targets: [], riskContext: null } },
     };
   }
 
@@ -229,13 +315,14 @@ function computeSignal({ candles, timeframeNote }) {
   }
 
   const mainReason = reasons.slice(0, 3).join(' + ').replace(/\.\s*\+/g, ' +').replace(/\.$/, '') || reasons[0] || 'Sin motivo determinante.';
+  const scenarios = buildScenarios({ signal, price, support: priceStructure.support, resistance: priceStructure.resistance });
 
   return {
     signal, confidence, risk: risk.label,
     price, trend: trend.label, momentum: momentum.label,
     volume: volume.label, structure: structureLabel === 'alcista' ? 'BULLISH' : structureLabel === 'bajista' ? 'BEARISH' : 'MIXED',
     support: priceStructure.support, resistance: priceStructure.resistance,
-    reasons: reasons.slice(0, 5), mainReason,
+    reasons: reasons.slice(0, 5), mainReason, scenarios,
     dataQuality: candles.length >= 150 && volume.label !== 'UNAVAILABLE' ? 'HIGH' : candles.length >= MIN_CANDLES ? 'MEDIUM' : 'LOW',
     timeframeNote,
     debug: { totalScore, trendScore: trend.score, momentumScore: momentum.score, priceScore: priceStructure.score, volumeScore: volume.score, contradiction, consolidating },
@@ -268,4 +355,4 @@ function computeMultiTimeframeSignal({ mainTrend, shortTerm }) {
   return primary;
 }
 
-module.exports = { computeSignal, computeMultiTimeframeSignal, MIN_CANDLES };
+module.exports = { computeSignal, computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES };

@@ -28,7 +28,7 @@
 */
 const market = require('./market');
 const { callClaudeVision, mockAnalysis, resolveMode, DISCLAIMER } = require('./claude');
-const { computeMultiTimeframeSignal, MIN_CANDLES } = require('./signalEngine');
+const { computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES } = require('./signalEngine');
 
 // Normaliza lo que el usuario escriba ("btc", "BTC/USDT", "BTC-USD"...) a
 // la forma que usa market.js, para poder saber si tenemos datos reales.
@@ -55,6 +55,7 @@ function governVisualResult(raw, { symbolHint, timeframe, noRealDataNote }) {
       mainReason: 'La imagen no parece un gráfico de precios.',
       summary: raw.summary || raw.reasoning || '',
       dataQuality: 'LOW', source: 'VISUAL', timeframe: timeframe || null,
+      scenarios: { primary: 'No se pudo identificar un gráfico de precios en la imagen.', alternative: null, invalidation: null, keyLevels: { entryArea: null, invalidation: null, targets: [], riskContext: null } },
     };
   }
 
@@ -95,13 +96,21 @@ function governVisualResult(raw, { symbolHint, timeframe, noRealDataNote }) {
     ? (downgraded ? 'Señal visual descartada por baja confianza.' : 'Sin dirección clara en la lectura visual del gráfico.')
     : `Lectura visual del gráfico: tendencia ${raw.trend}${(raw.support || []).length || (raw.resistance || []).length ? ' con niveles clave legibles' : ''}.`;
 
+  // Escenarios: solo si el eje de precios era legible y hay al menos un
+  // nivel leído en la imagen — nunca se inventa un nivel para poder
+  // rellenar el escenario. Sin precio numérico verificado (esto es una
+  // imagen, no datos de mercado), entryArea/riskContext quedan vacíos.
+  const scenarios = raw.priceAxisLegible && ((raw.support || []).length || (raw.resistance || []).length)
+    ? buildScenarios({ signal, price: null, support: raw.support || [], resistance: raw.resistance || [] })
+    : { primary: 'El eje de precios de la imagen no es lo bastante legible para plantear un escenario con niveles concretos.', alternative: null, invalidation: null, keyLevels: { entryArea: null, invalidation: null, targets: [], riskContext: null } };
+
   return {
     signal, confidence, risk: 'MEDIUM',
     asset: raw.asset || symbolHint || 'Desconocido',
     trend: trendMap[raw.trend] || 'SIDEWAYS',
     momentum: 'UNAVAILABLE', volume: 'UNAVAILABLE', structure: 'UNAVAILABLE',
     support: raw.support || [], resistance: raw.resistance || [],
-    reasons: reasons.slice(0, 5), mainReason,
+    reasons: reasons.slice(0, 5), mainReason, scenarios,
     summary: raw.summary || raw.reasoning || '',
     dataQuality: 'LOW', source: 'VISUAL', timeframe: timeframe || null,
   };
