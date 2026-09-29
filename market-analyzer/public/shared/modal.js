@@ -56,12 +56,16 @@ function openModal({ title, bodyHtml = '', footerHtml = '', onOpen, onClose } = 
   if (activeModal) closeModal();
   const trigger = document.activeElement;
 
+  // El título siempre se escapa: puede venir de texto controlado por el
+  // usuario (p.ej. la dirección de una wallet) y aquí se inserta como
+  // HTML — nunca como texto plano de confianza.
+  const safeTitle = escapeHtml(title || '');
   const root = document.createElement('div');
   root.className = 'modal-backdrop';
   root.innerHTML = `
-    <div class="modal-panel reveal-pop" role="dialog" aria-modal="true" aria-label="${title || ''}" tabindex="-1">
+    <div class="modal-panel reveal-pop" role="dialog" aria-modal="true" aria-label="${safeTitle}" tabindex="-1">
       <div class="modal-panel__head">
-        <h2 class="text-h3">${title || ''}</h2>
+        <h2 class="text-h3">${safeTitle}</h2>
         <button class="modal-panel__close" type="button" data-modal-close aria-label="Cerrar">${vantexIcon('close', { size: 16 })}</button>
       </div>
       <div class="modal-panel__body">${bodyHtml}</div>

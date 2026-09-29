@@ -64,7 +64,7 @@ function analysisDetailHtml(a) {
   return `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
       <div>
-        <div style="font-weight:800; font-size:1.1rem;">${a.asset}</div>
+        <div style="font-weight:800; font-size:1.1rem;">${escapeHtml(a.asset)}</div>
         <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
           ${a.timeframe ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${a.timeframe}</span>` : ''}
           ${a.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
@@ -111,7 +111,7 @@ function analysisDetailHtml(a) {
       <div class="detail-block">
         <div class="detail-block__title">Por qué</div>
         <ul style="margin:0; padding-left:20px; line-height:1.6;">
-          ${a.reasons.map((r) => `<li>${r}</li>`).join('')}
+          ${a.reasons.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}
         </ul>
       </div>
     ` : ''}
@@ -148,7 +148,7 @@ function analysisDetailHtml(a) {
     ${a.summary && a.summary !== a.mainReason ? `
       <div class="detail-block">
         <div class="detail-block__title">${isReal ? 'Nota' : 'Explicación de la IA'}</div>
-        <p style="line-height:1.5; color:var(--text-dim); margin:0;">${a.summary}</p>
+        <p style="line-height:1.5; color:var(--text-dim); margin:0;">${escapeHtml(a.summary)}</p>
       </div>
     ` : ''}
     <p class="disclaimer">${a.disclaimer}</p>
@@ -187,7 +187,7 @@ function renderAnalysisList(container, analyses, onSelect) {
         <button type="button" class="data-card" data-history-item="${a.id}" style="animation-delay:${Math.min(i, 12) * 0.04}s;">
           <div class="history-item">
             <div>
-              <strong>${a.asset}</strong>
+              <strong>${escapeHtml(a.asset)}</strong>
               <span class="badge badge--${(a.signal || 'wait').toLowerCase()}" style="margin-left:8px;">${(SIGNAL_META[a.signal] || SIGNAL_META.WAIT).label}</span>
               <div class="history-item__meta">${new Date(a.createdAt).toLocaleString('es-ES')}${a.timeframe ? ' · ' + a.timeframe : ''}</div>
             </div>

@@ -93,7 +93,7 @@
         openModal({
           title: wallet.label || wallet.address,
           bodyHtml: `
-            <p class="text-caption" style="word-break:break-all; margin-top:-8px;">${wallet.address}</p>
+            <p class="text-caption" style="word-break:break-all; margin-top:-8px;">${escapeHtml(wallet.address)}</p>
             <p style="font-weight:800; font-size:1.375rem; margin:4px 0 14px;">${fmtUsd(s.totalValue)}</p>
             <table class="holdings-table">
               <thead><tr><th class="text-meta">Activo</th><th class="text-meta">Cantidad</th><th class="text-meta">Valor</th><th class="text-meta">%</th></tr></thead>
@@ -156,8 +156,8 @@
               <button type="button" class="panel data-card wallet-card reveal" style="animation-delay:${i * 0.05}s;" data-wallet="${w.id}">
                 <div class="wallet-card__head">
                   <div>
-                    <div class="wallet-card__addr">${w.label || w.address}</div>
-                    ${w.label ? `<div class="wallet-card__label">${w.address}</div>` : ''}
+                    <div class="wallet-card__addr">${escapeHtml(w.label || w.address)}</div>
+                    ${w.label ? `<div class="wallet-card__label">${escapeHtml(w.address)}</div>` : ''}
                   </div>
                   ${vantexIcon('chevronRight', { size: 18 })}
                 </div>

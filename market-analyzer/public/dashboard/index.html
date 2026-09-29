@@ -170,10 +170,10 @@
         const sig = SIGNAL_META[a.signal] || SIGNAL_META.WAIT;
         el.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-            <strong style="font-size:1.0625rem;">${a.asset}</strong>
+            <strong style="font-size:1.0625rem;">${escapeHtml(a.asset)}</strong>
             <span class="badge badge--${sig.cls}">${vantexIcon(sig.icon, { size: 11 })} ${sig.label}</span>
           </div>
-          <p style="margin:0; color:var(--text-dim); font-size:.875rem; line-height:1.5;">${a.mainReason || a.summary || ''}</p>
+          <p style="margin:0; color:var(--text-dim); font-size:.875rem; line-height:1.5;">${escapeHtml(a.mainReason || a.summary || '')}</p>
           <p class="text-caption" style="margin:8px 0 0;">${new Date(a.createdAt).toLocaleString('es-ES')}${a.confidence != null ? ` · ${a.confidence}% de confianza` : ''}</p>
         `;
       } catch (err) {
