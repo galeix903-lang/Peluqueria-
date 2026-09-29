@@ -118,7 +118,7 @@ app.use('/api/billing', requireAuth, billing.router);
 // Rutas "bonitas" sin .html para cada pantalla — van antes de
 // express.static para que no las intercepte con una redirección a la
 // carpeta (ej. /dashboard -> /dashboard/) antes de llegar aquí.
-const pages = ['login', 'dashboard', 'analyzer', 'trading', 'picks', 'wallet', 'copy'];
+const pages = ['login', 'dashboard', 'analyzer', 'history', 'trading', 'picks', 'wallet', 'copy'];
 pages.forEach((page) => {
   app.get(`/${page}`, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', page, 'index.html'));

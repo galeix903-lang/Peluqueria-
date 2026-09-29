@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Historial de análisis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .history-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .history-head__icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 22px -8px rgba(79, 70, 229, .45);
+  }
+  .history-head__icon svg { width: 22px; height: 22px; }
+
+  .history-layout { display: grid; grid-template-columns: minmax(0, 360px) 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .history-layout { grid-template-columns: 1fr; } }
+
+  .history-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .history-list-wrap { max-height: calc(100vh - 220px); overflow-y: auto; padding-right: 2px; }
+  @media (max-width: 900px) { .history-list-wrap { max-height: none; } }
+
+  .history-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; }
+  .history-item__meta { color: var(--text-dim); font-size: .75rem; margin-top: 2px; }
+
+  .history-detail-panel[hidden] { display: none; }
+  .history-back-link { display: none; align-items: center; gap: 4px; font-weight: 700; margin-bottom: 12px; }
+  @media (max-width: 900px) {
+    .history-back-link.is-visible { display: flex; }
+    .history-layout.is-detail-open .history-list-panel { display: none; }
+  }
+
+  /* Reutiliza las mismas clases de escenarios/niveles que el Analyzer. */
+  .levels-scale { position: relative; height: 34px; margin: 10px 0 6px; }
+  .levels-scale__track { position: absolute; top: 15px; left: 0; right: 0; height: 4px; border-radius: 999px; background: linear-gradient(90deg, var(--red-bg), var(--field-bg), var(--green-bg)); }
+  .levels-scale__mark { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .levels-scale__mark-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(20,22,43,.08); }
+  .levels-scale__mark--support .levels-scale__mark-dot { background: var(--red); }
+  .levels-scale__mark--resistance .levels-scale__mark-dot { background: var(--green); }
+  .levels-scale__mark-label { font-size: .625rem; font-weight: 700; color: var(--text-dim); white-space: nowrap; margin-top: 18px; }
+  .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+  .result-grid .label { font-size: .75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: .03em; }
+  .result-grid .value { font-weight: 700; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div data-app-shell></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
+  <script src="/shared/format.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/toast.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script src="/shared/analysisCard.js"></script>
+  <script>
+    const SIGNAL_FILTERS = [
+      { key: 'ALL', label: 'Todos' },
+      { key: 'BUY', label: 'Sesgo alcista' },
+      { key: 'SELL', label: 'Sesgo bajista' },
+      { key: 'WAIT', label: 'Neutral' },
+    ];
+
+    mountShell({ page: 'history', title: 'Historial' }).then((ctx) => {
+      if (!ctx) return;
+      ctx.contentEl.innerHTML = `
+        <div class="panel reveal" style="margin-bottom:20px;">
+          <div class="history-head">
+            <div class="history-head__icon">${vantexIcon('clock', { size: 22 })}</div>
+            <div>
+              <div class="text-h3">Historial de análisis</div>
+              <div class="text-caption">Todos tus análisis pasados, cada uno con su sesgo, escenarios y niveles exactamente como se generaron — nunca se reescriben a posteriori.</div>
+            </div>
+          </div>
+        </div>
+
+        <a href="#" class="history-back-link" data-back-link><span style="display:inline-flex; transform:rotate(180deg);">${vantexIcon('chevronRight', { size: 14 })}</span> Volver al listado</a>
+        <div class="history-layout" data-history-layout>
+          <div class="history-list-panel">
+            <input type="text" class="symbol-input" data-search-input placeholder="Buscar por activo…" style="width:100%; margin-bottom:10px;" />
+            <div class="history-filters" data-filters>
+              ${SIGNAL_FILTERS.map((f, i) => `<button type="button" class="chip ${i === 0 ? 'is-active' : ''}" data-filter="${f.key}">${f.label}</button>`).join('')}
+            </div>
+            <div class="history-list-wrap"><div data-list></div></div>
+          </div>
+          <div class="panel history-detail-panel" data-detail hidden></div>
+          <div class="panel empty-state" data-empty>
+            <div class="empty-state__icon">${vantexIcon('inbox', { size: 28 })}</div>
+            <div style="font-weight:700; margin-top:10px;">Selecciona un análisis para ver el detalle</div>
+            <div class="text-caption" style="margin-top:4px;">O <a href="/analyzer">analiza tu primer gráfico</a> si todavía no tienes ninguno.</div>
+          </div>
+        </div>
+      `;
+
+      const layoutEl = ctx.contentEl.querySelector('[data-history-layout]');
+      const listEl = ctx.contentEl.querySelector('[data-list]');
+      const detailEl = ctx.contentEl.querySelector('[data-detail]');
+      const emptyEl = ctx.contentEl.querySelector('[data-empty]');
+      const searchInput = ctx.contentEl.querySelector('[data-search-input]');
+      const backLink = ctx.contentEl.querySelector('[data-back-link]');
+      let allAnalyses = [];
+      let activeFilter = 'ALL';
+      let selectedId = null;
+
+      function applyFilters() {
+        const q = searchInput.value.trim().toUpperCase();
+        return allAnalyses.filter((a) => {
+          const matchesSignal = activeFilter === 'ALL' || a.signal === activeFilter;
+          const matchesQuery = !q || (a.asset || '').toUpperCase().includes(q);
+          return matchesSignal && matchesQuery;
+        });
+      }
+
+      function showDetail(a) {
+        selectedId = a.id;
+        emptyEl.hidden = true;
+        detailEl.hidden = false;
+        renderAnalysisDetail(detailEl, a);
+        backLink.classList.add('is-visible');
+        layoutEl.classList.add('is-detail-open');
+        detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      backLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        layoutEl.classList.remove('is-detail-open');
+      });
+
+      function renderList() {
+        const filtered = applyFilters();
+        if (!filtered.length) {
+          listEl.innerHTML = `<p class="text-caption" style="padding:12px 0;">${allAnalyses.length ? 'Ningún análisis coincide con este filtro.' : 'Todavía no has analizado ningún gráfico.'}</p>`;
+          return;
+        }
+        renderAnalysisList(listEl, filtered, showDetail);
+      }
+
+      searchInput.addEventListener('input', renderList);
+      ctx.contentEl.querySelectorAll('[data-filter]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          ctx.contentEl.querySelectorAll('[data-filter]').forEach((b) => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          activeFilter = btn.dataset.filter;
+          renderList();
+        });
+      });
+
+      (async () => {
+        const { analyses } = await api('/analyzer/history');
+        allAnalyses = analyses;
+        renderList();
+        // En escritorio (hay sitio para lista + detalle a la vez) se abre el
+        // más reciente directamente. En móvil la lista y el detalle ocupan
+        // la misma columna, así que se deja el listado visible y es el
+        // usuario quien elige qué análisis abrir.
+        if (analyses.length && window.matchMedia('(min-width: 901px)').matches) showDetail(analyses[0]);
+      })();
+    });
+  </script>
+</body>
+</html>
