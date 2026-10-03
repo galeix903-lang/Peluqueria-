@@ -47,6 +47,26 @@
   .result-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
   .result-grid .label { font-size: .75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: .03em; }
   .result-grid .value { font-weight: 700; margin-top: 2px; }
+
+  .view-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .view-tabs .chip { padding: 8px 16px; }
+
+  .tr-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 720px) { .tr-summary { grid-template-columns: repeat(2, 1fr); } }
+  .tr-stat { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); }
+  .tr-stat .value { font-size: 1.375rem; font-weight: 800; margin-top: 2px; }
+
+  .tr-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 10px; }
+  .tr-row__left { min-width: 0; }
+  .tr-row__meta { color: var(--text-dim); font-size: .75rem; margin-top: 2px; }
+  .tr-row__right { text-align: right; flex-shrink: 0; }
+  .tr-row__change { font-weight: 700; font-size: .9375rem; }
+  .tr-row--muted { opacity: .7; }
+  .outcome-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+  .outcome-badge--favorable { background: var(--green-bg); color: var(--green); }
+  .outcome-badge--unfavorable { background: var(--red-bg); color: var(--red); }
+  .outcome-badge--invalidated { background: var(--red-bg); color: var(--red); }
+  .outcome-badge--pending { background: var(--field-bg); color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -80,6 +100,12 @@
           </div>
         </div>
 
+        <div class="view-tabs">
+          <button type="button" class="chip is-active" data-view-tab="history">Historial</button>
+          <button type="button" class="chip" data-view-tab="track-record">Track Record</button>
+        </div>
+
+        <div data-view-history>
         <a href="#" class="history-back-link" data-back-link><span style="display:inline-flex; transform:rotate(180deg);">${vantexIcon('chevronRight', { size: 14 })}</span> Volver al listado</a>
         <div class="history-layout" data-history-layout>
           <div class="history-list-panel">
@@ -95,6 +121,15 @@
             <div style="font-weight:700; margin-top:10px;">Selecciona un análisis para ver el detalle</div>
             <div class="text-caption" style="margin-top:4px;">O <a href="/analyzer">analiza tu primer gráfico</a> si todavía no tienes ninguno.</div>
           </div>
+        </div>
+        </div>
+
+        <div data-view-track-record hidden>
+          <div class="panel reveal" style="margin-bottom:20px;">
+            <div class="text-h3">Track Record</div>
+            <div class="text-caption" style="margin-top:4px;">Compara cada análisis con datos reales y sesgo direccional (alcista/bajista) con lo que ha hecho el precio desde entonces. Se registran todos, no solo los que salieron bien — así es como Vantex aprende contigo, no como se vende a sí mismo.</div>
+          </div>
+          <div data-tr-content></div>
         </div>
       `;
 
@@ -161,6 +196,108 @@
         // usuario quien elige qué análisis abrir.
         if (analyses.length && window.matchMedia('(min-width: 901px)').matches) showDetail(analyses[0]);
       })();
+
+      // ---------- Track Record ----------
+      const viewHistoryEl = ctx.contentEl.querySelector('[data-view-history]');
+      const viewTrEl = ctx.contentEl.querySelector('[data-view-track-record]');
+      const trContentEl = ctx.contentEl.querySelector('[data-tr-content]');
+      let trLoaded = false;
+
+      const OUTCOME_META = {
+        FAVORABLE: { label: 'A favor del sesgo', cls: 'favorable' },
+        UNFAVORABLE: { label: 'En contra del sesgo', cls: 'unfavorable' },
+        INVALIDATED: { label: 'Invalidado', cls: 'invalidated' },
+        PENDING: { label: 'Pendiente', cls: 'pending' },
+        FLAT: { label: 'Sin cambio', cls: 'pending' },
+      };
+      const NOT_EVALUABLE_REASON = {
+        VISUAL_SOURCE: 'Lectura visual de imagen — sin precio de mercado real que verificar.',
+        NO_DIRECTIONAL_CALL: 'Sesgo neutral — no hubo una dirección que comparar con el precio.',
+        PRICING_UNAVAILABLE: 'Los precios en vivo no están disponibles ahora mismo — no se puede verificar.',
+        MISSING_DATA: 'Faltan datos de este análisis para poder verificarlo.',
+      };
+
+      ctx.contentEl.querySelectorAll('[data-view-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          ctx.contentEl.querySelectorAll('[data-view-tab]').forEach((b) => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          const isHistory = btn.dataset.viewTab === 'history';
+          viewHistoryEl.hidden = !isHistory;
+          viewTrEl.hidden = isHistory;
+          if (!isHistory && !trLoaded) loadTrackRecord();
+        });
+      });
+
+      async function loadTrackRecord() {
+        trLoaded = true;
+        trContentEl.innerHTML = `<p class="text-caption">Calculando…</p>`;
+        try {
+          const { results, summary, isSimulatedPricing } = await api('/analyzer/track-record');
+          renderTrackRecord(results, summary, isSimulatedPricing);
+        } catch (err) {
+          trContentEl.innerHTML = `<p class="error-msg">${escapeHtml(err.message)}</p>`;
+        }
+      }
+
+      function renderTrackRecord(results, summary, isSimulatedPricing) {
+        if (!results.length) {
+          trContentEl.innerHTML = `
+            <div class="panel empty-state">
+              <div class="empty-state__icon">${vantexIcon('inbox', { size: 28 })}</div>
+              <div style="font-weight:700; margin-top:10px;">Todavía no hay análisis que evaluar</div>
+              <div class="text-caption" style="margin-top:4px;"><a href="/analyzer">Analiza tu primer gráfico</a> para empezar a construir tu track record.</div>
+            </div>
+          `;
+          return;
+        }
+
+        const simBanner = isSimulatedPricing ? `
+          <div class="source-note source-note--visual" style="margin-bottom:18px;">
+            ${vantexIcon('alertTriangle', { size: 15 })}
+            <span>Los precios en vivo no están disponibles ahora mismo (modo simulado) — ningún análisis con datos reales se puede verificar hasta que vuelvan.</span>
+          </div>
+        ` : '';
+
+        const summaryHtml = `
+          <div class="tr-summary">
+            <div class="tr-stat"><div class="text-meta">Evaluables</div><div class="value">${summary.evaluable}</div></div>
+            <div class="tr-stat"><div class="text-meta">A favor</div><div class="value" style="color:var(--green);">${summary.favorable}</div></div>
+            <div class="tr-stat"><div class="text-meta">En contra</div><div class="value" style="color:var(--red);">${summary.unfavorable}</div></div>
+            <div class="tr-stat"><div class="text-meta">Invalidados</div><div class="value" style="color:var(--red);">${summary.invalidated}</div></div>
+          </div>
+        `;
+
+        const rows = results.map((r) => {
+          const dateTxt = new Date(r.createdAt).toLocaleDateString('es-ES');
+          if (!r.evaluable) {
+            return `
+              <div class="tr-row tr-row--muted">
+                <div class="tr-row__left">
+                  <strong>${escapeHtml(r.asset)}</strong> <span class="text-caption">· ${dateTxt}</span>
+                  <div class="tr-row__meta">${NOT_EVALUABLE_REASON[r.reason] || 'No evaluable.'}</div>
+                </div>
+              </div>
+            `;
+          }
+          const meta = OUTCOME_META[r.outcome] || OUTCOME_META.PENDING;
+          const changeTxt = `${r.changePct >= 0 ? '+' : ''}${r.changePct.toFixed(2)}%`;
+          return `
+            <div class="tr-row">
+              <div class="tr-row__left">
+                <strong>${escapeHtml(r.asset)}</strong>
+                <span class="badge badge--${r.signal.toLowerCase()}" style="margin-left:6px;">${r.signal === 'BUY' ? 'Sesgo alcista' : 'Sesgo bajista'}</span>
+                <div class="tr-row__meta">${dateTxt} · $${r.priceThen.toLocaleString('es-ES', { maximumFractionDigits: 2 })} → $${r.priceNow.toLocaleString('es-ES', { maximumFractionDigits: 2 })}</div>
+              </div>
+              <div class="tr-row__right">
+                <div class="tr-row__change" style="color:${r.changePct >= 0 ? 'var(--green)' : 'var(--red)'};">${changeTxt}</div>
+                <span class="outcome-badge outcome-badge--${meta.cls}">${meta.label}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        trContentEl.innerHTML = `${simBanner}${summaryHtml}${rows}`;
+      }
     });
   </script>
 </body>
