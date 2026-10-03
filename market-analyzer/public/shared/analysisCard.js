@@ -76,6 +76,7 @@ function analysisDetailHtml(a) {
     <div class="signal-hero signal-hero--${sig.cls}">
       <div class="signal-hero__label">${vantexIcon(sig.icon, { size: 26 })} ${sig.label}</div>
       <div class="signal-hero__confidence">${a.confidence}% de confianza</div>
+      <div class="signal-hero__reason" style="margin-top:2px;">Mide cuánta evidencia clara y coherente hay detrás, no una probabilidad de acierto.</div>
       ${keySignalLine(a).length ? `
         <div class="signal-hero__keysignals">
           ${keySignalLine(a).map((l) => `<span>${vantexIcon('check', { size: 12 })}${l}</span>`).join('')}

@@ -162,9 +162,18 @@ app.use((req, res) => {
 </html>`);
 });
 
+// Errores de Multer (subida de imágenes) traen su propio mensaje en
+// inglés y un `code` reconocible — se traducen aquí para que nunca le
+// llegue al usuario un "File too large" o "Unexpected field" en crudo.
+const MULTER_ERROR_MESSAGES = {
+  LIMIT_FILE_SIZE: 'La imagen pesa demasiado (máximo 8 MB). Prueba con una captura más ligera.',
+  LIMIT_UNEXPECTED_FILE: 'No se esperaba ese archivo. Sube solo la imagen del gráfico.',
+};
+
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Error interno del servidor.' });
+  const friendlyMessage = err.name === 'MulterError' ? (MULTER_ERROR_MESSAGES[err.code] || 'No se pudo procesar el archivo subido.') : err.message;
+  res.status(err.status || (err.name === 'MulterError' ? 400 : 500)).json({ error: friendlyMessage || 'Error interno del servidor.' });
 });
 
 // Las migraciones son idempotentes (CREATE TABLE IF NOT EXISTS) y se

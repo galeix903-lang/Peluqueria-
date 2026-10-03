@@ -132,18 +132,4 @@ function relativeVolume(volumes, period = 20) {
   return volumes[volumes.length - 1] / avg;
 }
 
-// Desviación estándar de los retornos porcentuales de las últimas
-// `period` velas — usada para clasificar el régimen de volatilidad
-// (alta/normal/baja) de forma relativa al propio histórico del activo,
-// en vez de un umbral fijo arbitrario.
-function returnsStdev(closes, period = 20) {
-  if (closes.length < period + 1) return null;
-  const slice = closes.slice(-period - 1);
-  const returns = [];
-  for (let i = 1; i < slice.length; i++) returns.push((slice[i] - slice[i - 1]) / slice[i - 1]);
-  const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-  const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
-  return Math.sqrt(variance);
-}
-
-module.exports = { sma, ema, rsi, macd, atr, relativeVolume, returnsStdev, last };
+module.exports = { sma, ema, rsi, macd, atr, relativeVolume, last };

@@ -136,7 +136,7 @@ async function callClaudeVision(imageBuffer, mimeType, { symbolHint, timeframe }
   ].filter(Boolean).join(' ');
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1536,
     tools: [ANALYSIS_TOOL],
     tool_choice: { type: 'tool', name: ANALYSIS_TOOL.name },

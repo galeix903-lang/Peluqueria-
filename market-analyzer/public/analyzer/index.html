@@ -43,6 +43,7 @@
     background: var(--field-bg); transition: border-color .2s, transform .15s, background .2s;
   }
   .dropzone:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .dropzone:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-color: var(--accent); }
   .dropzone.is-dragover { border-color: var(--accent); transform: scale(1.01); background: var(--accent-dim); }
   .dropzone__icon {
     width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 50%;
@@ -143,12 +144,12 @@
             </div>
           </div>
 
-          <div class="dropzone" data-dropzone>
+          <div class="dropzone" data-dropzone tabindex="0" role="button" aria-label="Subir captura del gráfico: arrastra un archivo, haz clic, o pega una imagen copiada">
             <div class="dropzone__icon">${vantexIcon('upload', { size: 24 })}</div>
-            <p style="margin:0; font-weight:700;">Arrastra una captura del gráfico aquí, o haz clic para elegirla</p>
+            <p style="margin:0; font-weight:700;">Arrastra una captura del gráfico aquí, haz clic, o pégala (Ctrl/Cmd+V)</p>
             <p style="margin:6px 0 0; color:var(--text-dim); font-size:.8125rem;">PNG o JPG, hasta 8 MB</p>
             <input type="file" accept="image/*" data-file-input hidden />
-            <img data-preview hidden />
+            <img data-preview hidden alt="Vista previa del gráfico subido" />
           </div>
 
           <div style="display:flex; align-items:center; gap:14px; margin-top:16px; flex-wrap:wrap;">
@@ -165,7 +166,7 @@
             `).join('')}
           </div>
 
-          <p class="error-msg" data-error></p>
+          <p class="error-msg" data-error aria-live="polite"></p>
           <div class="panel reveal-pop" data-upsell hidden style="margin-top:14px; background:var(--accent-dim); border-color:var(--accent);">
             <strong data-upsell-title>Has usado tus análisis de hoy.</strong>
             <p style="margin:6px 0 14px; color:var(--text-dim);" data-upsell-desc>Mejora tu plan para seguir analizando gráficos.</p>
@@ -255,7 +256,12 @@
         analyzeBtn.disabled = quotaExhausted || !selectedFile;
       }
 
+      const MAX_FILE_BYTES = 8 * 1024 * 1024;
+
       dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+      });
       ['dragover', 'dragleave', 'drop'].forEach((evt) => {
         dropzone.addEventListener(evt, (e) => {
           e.preventDefault();
@@ -265,8 +271,27 @@
       dropzone.addEventListener('drop', (e) => setFile(e.dataTransfer.files[0]));
       fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
 
+      // Pegar una captura directamente desde el portapapeles (Ctrl/Cmd+V) —
+      // solo mientras el foco está en el propio dropzone, para no robarle
+      // el paste a otros campos (símbolo, búsqueda, etc.) de la página.
+      dropzone.addEventListener('paste', (e) => {
+        const item = [...(e.clipboardData?.items || [])].find((it) => it.type.startsWith('image/'));
+        if (!item) return;
+        e.preventDefault();
+        setFile(item.getAsFile());
+      });
+
       function setFile(file) {
         if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          errorEl.textContent = 'Ese archivo no es una imagen. Sube una captura en PNG o JPG.';
+          return;
+        }
+        if (file.size > MAX_FILE_BYTES) {
+          errorEl.textContent = 'La imagen pesa demasiado (máximo 8 MB). Prueba con una captura más ligera.';
+          return;
+        }
+        errorEl.textContent = '';
         selectedFile = file;
         preview.src = URL.createObjectURL(file);
         preview.hidden = false;
