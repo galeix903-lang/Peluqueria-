@@ -115,8 +115,43 @@
     const STEPS = ['Leyendo gráfico…', 'Detectando patrones…', 'Generando análisis…'];
     const HISTORY_PREVIEW_COUNT = 5;
 
+    // Bienvenida breve la primera vez que un usuario nuevo llega al
+    // Analyzer (el núcleo del producto, no un tutorial largo) — los 4
+    // pasos para sacarle valor: analizar, guardar, practicar, simular.
+    // Se guarda por cuenta (no solo por navegador) para no repetirse en
+    // sesiones siguientes del mismo usuario.
+    function showOnboardingIfFirstVisit(user) {
+      const key = `vantex_onboarding_seen_${user.id}`;
+      if (localStorage.getItem(key)) return;
+      const steps = [
+        { icon: 'brain', title: 'Analiza cualquier gráfico', desc: 'Sube una captura aquí mismo y en segundos tendrás un sesgo claro (alcista/bajista/neutral), con sus escenarios y niveles clave.' },
+        { icon: 'clock', title: 'Vuelve cuando quieras', desc: 'Cada análisis se guarda automáticamente en tu Historial, tal y como se generó — siempre puedes revisarlo más tarde.' },
+        { icon: 'chartBar', title: 'Practica sin riesgo', desc: 'Empiezas con 100.000$ virtuales en Paper Trading para probar tus ideas sin arriesgar dinero real.' },
+        { icon: 'windowLayout', title: 'De la idea a la práctica', desc: 'En cualquier análisis con datos reales, pulsa "Simular este escenario" para abrir esa idea directamente en tu ticket de Paper Trading.' },
+      ];
+      openModal({
+        title: `Hola, ${user.name} — así funciona Vantex`,
+        bodyHtml: `
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            ${steps.map((s) => `
+              <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="width:36px; height:36px; border-radius:10px; background:var(--accent-dim); color:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">${vantexIcon(s.icon, { size: 17 })}</div>
+                <div>
+                  <div style="font-weight:700; font-size:.9375rem;">${s.title}</div>
+                  <div class="text-caption" style="margin-top:2px; line-height:1.5;">${s.desc}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `,
+        footerHtml: `<button type="button" class="btn-primary" data-modal-close style="width:100%; justify-content:center;">Entendido, empezar</button>`,
+        onClose: () => localStorage.setItem(key, '1'),
+      });
+    }
+
     mountShell({ page: 'analyzer', title: 'AI Analyzer' }).then((ctx) => {
       if (!ctx) return;
+      showOnboardingIfFirstVisit(ctx.user);
       ctx.contentEl.innerHTML = `
         <div class="panel reveal" style="margin-bottom:20px;">
           <div class="analyzer-head">
