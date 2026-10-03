@@ -57,24 +57,36 @@ sin gastar nada. Para activar el análisis real con Claude:
 desarrollo para no gastar créditos) o `live` (forzar real; falla si no hay
 key configurada).
 
-## Cobrar con Stripe (Vantex Pro)
+## Cobrar con Stripe (Vantex Pro / Business)
 
-El plan gratuito limita el AI Analyzer a **3 análisis al día** (Paper
-Trading y Handpicked Bets no tienen límite). El botón "Hazte Pro" quita
-ese límite por 4,99€/mes. Sin claves de Stripe configuradas, funciona en
-**modo mock**: al pulsar "Hazte Pro" el usuario pasa a Pro al instante,
-sin ningún pago real ni tarjeta de por medio — así se puede probar todo el
-paywall (límite, bloqueo, aviso de upgrade, badge PRO, "portal" para
-volver a free) sin tener todavía cuenta de Stripe.
+Dos planes de pago, además del gratuito:
 
-Para cobrar de verdad:
+| Plan     | Precio    | Variable de entorno del precio | Límite de análisis/día | Copy Trading |
+|----------|-----------|---------------------------------|-------------------------|--------------|
+| Gratis   | 0€        | —                                | 3                       | No           |
+| Pro      | 1€/mes    | `STRIPE_PRICE_ID_PLUS`          | 15                      | Sí           |
+| Business | 4,99€/mes | `STRIPE_PRICE_ID`               | Ilimitado               | Sí           |
+
+(Internamente el plan "Pro" se guarda como `plus` y "Business" como
+`pro` en la base de datos — nombres heredados de una fase anterior del
+proyecto; no hace falta tocarlos, `server/services/billing.js` ya hace
+la traducción.)
+
+Sin claves de Stripe configuradas, todo funciona en **modo mock**: al
+pulsar "Hazte Pro"/"Hazte Business" el usuario cambia de plan al
+instante, sin ningún pago real ni tarjeta de por medio — así se puede
+probar todo el paywall (límite, bloqueo, aviso de upgrade, badge,
+"portal" para volver a free) sin tener todavía cuenta de Stripe.
+
+### Fase 1 — Modo Test (para probar el flujo completo sin cobrar de verdad)
 
 1. Crea una cuenta en <https://dashboard.stripe.com/register> (es gratis
    abrirla; Stripe se queda una comisión solo sobre lo que cobres).
-2. En el modo **Test** del panel de Stripe (interruptor arriba a la
-   derecha), ve a **Product catalog** → crea un producto (ej. "Vantex
-   Pro") con un precio **recurrente** de 4,99€/mes. Copia el `price_id`
-   (empieza por `price_...`).
+2. Con el interruptor **Test mode** activado (arriba a la derecha del
+   panel de Stripe), ve a **Product catalog** → crea **dos** productos
+   recurrentes: uno a 1€/mes (ej. "Vantex Pro") y otro a 4,99€/mes (ej.
+   "Vantex Business"). Copia el `price_id` de cada uno (empiezan por
+   `price_...`) — son dos IDs distintos, uno por plan.
 3. En **Developers → API keys**, copia la **Secret key** de test
    (`sk_test_...`).
 4. En **Developers → Webhooks**, añade un endpoint apuntando a
@@ -82,18 +94,48 @@ Para cobrar de verdad:
    `checkout.session.completed`, `customer.subscription.updated` y
    `customer.subscription.deleted`. Copia el **Signing secret**
    (`whsec_...`).
-5. Añade `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` y `STRIPE_WEBHOOK_SECRET`
-   a tu `.env` (o a las variables de entorno de Render). Con
-   `BILLING_MODE=auto` (el valor por defecto), en cuanto detecta esas
-   claves pasa a modo real solo.
-6. Prueba el flujo completo con la tarjeta de prueba de Stripe
-   `4242 4242 4242 4242`, cualquier fecha futura y cualquier CVC, antes de
-   cambiar a las claves **live** (modo real, sin el prefijo `test`) de
-   Stripe para cobrar dinero de verdad.
+5. Añade estas cuatro variables a tu `.env` (o a las variables de
+   entorno de Render):
+   - `STRIPE_SECRET_KEY` (la secret key de test del paso 3)
+   - `STRIPE_PRICE_ID_PLUS` (price_id del plan Pro, 1€/mes)
+   - `STRIPE_PRICE_ID` (price_id del plan Business, 4,99€/mes)
+   - `STRIPE_WEBHOOK_SECRET` (el signing secret del paso 4)
+
+   Con `BILLING_MODE=auto` (el valor por defecto), en cuanto detecta esas
+   claves pasa a modo real solo — no hace falta cambiar nada en el código.
+6. Prueba el flujo completo (los dos planes, el portal para cancelar, y
+   que el webhook actualiza el plan correctamente) con la tarjeta de
+   prueba de Stripe `4242 4242 4242 4242`, cualquier fecha futura y
+   cualquier CVC.
+
+### Fase 2 — Pasar a Live (cobrar dinero de verdad)
+
+**Importante:** en Stripe, el modo Test y el modo Live son dos entornos
+completamente separados — los productos, precios, claves API y webhooks
+que creaste en Test **no existen** en Live, hay que volver a crearlos
+ahí. No es solo "quitar el prefijo test" de las claves.
+
+1. Antes de activar Live, Stripe puede pedirte completar la
+   verificación de tu cuenta (datos fiscales/bancarios, en
+   **Settings → Account details**) — sin eso no deja activar el modo Live.
+2. Cambia el interruptor del panel de Stripe a **Live mode**.
+3. Repite los pasos 2-4 de la Fase 1 pero en Live: crea los dos productos
+   recurrentes de nuevo (los `price_id` de Live son distintos a los de
+   Test), copia la Secret key **live** (`sk_live_...`, sin "test"), y
+   crea el webhook de nuevo apuntando a tu dominio real en producción
+   (copia también su propio Signing secret, también distinto al de Test).
+4. Sustituye las cuatro variables de entorno del paso 5 de la Fase 1 por
+   sus equivalentes **live** en Render (Settings → Environment, en el
+   servicio de producción). No reutilices los valores de test.
+5. Haz un redeploy para que el servidor arranque con las claves nuevas,
+   y confirma con una tarjeta real (o pide a alguien de confianza que
+   pruebe) que el pago se completa y el plan se actualiza — después,
+   puedes reembolsarlo desde el panel de Stripe si era solo una prueba.
 
 `BILLING_MODE` acepta también `mock` (forzar siempre el modo de ejemplo,
 para desarrollar sin tocar Stripe) o `live` (forzar real; falla si faltan
-las claves).
+las claves, útil para detectar en el arranque que algo quedó sin
+configurar en vez de caer silenciosamente a mock en producción).
 
 ## Ponerlo online (Render, gratis)
 
