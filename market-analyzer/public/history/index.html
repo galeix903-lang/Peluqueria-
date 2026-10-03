@@ -30,6 +30,9 @@
   .history-item__meta { color: var(--text-dim); font-size: .75rem; margin-top: 2px; }
 
   .history-detail-panel[hidden] { display: none; }
+  /* .empty-state (shared/style.css) fija display:flex sin guardia para
+     [hidden] — sin esto, emptyEl.hidden = true no ocultaba nada. */
+  .empty-state[hidden] { display: none; }
   .history-back-link { display: none; align-items: center; gap: 4px; font-weight: 700; margin-bottom: 12px; }
   @media (max-width: 900px) {
     .history-back-link.is-visible { display: flex; }
@@ -190,11 +193,21 @@
         const { analyses } = await api('/analyzer/history');
         allAnalyses = analyses;
         renderList();
-        // En escritorio (hay sitio para lista + detalle a la vez) se abre el
-        // más reciente directamente. En móvil la lista y el detalle ocupan
-        // la misma columna, así que se deja el listado visible y es el
-        // usuario quien elige qué análisis abrir.
-        if (analyses.length && window.matchMedia('(min-width: 901px)').matches) showDetail(analyses[0]);
+        // Deep-link desde otra pantalla (p.ej. "Desde tu análisis" en
+        // Paper Trading) a un análisis concreto por id — tiene prioridad
+        // sobre el comportamiento por defecto de abrir el más reciente.
+        const linkedId = new URLSearchParams(location.search).get('id');
+        const linkedAnalysis = linkedId ? analyses.find((a) => a.id === linkedId) : null;
+        if (linkedAnalysis) {
+          history.replaceState(null, '', location.pathname);
+          showDetail(linkedAnalysis);
+        } else if (analyses.length && window.matchMedia('(min-width: 901px)').matches) {
+          // En escritorio (hay sitio para lista + detalle a la vez) se abre
+          // el más reciente directamente. En móvil la lista y el detalle
+          // ocupan la misma columna, así que se deja el listado visible y
+          // es el usuario quien elige qué análisis abrir.
+          showDetail(analyses[0]);
+        }
       })();
 
       // ---------- Track Record ----------

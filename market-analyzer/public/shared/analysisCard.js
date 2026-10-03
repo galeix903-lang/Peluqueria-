@@ -95,6 +95,7 @@ function analysisDetailHtml(a) {
         ${vantexIcon('windowLayout', { size: 15 })} Simular este escenario en Paper Trading
       </button>
     ` : ''}
+    <div data-linked-positions></div>
 
     <div class="detail-divider"><span>Análisis detallado</span></div>
 
@@ -167,12 +168,47 @@ function renderAnalysisDetail(container, a) {
   if (simulateBtn) {
     simulateBtn.addEventListener('click', () => {
       const params = new URLSearchParams({
-        symbol: a.asset, side: a.signal === 'SELL' ? 'short' : 'long',
+        symbol: a.asset, side: a.signal === 'SELL' ? 'short' : 'long', analysisId: a.id,
       });
       if (keyLevels.invalidation != null) params.set('stopLoss', keyLevels.invalidation);
       if (keyLevels.targets && keyLevels.targets[0] != null) params.set('takeProfit', keyLevels.targets[0]);
       location.href = `/trading?${params.toString()}`;
     });
+  }
+  loadLinkedPositions(container, a);
+}
+
+// Si este análisis ya se usó para abrir una operación ("Simular este
+// escenario"), lo muestra aquí con su resultado si ya se cerró — cierra
+// el círculo predicción -> acción -> resultado real sin que el usuario
+// tenga que ir a buscarlo a la pantalla de Trading.
+async function loadLinkedPositions(container, a) {
+  const slot = container.querySelector('[data-linked-positions]');
+  if (!slot) return;
+  try {
+    const { positions } = await api(`/analyzer/${a.id}/positions`);
+    if (!positions.length) return;
+    slot.innerHTML = positions.map((p) => {
+      const sideLabel = p.side === 'long' ? 'Comprar (long)' : 'Vender (short)';
+      if (p.status === 'open') {
+        return `
+          <div class="source-note" style="margin-bottom:18px;">
+            ${vantexIcon('windowLayout', { size: 15 })}
+            <span>Ya simulaste este escenario: ${sideLabel} ${p.size} ${escapeHtml(p.symbol)} — posición todavía abierta. <a href="/trading">Verla en Paper Trading →</a></span>
+          </div>
+        `;
+      }
+      const favorable = (p.realizedPnl || 0) > 0;
+      return `
+        <div class="source-note ${favorable ? '' : 'source-note--visual'}" style="margin-bottom:18px;">
+          ${vantexIcon(favorable ? 'check' : 'alertTriangle', { size: 15 })}
+          <span>Simulaste este escenario (${sideLabel} ${p.size} ${escapeHtml(p.symbol)}) y la operación ya se cerró: resultado ${favorable ? '+' : ''}${fmtUsd(p.realizedPnl)}. <a href="/trading">Ver en Paper Trading →</a></span>
+        </div>
+      `;
+    }).join('');
+  } catch {
+    // Si falla, simplemente no se muestra el bloque — no es información
+    // crítica para leer el análisis en sí.
   }
 }
 

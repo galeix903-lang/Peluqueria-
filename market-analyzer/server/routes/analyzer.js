@@ -68,6 +68,17 @@ router.post('/', upload.single('image'), asyncHandler(async (req, res) => {
   }
 }));
 
+// Operaciones de Paper Trading abiertas a partir de este análisis
+// concreto (botón "Simular este escenario") — para que su detalle pueda
+// mostrar "ya abriste una operación con esto" y, si ya se cerró, el
+// resultado real. Se pide solo al ver el detalle de un análisis, no en
+// la lista, para no multiplicar consultas.
+router.get('/:id/positions', asyncHandler(async (req, res) => {
+  const analysis = await store.findAnalysisById(req.userId, req.params.id);
+  if (!analysis) return res.status(404).json({ error: 'Análisis no encontrado.' });
+  res.json({ positions: await store.listPositionsByAnalysisId(req.userId, analysis.id) });
+}));
+
 router.get('/history', asyncHandler(async (req, res) => {
   const user = await store.findUserById(req.userId);
   const usedToday = await store.countAnalysesToday(user.id);

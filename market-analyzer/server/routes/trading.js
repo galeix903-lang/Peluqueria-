@@ -148,7 +148,7 @@ router.get('/chart/:symbol', asyncHandler(async (req, res) => {
 
 // Abrir una posición al precio actual de mercado, con stop-loss/take-profit opcionales.
 router.post('/', asyncHandler(async (req, res) => {
-  const { symbol, side, size, stopLoss, takeProfit } = req.body || {};
+  const { symbol, side, size, stopLoss, takeProfit, analysisId } = req.body || {};
   if (typeof symbol !== 'string' || !symbol || !['long', 'short'].includes(side) || !(Number(size) > 0)) {
     return res.status(400).json({ error: 'Faltan datos: symbol, side ("long"/"short") y size (> 0).' });
   }
@@ -156,6 +156,15 @@ router.post('/', asyncHandler(async (req, res) => {
   const tp = takeProfit !== undefined && takeProfit !== null && takeProfit !== '' ? Number(takeProfit) : null;
   if (sl != null && !(sl > 0)) return res.status(400).json({ error: 'El stop-loss debe ser un precio mayor que 0.' });
   if (tp != null && !(tp > 0)) return res.status(400).json({ error: 'El take-profit debe ser un precio mayor que 0.' });
+
+  // Si la operación viene de "Simular este escenario" en un análisis, se
+  // comprueba que ese análisis es realmente del usuario antes de
+  // vincularlo — nunca se confía en un id venido del cliente sin más.
+  let linkedAnalysisId = null;
+  if (typeof analysisId === 'string' && analysisId) {
+    const analysis = await store.findAnalysisById(req.userId, analysisId);
+    if (analysis) linkedAnalysisId = analysis.id;
+  }
 
   let entryPrice;
   try {
@@ -180,6 +189,7 @@ router.post('/', asyncHandler(async (req, res) => {
     stopLoss: sl,
     takeProfit: tp,
     status: 'open',
+    analysisId: linkedAnalysisId,
     openedAt: new Date().toISOString(),
   });
   await store.updateUserBalance(req.userId, user.balance - cost);

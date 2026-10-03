@@ -54,6 +54,7 @@ function rowToPosition(row) {
     closeReason: row.close_reason,
     source: row.source,
     copiedFrom: row.copied_from,
+    analysisId: row.analysis_id,
     openedAt: iso(row.opened_at),
     closedAt: iso(row.closed_at),
   };
@@ -151,14 +152,14 @@ async function listPositions(userId) {
 async function createPosition(position) {
   const { rows } = await query(
     `INSERT INTO positions
-       (user_id, symbol, side, size, entry_price, cost_basis, stop_loss, take_profit, status, source, copied_from, opened_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       (user_id, symbol, side, size, entry_price, cost_basis, stop_loss, take_profit, status, source, copied_from, analysis_id, opened_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
      RETURNING *`,
     [
       position.userId, position.symbol, position.side, position.size, position.entryPrice,
       position.costBasis ?? null, position.stopLoss ?? null, position.takeProfit ?? null,
       position.status || 'open', position.source ?? null, position.copiedFrom ?? null,
-      position.openedAt,
+      position.analysisId ?? null, position.openedAt,
     ]
   );
   return rowToPosition(rows[0]);
@@ -189,6 +190,24 @@ async function listAnalyses(userId, limit = 20) {
     [userId, limit]
   );
   return rows.map(rowToAnalysis);
+}
+
+// Para vincular una posición de Paper Trading con el análisis que la
+// originó — siempre comprobando que el análisis es del propio usuario,
+// nunca se confía en un id ajeno venido del cliente.
+async function findAnalysisById(userId, analysisId) {
+  const { rows } = await query('SELECT * FROM analyses WHERE id = $1 AND user_id = $2', [analysisId, userId]);
+  return rowToAnalysis(rows[0]);
+}
+
+// Posiciones (abiertas o cerradas) que se abrieron a partir de un
+// análisis concreto — para mostrar en su detalle "ya simulaste esto".
+async function listPositionsByAnalysisId(userId, analysisId) {
+  const { rows } = await query(
+    'SELECT * FROM positions WHERE user_id = $1 AND analysis_id = $2 ORDER BY opened_at DESC',
+    [userId, analysisId]
+  );
+  return rows.map(rowToPosition);
 }
 
 // Cuenta los análisis de hoy (día UTC, mismo criterio que antes con
@@ -365,6 +384,8 @@ module.exports = {
   closePosition,
   addAnalysis,
   listAnalyses,
+  findAnalysisById,
+  listPositionsByAnalysisId,
   countAnalysesToday,
   listPicks,
   addPick,

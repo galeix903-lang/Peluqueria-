@@ -88,6 +88,7 @@
           </div>
 
           <form data-trade-form>
+            <input type="hidden" name="analysisId" data-analysis-id-input />
             <div class="ticket-row">
               <div class="field">
                 <label>Símbolo</label>
@@ -170,6 +171,7 @@
       const sideButtons = ctx.contentEl.querySelectorAll('[data-side]');
       const sideInput = ctx.contentEl.querySelector('[data-side-input]');
       const form = ctx.contentEl.querySelector('[data-trade-form]');
+      const analysisIdInput = form.querySelector('[data-analysis-id-input]');
       const errorEl = ctx.contentEl.querySelector('[data-error]');
       const positionsEl = ctx.contentEl.querySelector('[data-positions]');
       let lastBalance = null;
@@ -200,6 +202,8 @@
         const tp = params.get('takeProfit');
         const tpInput = form.querySelector('input[name="takeProfit"]');
         if (tp && tpInput) tpInput.value = Number(tp).toFixed(tp < 100 ? 4 : 2);
+        const analysisId = params.get('analysisId');
+        if (analysisId) analysisIdInput.value = analysisId;
         if (symbol || side || sl || tp) {
           history.replaceState(null, '', location.pathname);
           showToast({ type: 'info', message: 'Ticket rellenado desde tu análisis. Revisa los datos antes de abrir la posición.' });
@@ -375,9 +379,12 @@
                 const reasonBadge = p.status === 'closed'
                   ? `<span class="badge badge--${p.closeReason === 'sl' ? 'sl' : p.closeReason === 'tp' ? 'tp' : 'manual'}" style="margin-left:6px;">${p.closeReason === 'sl' ? 'SL' : p.closeReason === 'tp' ? 'TP' : 'manual'}</span>`
                   : '';
+                const fromAnalysis = p.analysisId
+                  ? `<a href="/history?id=${p.analysisId}" title="Abierta desde un análisis — ver detalle" style="margin-left:6px; display:inline-flex; vertical-align:middle; color:var(--text-dim);">${vantexIcon('brain', { size: 13 })}</a>`
+                  : '';
                 return `
                   <tr>
-                    <td>${p.symbol}</td>
+                    <td>${p.symbol}${fromAnalysis}</td>
                     <td><span class="badge badge--${p.side}">${p.side}</span></td>
                     <td>${p.size}</td>
                     <td>${fmtUsd(p.entryPrice)}</td>
@@ -435,6 +442,7 @@
         const payload = Object.fromEntries(new FormData(form).entries());
         if (!payload.stopLoss) delete payload.stopLoss;
         if (!payload.takeProfit) delete payload.takeProfit;
+        if (!payload.analysisId) delete payload.analysisId;
 
         renderConfirmModal({
           title: 'Confirmar operación',
