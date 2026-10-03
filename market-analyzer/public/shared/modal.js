@@ -81,7 +81,12 @@ function openModal({ title, bodyHtml = '', footerHtml = '', onOpen, onClose } = 
   });
 
   root.addEventListener('mousedown', (e) => { if (e.target === root) closeModal(); });
-  root.querySelector('[data-modal-close]').addEventListener('click', () => closeModal());
+  // Delegado (no un listener por botón): el panel de cabecera siempre trae
+  // su botón "X" con data-modal-close, pero cualquier footerHtml también
+  // puede incluir el suyo (p.ej. "Cancelar") — con querySelector() a secas
+  // solo se enganchaba el primero que aparecía en el DOM y el resto se
+  // quedaba sin hacer nada al pulsarlo.
+  root.addEventListener('click', (e) => { if (e.target.closest('[data-modal-close]')) closeModal(); });
   document.addEventListener('keydown', onKeydownModal);
 
   activeModal = { root, trigger, onClose };
