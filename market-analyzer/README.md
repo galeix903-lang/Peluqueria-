@@ -93,7 +93,13 @@ probar todo el paywall (límite, bloqueo, aviso de upgrade, badge,
    `https://tu-dominio/api/billing/webhook`, con los eventos
    `checkout.session.completed`, `customer.subscription.updated` y
    `customer.subscription.deleted`. Copia el **Signing secret**
-   (`whsec_...`).
+   (`whsec_...`) con el icono de copiar, **nunca tecleándolo a mano**: el
+   `0` (cero) y la `O` (letra) son casi indistinguibles en la mayoría de
+   fuentes, y una sola letra mal transcrita hace que Stripe reciba un
+   400 ("firma inválida") en cada intento sin ningún otro síntoma — si
+   alguna vez un webhook falla siempre con 400, esto es lo primero a
+   revisar (Developers → Webhooks → el endpoint → pestaña *Event
+   deliveries*).
 5. Añade estas cuatro variables a tu `.env` (o a las variables de
    entorno de Render):
    - `STRIPE_SECRET_KEY` (la secret key de test del paso 3)
