@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Política de privacidad — Vantex</title>
+<meta name="description" content="Qué datos recoge Vantex, para qué los usa, con quién los comparte y cómo puedes ejercer tus derechos." />
+<meta name="robots" content="noindex, follow" />
+<link rel="canonical" href="https://vantex.onrender.com/privacidad" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="stylesheet" href="/shared/style.css" />
+<link rel="stylesheet" href="/shared/legal.css" />
+</head>
+<body>
+  <header class="legal-header">
+    <a href="/login" class="legal-header__brand">
+      <img src="/assets/vantex-mark.png" alt="" width="24" height="24" />
+      Vantex
+    </a>
+    <a href="/login" class="legal-header__back">← Volver a Vantex</a>
+  </header>
+
+  <main class="legal-page">
+    <nav class="legal-nav" aria-label="Documentos legales">
+      <a href="/terminos">Términos de uso</a>
+      <a href="/privacidad" aria-current="page">Política de privacidad</a>
+      <a href="/cookies">Política de cookies</a>
+    </nav>
+
+    <h1>Política de privacidad</h1>
+    <p class="legal-updated">Última actualización: 5 de octubre de 2026.</p>
+
+    <div class="legal-callout">
+      <span class="legal-callout__label">Resumen honesto</span>
+      <p>Guardamos lo mínimo necesario para que la cuenta funcione: tus datos de
+      registro, las imágenes y análisis que subes, tu saldo y operaciones
+      simuladas, y tu estado de suscripción. No vendemos tus datos a terceros.
+      Compartimos datos solo con los proveedores que hacen posible el
+      servicio (procesamiento de imágenes, pagos, alojamiento), descritos
+      abajo.</p>
+    </div>
+
+    <h2>1. Responsable del tratamiento</h2>
+    <p>
+      <span class="legal-placeholder">[PLACEHOLDER: razón social de la empresa]</span>,
+      con domicilio en <span class="legal-placeholder">[PLACEHOLDER: dirección fiscal]</span>.
+      Para cualquier cuestión sobre privacidad, escribe a
+      <span class="legal-placeholder">[PLACEHOLDER: email de contacto / DPO]</span>.
+    </p>
+
+    <h2>2. Qué datos recogemos</h2>
+    <ul>
+      <li><strong>Datos de cuenta:</strong> nombre, email, contraseña (almacenada con hash, nunca en texto plano), biografía y foto de perfil opcionales.</li>
+      <li><strong>Contenido que subes:</strong> las imágenes de gráficos que analizas y el resultado de cada análisis (activo, señal, confianza, niveles).</li>
+      <li><strong>Actividad de Paper Trading:</strong> posiciones simuladas abiertas y cerradas, saldo virtual, direcciones de wallet que decides seguir (Wallet Tracker) y traders que decides copiar (Copy Trading) — todo dentro del simulador, nunca cuentas bancarias ni wallets con fondos reales.</li>
+      <li><strong>Datos de suscripción:</strong> si contratas un plan de pago, el identificador de cliente y de suscripción de Stripe (no el número completo de tu tarjeta — eso lo gestiona Stripe directamente).</li>
+      <li><strong>Datos técnicos básicos:</strong> cookie de sesión (ver <a class="inline-link" href="/cookies">Política de cookies</a>) y registros de error del servidor, sin fines publicitarios.</li>
+    </ul>
+
+    <h2>3. Para qué los usamos</h2>
+    <ul>
+      <li>Para poder ofrecerte el servicio: mantener tu sesión, guardar tu historial, calcular tu saldo simulado, aplicar tus límites de plan.</li>
+      <li>Para procesar pagos reales de suscripción, cuando los hay.</li>
+      <li>Para enviarte notificaciones del propio producto (por ejemplo, que una posición simulada se cerró sola por stop-loss/take-profit), si las activas.</li>
+      <li>Para detectar y corregir errores del servicio.</li>
+    </ul>
+    <p>No usamos tus datos para generar publicidad ni los cedemos a terceros con fines comerciales.</p>
+
+    <h2>4. Con quién compartimos datos (encargados del tratamiento)</h2>
+    <ul>
+      <li><strong>Anthropic (API de Claude):</strong> recibe la imagen que subes al Analyzer para poder leerla cuando no hay datos de mercado reales disponibles para ese activo. No recibe tu email ni tu contraseña.</li>
+      <li><strong>CoinGecko:</strong> proveedor público de precios de mercado; Vantex le hace peticiones de precios y velas, sin enviarle ningún dato tuyo.</li>
+      <li><strong>Stripe:</strong> procesa los pagos de suscripción si contratas un plan; gestiona directamente los datos de tu tarjeta, Vantex nunca los ve ni los almacena.</li>
+      <li><strong>Render:</strong> proveedor de alojamiento donde corren el servidor y la base de datos de Vantex.</li>
+    </ul>
+    <p>Cada uno de estos proveedores trata los datos bajo su propia política de privacidad.</p>
+
+    <h2>5. Cuánto tiempo conservamos tus datos</h2>
+    <p>
+      Mientras tu cuenta exista. Si pides eliminar tu cuenta, borramos tus datos
+      personales y de actividad en un plazo razonable, salvo que la ley nos
+      obligue a conservar algún registro (por ejemplo, de facturación).
+    </p>
+
+    <h2>6. Tus derechos</h2>
+    <p>
+      Puedes solicitar acceso, rectificación, eliminación o portabilidad de tus
+      datos escribiendo a <span class="legal-placeholder">[PLACEHOLDER: email de contacto / DPO]</span>.
+      Si no estás en una jurisdicción donde estos derechos específicos aplican
+      legalmente, los atenderemos igualmente de buena fe.
+    </p>
+
+    <h2>7. Seguridad</h2>
+    <p>
+      Las contraseñas se guardan con hash (nunca en texto plano), las conexiones
+      en producción usan HTTPS, y las sesiones se protegen con cookies
+      <code>httpOnly</code>. Ningún sistema es invulnerable al 100%; si detectamos
+      una brecha de seguridad que afecte a tus datos, te lo comunicaremos.
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__bottom">
+      © 2026 Vantex. Paper Trading, Wallet Tracker y Copy Trading funcionan en modo simulado — sin dinero real.
+    </div>
+  </footer>
+</body>
+</html>

@@ -316,7 +316,7 @@
   .site-footer { border-top: 1px solid var(--border); padding: 48px 40px 32px; }
   .site-footer__inner {
     max-width: 1180px; margin: 0 auto;
-    display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px;
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px;
   }
   .site-footer__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .site-footer__brand-mark {
@@ -1196,6 +1196,14 @@
           <li><a href="#" data-cta-login>Iniciar sesión</a></li>
         </ul>
       </div>
+      <div>
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/terminos">Términos de uso</a></li>
+          <li><a href="/privacidad">Privacidad</a></li>
+          <li><a href="/cookies">Cookies</a></li>
+        </ul>
+      </div>
     </div>
     <div class="site-footer__bottom">
       © 2026 Vantex. Paper Trading, Wallet Tracker y Copy Trading funcionan en modo simulado — sin dinero real.
@@ -1292,7 +1300,7 @@
         <p class="error-msg" data-error="signup"></p>
       </form>
 
-      <p class="auth-card__legal">Al continuar, aceptas nuestros <a href="#">Términos</a> y <a href="#">Política de privacidad</a>.</p>
+      <p class="auth-card__legal">Al continuar, aceptas nuestros <a href="/terminos" target="_blank" rel="noopener">Términos</a> y <a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</p>
       <p class="trust-stat" data-trust-stat hidden>
         <span data-trust-stat-icon></span>
         <span data-trust-stat-text></span>

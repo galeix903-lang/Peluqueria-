@@ -1,0 +1,40 @@
+/*
+  Estilos compartidos por las tres páginas legales (Términos, Privacidad,
+  Cookies). Texto largo y legible, no un dashboard — por eso no reutiliza
+  el shell de app (sidebar.js) y vive como página suelta, igual que
+  /login. Las zonas marcadas con .legal-placeholder son datos que Vantex
+  todavía no ha rellenado con información real de empresa (nunca
+  inventados) — se resaltan a propósito para que sean imposibles de
+  confundir con información real ya verificada.
+*/
+.legal-page { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+.legal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+}
+.legal-header__brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; color: var(--text); text-decoration: none; }
+.legal-header__back { font-size: .875rem; color: var(--text-dim); text-decoration: none; font-weight: 600; }
+.legal-header__back:hover { color: var(--text); }
+.legal-nav { display: flex; gap: 18px; margin: 28px 0 8px; font-size: .875rem; flex-wrap: wrap; }
+.legal-nav a { color: var(--text-dim); text-decoration: none; font-weight: 600; }
+.legal-nav a[aria-current="page"] { color: var(--electric, #344de0); }
+.legal-nav a:hover { color: var(--text); }
+.legal-page h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+.legal-page .legal-updated { color: var(--text-dim); font-size: .8125rem; margin: 0 0 32px; }
+.legal-page h2 { font-size: 1.15rem; margin: 36px 0 10px; }
+.legal-page p, .legal-page li { line-height: 1.65; color: var(--text); font-size: .9375rem; }
+.legal-page ul { padding-left: 20px; }
+.legal-page li { margin-bottom: 6px; }
+.legal-page a.inline-link { color: var(--electric, #344de0); font-weight: 600; text-decoration: none; }
+.legal-page a.inline-link:hover { text-decoration: underline; }
+.legal-placeholder {
+  background: #fff6d9; color: #7a5b00; border: 1px solid #f1d98a;
+  border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: .875em;
+  white-space: nowrap;
+}
+.legal-callout {
+  background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--electric, #344de0);
+  border-radius: 8px; padding: 14px 16px; margin: 20px 0; font-size: .875rem; color: var(--text);
+}
+.legal-callout p { margin: 0; line-height: 1.6; }
+.legal-callout__label { display: block; margin-bottom: 6px; font-weight: 700; }
