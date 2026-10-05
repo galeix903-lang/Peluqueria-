@@ -8,6 +8,7 @@
 */
 const cron = require('node-cron');
 const store = require('../store');
+const db = require('../db');
 const market = require('./market');
 const { getTrader } = require('./copyTraders');
 
@@ -35,16 +36,23 @@ async function runCopyTradingTick() {
       .filter((p) => p.status === 'open' && p.source === 'copy' && p.copiedFrom === follow.traderId);
 
     // Con cierta probabilidad, cierra una de las posiciones copiadas abiertas.
+    // Cerrar la posición y abonar el saldo van en la misma transacción, y
+    // el abono usa el ajuste atómico (nunca lee-calcula-escribe) — mismo
+    // motivo que en server/routes/trading.js: este job corre cada 10
+    // minutos y podría solaparse con una acción manual del usuario sobre
+    // su propio saldo.
     if (copiedOpen.length && Math.random() < 0.35) {
       const pos = copiedOpen[Math.floor(Math.random() * copiedOpen.length)];
       const price = prices[pos.symbol];
       if (price != null) {
         const realizedPnl = computePnl(pos, price);
-        await store.closePosition(follow.userId, pos.id, {
-          closePrice: price, closedAt: new Date().toISOString(), realizedPnl, closeReason: 'manual',
+        const proceeds = pos.entryPrice * pos.size + realizedPnl;
+        await db.withTransaction(async (q) => {
+          await store.closePosition(follow.userId, pos.id, {
+            closePrice: price, closedAt: new Date().toISOString(), realizedPnl, closeReason: 'manual',
+          }, q);
+          await store.adjustUserBalance(follow.userId, proceeds, q);
         });
-        const fresh = await store.findUserById(follow.userId);
-        await store.updateUserBalance(follow.userId, fresh.balance + pos.entryPrice * pos.size + realizedPnl);
       }
       continue;
     }
@@ -59,12 +67,15 @@ async function runCopyTradingTick() {
       const cost = price * size;
       if (!(size > 0) || cost > fresh.balance) continue;
       const side = Math.random() < 0.62 ? 'long' : 'short';
-      await store.createPosition({
-        userId: follow.userId, symbol, side, size, entryPrice: price, costBasis: cost,
-        status: 'open', openedAt: new Date().toISOString(),
-        source: 'copy', copiedFrom: follow.traderId,
+      await db.withTransaction(async (q) => {
+        const updatedUser = await store.adjustUserBalance(follow.userId, -cost, q);
+        if (!updatedUser) return; // saldo insuficiente de verdad (cambió entre la lectura y aquí): se omite esta ronda
+        await store.createPosition({
+          userId: follow.userId, symbol, side, size, entryPrice: price, costBasis: cost,
+          status: 'open', openedAt: new Date().toISOString(),
+          source: 'copy', copiedFrom: follow.traderId,
+        }, q);
       });
-      await store.updateUserBalance(follow.userId, fresh.balance - cost);
     }
   }
 }

@@ -51,6 +51,19 @@ app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://vantex.onrender.com/sitemap.xml\n');
 });
 
+// Health check real: no solo "el proceso responde", sino "puede hablar
+// con la base de datos" — es lo que de verdad necesita monitorizar un
+// proveedor de hosting (Render) o cualquier sistema de alertas externo
+// para saber si el servicio está realmente operativo, no solo vivo.
+app.get('/health', asyncHandler(async (req, res) => {
+  try {
+    await db.query('SELECT 1');
+  } catch (err) {
+    return res.status(503).json({ status: 'error', database: 'unreachable', error: err.message });
+  }
+  res.json({ status: 'ok', database: 'connected', uptimeSeconds: Math.round(process.uptime()) });
+}));
+
 // CORS para la API: la app móvil (nativa) no lo necesita — CORS es una
 // restricción exclusiva del navegador — pero sí lo necesita cualquier
 // cliente que corra dentro de uno (la propia vista web de desarrollo de
@@ -118,7 +131,7 @@ app.use('/api/billing', requireAuth, billing.router);
 // Rutas "bonitas" sin .html para cada pantalla — van antes de
 // express.static para que no las intercepte con una redirección a la
 // carpeta (ej. /dashboard -> /dashboard/) antes de llegar aquí.
-const pages = ['login', 'dashboard', 'analyzer', 'history', 'trading', 'picks', 'wallet', 'copy'];
+const pages = ['login', 'dashboard', 'analyzer', 'history', 'trading', 'picks', 'wallet', 'copy', 'terminos', 'privacidad', 'cookies'];
 pages.forEach((page) => {
   app.get(`/${page}`, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', page, 'index.html'));

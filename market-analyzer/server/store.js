@@ -131,6 +131,28 @@ async function updateUserBalance(userId, newBalance) {
   return rowToUser(rows[0]);
 }
 
+// Ajuste ATÓMICO del saldo (suma/resta un delta en el propio UPDATE, con
+// el balance de referencia leído y escrito en la misma sentencia) — a
+// diferencia de updateUserBalance (que necesita que quien llama ya haya
+// leído el saldo y calculado el nuevo valor en JS, con el hueco de tiempo
+// que eso abre entre leer y escribir), esto es seguro aunque dos
+// operaciones le den al saldo del mismo usuario casi a la vez (abrir dos
+// posiciones a la vez, o un cierre automático justo cuando el usuario
+// cierra a mano). Con delta negativo, la condición `balance + $2 >= 0` en
+// el WHERE hace de guardia contra saldo insuficiente dentro de la misma
+// operación atómica — si no alcanza, no actualiza ninguna fila y
+// devuelve null, nunca dinero virtual negativo.
+// `queryFn` permite ejecutarla dentro de una transacción (ver
+// db.withTransaction) cuando el ajuste de saldo tiene que ser todo-o-nada
+// junto con crear/cerrar la posición.
+async function adjustUserBalance(userId, delta, queryFn = query) {
+  const { rows } = await queryFn(
+    'UPDATE users SET balance = balance + $2 WHERE id = $1 AND balance + $2 >= 0 RETURNING *',
+    [userId, delta]
+  );
+  return rowToUser(rows[0]);
+}
+
 async function setUserPlan(userId, plan, extra = {}) {
   const { rows } = await query(
     `UPDATE users SET
@@ -149,8 +171,10 @@ async function listPositions(userId) {
   return rows.map(rowToPosition);
 }
 
-async function createPosition(position) {
-  const { rows } = await query(
+// `queryFn` opcional: igual que en adjustUserBalance, para poder crear la
+// posición en la misma transacción que el descuento de saldo.
+async function createPosition(position, queryFn = query) {
+  const { rows } = await queryFn(
     `INSERT INTO positions
        (user_id, symbol, side, size, entry_price, cost_basis, stop_loss, take_profit, status, source, copied_from, analysis_id, opened_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
@@ -165,8 +189,8 @@ async function createPosition(position) {
   return rowToPosition(rows[0]);
 }
 
-async function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl, closeReason = 'manual' }) {
-  const { rows } = await query(
+async function closePosition(userId, positionId, { closePrice, closedAt, realizedPnl, closeReason = 'manual' }, queryFn = query) {
+  const { rows } = await queryFn(
     `UPDATE positions SET status = 'closed', close_price = $3, closed_at = $4, realized_pnl = $5, close_reason = $6
      WHERE id = $2 AND user_id = $1 RETURNING *`,
     [userId, positionId, closePrice, closedAt, realizedPnl, closeReason]
@@ -378,6 +402,7 @@ module.exports = {
   createUser,
   updateUserProfile,
   updateUserBalance,
+  adjustUserBalance,
   setUserPlan,
   listPositions,
   createPosition,

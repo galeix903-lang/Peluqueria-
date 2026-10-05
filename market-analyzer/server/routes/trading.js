@@ -1,5 +1,6 @@
 const express = require('express');
 const store = require('../store');
+const db = require('../db');
 const market = require('../services/market');
 const asyncHandler = require('../middleware/asyncHandler');
 const { sendPushToUser } = require('../services/pushNotifications');
@@ -17,19 +18,28 @@ function pnlPercent(position, pnl) {
 }
 
 // Liquida un cierre (manual o automático) contra el saldo del usuario —
-// misma lógica en los tres sitios que pueden cerrar una posición.
-async function settleClose(user, position, closePrice, closeReason) {
+// misma lógica en los tres sitios que pueden cerrar una posición. Marcar
+// la posición como cerrada y abonar el saldo son dos escrituras que
+// tienen que ser todo-o-nada: si el proceso se cayera justo entre medias,
+// un fallo a mitad no debe dejar la posición cerrada sin que se haya
+// liquidado el saldo (ni al revés) — por eso van en la misma transacción.
+// El ajuste de saldo es además atómico en sí mismo (adjustUserBalance),
+// así que es seguro aunque dos cierres del mismo usuario lleguen casi a
+// la vez (p.ej. el auto-cierre por stop-loss y un cierre manual).
+async function settleClose(userId, position, closePrice, closeReason) {
   const realizedPnl = computePnl(position, closePrice);
-  const closed = await store.closePosition(user.id, position.id, {
-    closePrice,
-    closedAt: new Date().toISOString(),
-    realizedPnl,
-    closeReason,
-  });
   const proceeds = position.entryPrice * position.size + realizedPnl;
-  const newBalance = user.balance + proceeds;
-  await store.updateUserBalance(user.id, newBalance);
-  return { closed, newBalance };
+  const { closed, updatedUser } = await db.withTransaction(async (q) => {
+    const closed = await store.closePosition(userId, position.id, {
+      closePrice,
+      closedAt: new Date().toISOString(),
+      realizedPnl,
+      closeReason,
+    }, q);
+    const updatedUser = await store.adjustUserBalance(userId, proceeds, q);
+    return { closed, updatedUser };
+  });
+  return { closed, newBalance: updatedUser.balance };
 }
 
 // Revisa las posiciones abiertas del usuario y cierra sola cualquiera que
@@ -39,10 +49,8 @@ async function settleClose(user, position, closePrice, closeReason) {
 // lo cruzó, igual que haría un bróker con una orden stop en un activo de
 // baja frecuencia de refresco).
 async function checkAndAutoClose(userId, prices) {
-  const user = await store.findUserById(userId);
   const positions = await store.listPositions(userId);
   const open = positions.filter((p) => p.status === 'open');
-  let currentUser = user;
   for (const position of open) {
     const price = prices[position.symbol];
     if (price == null) continue;
@@ -54,8 +62,7 @@ async function checkAndAutoClose(userId, prices) {
       reason = 'tp';
     }
     if (reason) {
-      const { closed, newBalance } = await settleClose(currentUser, position, price, reason);
-      currentUser = { ...currentUser, balance: newBalance };
+      const { closed } = await settleClose(userId, position, price, reason);
       const label = reason === 'sl' ? 'Stop-loss' : 'Take-profit';
       const pnlTxt = closed.realizedPnl >= 0 ? `+$${closed.realizedPnl.toFixed(2)}` : `-$${Math.abs(closed.realizedPnl).toFixed(2)}`;
       sendPushToUser(userId, {
@@ -111,6 +118,9 @@ router.get('/', asyncHandler(async (req, res) => {
     // pantalla — el frontend necesita saberlo para avisar de que esos
     // precios no son reales, en vez de mostrarlos como si lo fueran.
     isSimulatedPricing: market.isUsingFallbackPrices(),
+    // Estado granular (DATA_OK/DATA_DELAYED/DATA_STALE/DATA_UNAVAILABLE) —
+    // se añade sin tocar isSimulatedPricing, que el frontend ya consume.
+    dataStatus: market.getPricingStatus(),
   });
 }));
 
@@ -133,7 +143,7 @@ router.get('/prices', asyncHandler(async (req, res) => {
       changes[symbol] = null;
     }
   }
-  res.json({ prices, changes, isSimulatedPricing: market.isUsingFallbackPrices() });
+  res.json({ prices, changes, isSimulatedPricing: market.isUsingFallbackPrices(), dataStatus: market.getPricingStatus() });
 }));
 
 // Histórico corto de precio de un símbolo, para el sparkline del ticket.
@@ -143,7 +153,7 @@ router.get('/chart/:symbol', asyncHandler(async (req, res) => {
     return res.status(404).json({ error: 'Símbolo no soportado.' });
   }
   await market.fetchPrices().catch(() => {}); // asegura al menos una muestra
-  res.json({ symbol, history: market.getHistory(symbol), isSimulatedPricing: market.isUsingFallbackPrices() });
+  res.json({ symbol, history: market.getHistory(symbol), isSimulatedPricing: market.isUsingFallbackPrices(), dataStatus: market.getPricingStatus() });
 }));
 
 // Abrir una posición al precio actual de mercado, con stop-loss/take-profit opcionales.
@@ -173,26 +183,42 @@ router.post('/', asyncHandler(async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
-  const user = await store.findUserById(req.userId);
   const cost = entryPrice * Number(size);
-  if (cost > user.balance) {
-    return res.status(400).json({ error: 'Saldo virtual insuficiente para esta operación.' });
-  }
 
-  const position = await store.createPosition({
-    userId: req.userId,
-    symbol: symbol.toUpperCase(),
-    side,
-    size: Number(size),
-    entryPrice,
-    costBasis: cost,
-    stopLoss: sl,
-    takeProfit: tp,
-    status: 'open',
-    analysisId: linkedAnalysisId,
-    openedAt: new Date().toISOString(),
-  });
-  await store.updateUserBalance(req.userId, user.balance - cost);
+  // Descontar el saldo y crear la posición van en la misma transacción:
+  // el descuento es atómico (adjustUserBalance comprueba "balance
+  // suficiente" y resta en la misma sentencia SQL, así que dos aperturas
+  // a la vez del mismo usuario no pueden pisarse ni dejar saldo
+  // negativo), y si por lo que sea crear la posición fallara después,
+  // la transacción deshace también el descuento — nunca se queda el
+  // saldo restado sin una posición real detrás.
+  let position;
+  try {
+    position = await db.withTransaction(async (q) => {
+      const updatedUser = await store.adjustUserBalance(req.userId, -cost, q);
+      if (!updatedUser) {
+        const err = new Error('Saldo virtual insuficiente para esta operación.');
+        err.status = 400;
+        throw err;
+      }
+      return store.createPosition({
+        userId: req.userId,
+        symbol: symbol.toUpperCase(),
+        side,
+        size: Number(size),
+        entryPrice,
+        costBasis: cost,
+        stopLoss: sl,
+        takeProfit: tp,
+        status: 'open',
+        analysisId: linkedAnalysisId,
+        openedAt: new Date().toISOString(),
+      }, q);
+    });
+  } catch (err) {
+    if (err.status === 400) return res.status(400).json({ error: err.message });
+    throw err;
+  }
 
   res.status(201).json({ position });
 }));
@@ -211,8 +237,7 @@ router.post('/:id/close', asyncHandler(async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 
-  const user = await store.findUserById(req.userId);
-  const { closed, newBalance } = await settleClose(user, position, closePrice, 'manual');
+  const { closed, newBalance } = await settleClose(req.userId, position, closePrice, 'manual');
   res.json({ position: closed, balance: newBalance });
 }));
 

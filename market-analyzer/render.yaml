@@ -18,11 +18,21 @@ services:
     rootDir: market-analyzer
     buildCommand: npm install
     startCommand: npm start
+    # Render usa esto para saber si el despliegue está realmente listo
+    # (y para reiniciar el servicio solo si deja de responder bien) —
+    # sin esto, un arranque roto podía quedar marcado como "live" solo
+    # porque el proceso respondía a cualquier URL.
+    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: vantex-db
           property: connectionString
+      # Explícito en vez de confiar en que Render lo ponga por defecto:
+      # de esto depende que la cookie de sesión lleve el flag Secure
+      # (ver server/index.js, configuración de express-session).
+      - key: NODE_ENV
+        value: production
       - key: SESSION_SECRET
         generateValue: true
       - key: JWT_ACCESS_SECRET

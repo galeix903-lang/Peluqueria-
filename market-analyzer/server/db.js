@@ -40,6 +40,29 @@ function query(text, params) {
   return pool.query(text, params);
 }
 
+// Para operaciones compuestas que deben ser todo-o-nada (p.ej. abrir una
+// posición: descontar saldo + crear la posición; cerrarla: marcarla
+// cerrada + liquidar el saldo) — sin esto, un fallo justo entre dos
+// escrituras separadas podía dejar al usuario con el saldo descontado
+// pero sin posición, o viceversa. `fn` recibe una función `query` con la
+// misma firma que la de arriba, pero atada a la misma conexión/
+// transacción — pásala a las funciones de store.js que la acepten en vez
+// de usar el `query` de módulo normal mientras estés dentro de `fn`.
+async function withTransaction(fn) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn((text, params) => client.query(text, params));
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 // Migraciones idempotentes: se ejecutan solas al arrancar el servidor
 // (ver server/index.js). Cada fichero de server/migrations/*.sql debe
 // poder correr varias veces sin romper nada (CREATE TABLE IF NOT EXISTS,
@@ -54,4 +77,4 @@ async function migrate() {
   }
 }
 
-module.exports = { pool, query, migrate };
+module.exports = { pool, query, migrate, withTransaction };
