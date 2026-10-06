@@ -454,22 +454,42 @@
      delante (borde con el color de marca, fondo con una pizca de
      degradado, badge, CTA primario) sin llenar la sección de gradients:
      solo la card destacada lleva uno, muy sutil. ====================== */
-  .plan-duel { max-width: 920px; margin: 64px auto 0; }
-  .plan-duel__head { text-align: center; max-width: 480px; margin: 0 auto 40px; }
-  .plan-duel__title { font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 10px; color: var(--text); }
+  .plan-duel { max-width: 940px; margin: 64px auto 0; }
+  .plan-duel__eyebrow {
+    display: flex; align-items: center; gap: 7px; width: fit-content; margin: 0 auto 20px;
+    background: var(--accent-dim); border-radius: 999px; padding: 6px 14px 6px 8px;
+    font-size: .75rem; font-weight: 700; color: var(--accent);
+  }
+  .plan-duel__eyebrow span.pd-logo {
+    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .plan-duel__eyebrow span.pd-logo svg { width: 11px; height: 11px; }
+  .plan-duel__head { text-align: center; max-width: 480px; margin: 0 auto 44px; }
+  .plan-duel__title { font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 800; letter-spacing: -.025em; margin: 0 0 12px; color: var(--text); }
+  .plan-duel__title em {
+    font-style: normal; background: linear-gradient(90deg, var(--accent), var(--blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
   .plan-duel__lead { font-size: .9375rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
 
-  .plan-duel__cards { display: flex; align-items: flex-start; justify-content: center; gap: 24px; }
+  .plan-duel__cards { position: relative; display: flex; align-items: stretch; justify-content: center; gap: 24px; }
+  .plan-duel__cards::before {
+    content: ''; position: absolute; top: 40%; left: 50%; width: 580px; height: 320px;
+    transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(37, 99, 235, .07), transparent 72%);
+  }
   .plan-duel__card {
     position: relative; isolation: isolate; flex: 1 1 320px; max-width: 360px;
     background: linear-gradient(165deg, #ffffff, #f8faff);
-    border: 1px solid var(--border); border-radius: 24px;
-    padding: 36px 32px 32px; display: flex; flex-direction: column;
+    border: 1px solid var(--border); border-radius: 22px;
+    padding: 28px 28px 26px; display: flex; flex-direction: column;
     box-shadow: var(--shadow-sm);
     transition: transform .25s var(--ease-out), box-shadow .25s, border-color .25s;
   }
   .plan-duel__card::before {
-    content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 1px; z-index: 1;
+    content: ''; position: absolute; top: 0; left: 22px; right: 22px; height: 1px; z-index: 1;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
   }
   .plan-duel__card:hover { transform: translateY(-5px); box-shadow: 0 22px 44px -22px rgba(37, 99, 235, .25); border-color: var(--border-strong); }
@@ -477,65 +497,73 @@
     border: 1.5px solid rgba(37, 99, 235, .4);
     background: linear-gradient(165deg, #f5f7ff, #ffffff 55%);
     box-shadow: 0 0 0 1px rgba(37, 99, 235, .06), 0 26px 52px -24px rgba(37, 99, 235, .32);
-    transform: translateY(-10px);
   }
-  .plan-duel__card--featured:hover { transform: translateY(-14px); box-shadow: 0 0 0 1px rgba(37, 99, 235, .08), 0 30px 58px -22px rgba(37, 99, 235, .4); }
+  .plan-duel__card--featured:hover { transform: translateY(-7px); box-shadow: 0 0 0 1px rgba(37, 99, 235, .08), 0 30px 58px -22px rgba(37, 99, 235, .4); }
+
+  .plan-duel__head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+  .plan-duel__icon {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, #94a3b8, #64748b); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 16px -8px rgba(20, 22, 43, .35);
+  }
+  .plan-duel__icon svg { width: 19px; height: 19px; }
+  .plan-duel__card--featured .plan-duel__icon { background: linear-gradient(135deg, var(--accent), var(--blue)); box-shadow: 0 8px 16px -6px rgba(37, 99, 235, .5); animation: pulseSoft 2.4s ease-in-out infinite; }
   .plan-duel__badge {
-    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
-    display: inline-flex; align-items: center; gap: 5px;
+    display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
     background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
-    font-size: .6875rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
-    padding: 6px 14px; border-radius: 999px; box-shadow: 0 8px 16px -6px rgba(37, 99, 235, .5);
+    font-size: .625rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+    padding: 5px 11px; border-radius: 999px; box-shadow: 0 6px 14px -6px rgba(37, 99, 235, .5);
     animation: badgePop .5s var(--ease-spring) .3s both;
   }
-  @keyframes badgePop { from { opacity: 0; transform: translateX(-50%) scale(.7); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+  .plan-duel__badge svg { width: 10px; height: 10px; }
+  @keyframes badgePop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 
-  .plan-duel__name { font-size: .875rem; font-weight: 700; color: var(--text-dim); margin: 0 0 6px; }
-  .plan-duel__price { font-size: 2.75rem; font-weight: 800; letter-spacing: -.02em; color: var(--text); margin: 0 0 22px; line-height: 1; }
-  .plan-duel__price span { font-size: 1rem; font-weight: 600; color: var(--text-dim); }
+  .plan-duel__name { font-size: 1.0625rem; font-weight: 800; color: var(--text); margin: 0 0 4px; letter-spacing: -.01em; }
+  .plan-duel__desc { font-size: .8125rem; color: var(--text-dim); line-height: 1.45; margin: 0; }
+  .plan-duel__price { font-size: 2.375rem; font-weight: 800; letter-spacing: -.02em; color: var(--text); margin: 18px 0 22px; line-height: 1; }
+  .plan-duel__price span { font-size: .9375rem; font-weight: 600; color: var(--text-dim); }
 
-  /* La cifra que de verdad diferencia los dos planes, con su propia
-     tarjeta dentro de la tarjeta — no una fila más entre otras. */
-  .plan-duel__stat {
-    display: flex; align-items: baseline; gap: 10px;
-    background: var(--field-bg); border: 1px solid var(--border); border-radius: 14px;
-    padding: 14px 18px; margin: 0 0 24px;
+  /* Filas compactas icono + etiqueta + valor — el único diferenciador
+     real (análisis IA/día) se nota por ser la primera fila y por usar
+     una píldora propia para "∞" en vez de la palabra "ilimitados". */
+  .plan-duel__rows { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .plan-duel__rows li {
+    display: flex; align-items: center; gap: 10px; padding: 9px 2px;
+    opacity: 0; animation: pdRowIn .4s var(--ease-out) forwards;
   }
-  .plan-duel__stat strong { font-size: 1.75rem; font-weight: 800; color: var(--accent); letter-spacing: -.01em; }
-  .plan-duel__stat span { font-size: .8125rem; color: var(--text-dim); line-height: 1.3; }
-  .plan-duel__card--featured .plan-duel__stat {
-    background: linear-gradient(135deg, var(--accent-dim), #eef2ff);
-    border-color: rgba(37, 99, 235, .25);
-  }
-  .plan-duel__stat--infinite strong {
-    font-size: 2.125rem; background: linear-gradient(135deg, var(--accent), var(--blue));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: infinitePulse 2.6s ease-in-out infinite;
-  }
-  @keyframes infinitePulse { 0%, 100% { opacity: 1; } 50% { opacity: .72; } }
-
-  .plan-duel__features { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-direction: column; gap: 13px; flex: 1; }
-  .plan-duel__features li { display: flex; align-items: center; gap: 10px; font-size: .875rem; color: var(--text); opacity: 0; animation: pdFeatureIn .45s var(--ease-out) forwards; }
-  .plan-duel__features li:nth-child(1) { animation-delay: .05s; }
-  .plan-duel__features li:nth-child(2) { animation-delay: .12s; }
-  .plan-duel__features li:nth-child(3) { animation-delay: .19s; }
-  .plan-duel__features li:nth-child(4) { animation-delay: .26s; }
-  .plan-duel__features li:nth-child(5) { animation-delay: .33s; }
-  @keyframes pdFeatureIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
-  .plan-duel__check {
-    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
-    background: var(--accent-dim); color: var(--accent);
+  .plan-duel__rows li:nth-child(1) { animation-delay: .04s; }
+  .plan-duel__rows li:nth-child(2) { animation-delay: .09s; }
+  .plan-duel__rows li:nth-child(3) { animation-delay: .14s; }
+  .plan-duel__rows li:nth-child(4) { animation-delay: .19s; }
+  .plan-duel__rows li:nth-child(5) { animation-delay: .24s; }
+  .plan-duel__rows li:nth-child(6) { animation-delay: .29s; }
+  @keyframes pdRowIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
+  .plan-duel__row-icon {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
+    background: var(--field-bg); color: var(--text-dim);
     display: inline-flex; align-items: center; justify-content: center;
   }
-  .plan-duel__check svg { width: 11px; height: 11px; stroke-width: 3.2; }
-  .plan-duel__card--featured .plan-duel__check { background: var(--accent); color: #fff; }
+  .plan-duel__row-icon svg { width: 13px; height: 13px; }
+  .plan-duel__row-label { flex: 1; font-size: .8438rem; color: var(--text); }
+  .plan-duel__row-value { flex-shrink: 0; font-size: .8125rem; font-weight: 700; color: var(--text-dim); }
+  .plan-duel__row-value--check { color: var(--accent); display: inline-flex; }
+  .plan-duel__row-value--check svg { width: 15px; height: 15px; stroke-width: 3.2; }
+  .plan-duel__row-value--pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; height: 22px; padding: 0 9px; border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    font-size: .8125rem; font-weight: 800;
+    animation: infinitePulse 2.6s ease-in-out infinite;
+  }
+  @keyframes infinitePulse { 0%, 100% { opacity: 1; } 50% { opacity: .78; } }
 
   .plan-duel__card .btn-primary, .plan-duel__card .btn-secondary { width: 100%; justify-content: center; margin-top: auto; }
   .plan-duel__card .btn-secondary:hover { transform: translateY(-1px); }
 
   @media (max-width: 760px) {
-    .plan-duel__cards { flex-direction: column; align-items: center; gap: 36px; }
-    .plan-duel__card, .plan-duel__card--featured { max-width: 380px; width: 100%; transform: none; }
+    .plan-duel__cards { flex-direction: column; align-items: center; gap: 28px; }
+    .plan-duel__card, .plan-duel__card--featured { max-width: 380px; width: 100%; }
     .plan-duel__card--featured:hover { transform: translateY(-4px); }
   }
 
@@ -1437,7 +1465,7 @@
           <button class="btn-secondary" type="button" data-cta-signup>Crear cuenta gratis</button>
         </div>
         <div class="price-card io-reveal" style="animation-delay:.05s">
-          <span class="price-card__icon" style="background:linear-gradient(135deg, #6366f1, #8b5cf6);" data-icon="refresh" data-icon-size="22"></span>
+          <span class="price-card__icon" style="background:linear-gradient(135deg, #94a3b8, #64748b);" data-icon="refresh" data-icon-size="22"></span>
           <p class="price-card__name">Vantex Pro</p>
           <p class="price-card__amount">1€ <span>/ mes</span></p>
           <ul class="price-card__list">
@@ -1464,40 +1492,91 @@
 
       <div class="plan-duel">
         <div class="plan-duel__head io-reveal">
-          <h3 class="plan-duel__title">Elige cómo quieres analizar.</h3>
+          <span class="plan-duel__eyebrow"><span class="pd-logo" data-icon="trend" data-icon-size="11"></span>Vantex · Planes</span>
+          <h3 class="plan-duel__title">Elige cómo quieres <em>analizar</em>.</h3>
           <p class="plan-duel__lead">Empieza con lo esencial. Desbloquea todo el potencial de Vantex cuando estés preparado.</p>
         </div>
         <div class="plan-duel__cards io-reveal">
           <div class="plan-duel__card">
-            <p class="plan-duel__name">Pro</p>
-            <p class="plan-duel__price">1€<span>/mes</span></p>
-            <div class="plan-duel__stat">
-              <strong>15</strong>
-              <span>análisis<br>IA / día</span>
+            <div class="plan-duel__head-row">
+              <span class="plan-duel__icon" data-icon="trend" data-icon-size="19"></span>
             </div>
-            <ul class="plan-duel__features">
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Copy Trading simulado</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Paper Trading ilimitado</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Market Scanner en vivo</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Wallet Tracker</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Cancela cuando quieras</li>
+            <p class="plan-duel__name">Pro</p>
+            <p class="plan-duel__desc">Todo lo que necesitas para empezar a analizar el mercado con IA.</p>
+            <p class="plan-duel__price">1€<span>/mes</span></p>
+            <ul class="plan-duel__rows">
+              <li>
+                <span class="plan-duel__row-icon" data-icon="sparkle" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Análisis con IA al día</span>
+                <span class="plan-duel__row-value">15</span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="users" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Copy Trading simulado</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="chartBar" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Paper Trading ilimitado</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="search" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Market Scanner</span>
+                <span class="plan-duel__row-value">En vivo</span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="wallet" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Wallet Tracker</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="clock" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Cancela cuando quieras</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
             </ul>
             <button class="btn-secondary" type="button" data-plan-preview="pro">Empezar con Pro →</button>
           </div>
           <div class="plan-duel__card plan-duel__card--featured">
-            <span class="plan-duel__badge">Recomendado</span>
-            <p class="plan-duel__name">Business</p>
-            <p class="plan-duel__price">4,99€<span>/mes</span></p>
-            <div class="plan-duel__stat plan-duel__stat--infinite">
-              <strong>∞</strong>
-              <span>análisis<br>IA / día</span>
+            <div class="plan-duel__head-row">
+              <span class="plan-duel__icon" data-icon="trend" data-icon-size="19"></span>
+              <span class="plan-duel__badge"><span data-icon="sparkle" data-icon-size="10"></span>Más potente</span>
             </div>
-            <ul class="plan-duel__features">
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Copy Trading simulado</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Paper Trading ilimitado</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Market Scanner en vivo</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Wallet Tracker</li>
-              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Cancela cuando quieras</li>
+            <p class="plan-duel__name">Business</p>
+            <p class="plan-duel__desc">Todas las herramientas. Sin límites. Lleva tu análisis al siguiente nivel.</p>
+            <p class="plan-duel__price">4,99€<span>/mes</span></p>
+            <ul class="plan-duel__rows">
+              <li>
+                <span class="plan-duel__row-icon" data-icon="sparkle" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Análisis con IA al día</span>
+                <span class="plan-duel__row-value plan-duel__row-value--pill">∞</span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="users" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Copy Trading simulado</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="chartBar" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Paper Trading ilimitado</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="search" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Market Scanner</span>
+                <span class="plan-duel__row-value">En vivo</span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="wallet" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Wallet Tracker</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
+              <li>
+                <span class="plan-duel__row-icon" data-icon="clock" data-icon-size="13"></span>
+                <span class="plan-duel__row-label">Cancela cuando quieras</span>
+                <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+              </li>
             </ul>
             <button class="btn-primary" type="button" data-plan-preview="business">Elegir Business →</button>
           </div>
