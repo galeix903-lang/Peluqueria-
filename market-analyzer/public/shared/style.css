@@ -23,10 +23,16 @@
   --radius: 18px;
   --sidebar-w: 104px;
   --bottomnav-h: 64px;
-  --shadow-xs: 0 1px 2px rgba(20, 22, 43, .04);
-  --shadow-sm: 0 1px 2px rgba(20, 22, 43, .03), 0 8px 24px -18px rgba(20, 22, 43, .12);
-  --shadow-md: 0 2px 6px rgba(20, 22, 43, .04), 0 16px 36px -16px rgba(20, 22, 43, .16);
-  --shadow-lg: 0 4px 10px rgba(20, 22, 43, .05), 0 28px 56px -22px rgba(20, 22, 43, .22);
+  --shadow-xs: 0 1px 2px rgba(20, 22, 43, .06), 0 10px 20px -14px rgba(20, 22, 43, .18);
+  --shadow-sm: 0 2px 4px rgba(20, 22, 43, .05), 0 16px 32px -16px rgba(20, 22, 43, .22);
+  --shadow-md: 0 3px 8px rgba(20, 22, 43, .06), 0 22px 44px -16px rgba(20, 22, 43, .26);
+  --shadow-lg: 0 6px 14px rgba(20, 22, 43, .07), 0 32px 64px -20px rgba(20, 22, 43, .3);
+  /* "Relieve" de tarjeta: sombra de reposo con dos capas (contacto cercano +
+     elevación amplia) más un realce interior superior — para que la
+     profundidad se note sin pasar por hover, y un filo inferior sutil que
+     simula el borde físico de la tarjeta. */
+  --relief-card: 0 1px 1px rgba(20, 22, 43, .05), 0 3px 8px rgba(20, 22, 43, .07), 0 20px 40px -20px rgba(37, 99, 235, .28), inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -1px 0 rgba(20, 22, 43, .04);
+  --relief-card-hover: 0 2px 3px rgba(20, 22, 43, .06), 0 8px 16px rgba(20, 22, 43, .08), 0 30px 56px -20px rgba(37, 99, 235, .36), inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -1px 0 rgba(20, 22, 43, .05);
   --ease-out: cubic-bezier(.16, .84, .44, 1);
   --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
   /* Escala tipográfica — un único lugar del que cuelgan H1/H2/H3/body/
@@ -287,26 +293,26 @@ button { font: inherit; cursor: pointer; }
   color: inherit;
   display: block;
   overflow: hidden;
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--relief-card);
   transition: border-color .25s, transform .25s cubic-bezier(.16,.84,.44,1), box-shadow .25s;
 }
 /* Filo superior de cristal — mismo lenguaje de "relieve" ya usado en el
    preview del Analyzer, aquí en una tarjeta clara: separa una superficie
    plana de una con profundidad real. */
 .feature-card::before {
-  content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px; z-index: 1;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+  content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 2px; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent);
 }
 .feature-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-5px);
-  box-shadow: 0 22px 44px -18px rgba(37, 99, 235, .32);
+  transform: translateY(-6px);
+  box-shadow: var(--relief-card-hover);
 }
 .feature-card:hover .feature-card__icon-lg { transform: scale(1.07) rotate(-2deg); }
 .feature-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .feature-card.is-disabled { cursor: default; }
 .feature-card.is-disabled .feature-card__visual { opacity: .6; }
-.feature-card.is-disabled:hover { transform: none; box-shadow: var(--shadow-xs); border-color: var(--border); }
+.feature-card.is-disabled:hover { transform: none; box-shadow: var(--relief-card); border-color: var(--border); }
 .feature-card.is-disabled:hover .feature-card__icon-lg { transform: none; }
 
 /* Las dos herramientas principales comparten un único contenedor con halo
@@ -553,16 +559,16 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 22px 24px;
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--relief-card);
   display: flex; align-items: center; gap: 16px;
   min-width: 0;
   transition: transform .2s var(--ease-out), box-shadow .2s, border-color .2s;
 }
 .stat-card::before {
-  content: ''; position: absolute; top: 0; left: 18px; right: 18px; height: 1px; z-index: 1;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+  content: ''; position: absolute; top: 0; left: 18px; right: 18px; height: 2px; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95), transparent);
 }
-.stat-card:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -22px rgba(37, 99, 235, .3); border-color: var(--border-strong); }
+.stat-card:hover { transform: translateY(-4px); box-shadow: var(--relief-card-hover); border-color: var(--border-strong); }
 .stat-card__icon {
   width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -583,9 +589,10 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
   border-radius: 14px;
   padding: 14px 16px;
   text-decoration: none; color: inherit;
+  box-shadow: var(--shadow-xs);
   transition: border-color .18s, transform .18s var(--ease-out), box-shadow .18s;
 }
-.action-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.action-card:hover { border-color: var(--border-strong); transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .action-card__icon {
   width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -602,11 +609,12 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
   border-radius: 14px;
   padding: 16px 18px;
   text-decoration: none; color: inherit;
+  box-shadow: var(--shadow-xs);
   transition: border-color .18s, transform .18s var(--ease-out), box-shadow .18s;
   animation: fadeInUp .4s var(--ease-out) both;
 }
 .data-card:is(a, button) { cursor: pointer; width: 100%; text-align: left; }
-.data-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.data-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
 /* ---------- Skeletons ----------
    Sustituyen los "Cargando…" sueltos por una silueta del contenido real
