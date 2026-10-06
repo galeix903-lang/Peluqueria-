@@ -12,13 +12,13 @@
 // (que se queda con 5 accesos para no saturarla) sin dejar de mostrarla
 // en el sidebar de escritorio, que sí tiene sitio de sobra.
 const NAV_ITEMS = [
-  { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))', bottom: true },
-  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'wand', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))', bottom: true },
-  { page: 'history', href: '/history', label: 'Historial', shortLabel: 'Historial', icon: 'clock', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)', bottom: false },
-  { page: 'trading', href: '/trading', label: 'Paper Trading', shortLabel: 'Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)', bottom: true },
-  { page: 'picks', href: '/picks', label: 'Market Scanner', shortLabel: 'Scanner', icon: 'search', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)', bottom: true },
-  { page: 'wallet', href: '/wallet', label: 'Wallet Tracker', shortLabel: 'Wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)', bottom: false },
-  { page: 'copy', href: '/copy', label: 'Copy Trading', shortLabel: 'Copy', icon: 'refresh', gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)', bottom: false },
+  { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', bottom: true },
+  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'trendUp', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', bottom: true },
+  { page: 'history', href: '/history', label: 'Historial', shortLabel: 'Historial', icon: 'clock', gradient: 'linear-gradient(135deg, #a5b4fc, #6366f1, #8b5cf6)', bottom: false },
+  { page: 'trading', href: '/trading', label: 'Paper Trading', shortLabel: 'Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)', bottom: true },
+  { page: 'picks', href: '/picks', label: 'Market Scanner', shortLabel: 'Scanner', icon: 'search', gradient: 'linear-gradient(135deg, #fcd34d, #f59e0b, #f97316)', bottom: true },
+  { page: 'wallet', href: '/wallet', label: 'Wallet Tracker', shortLabel: 'Wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)', bottom: false },
+  { page: 'copy', href: '/copy', label: 'Copy Trading', shortLabel: 'Copy', icon: 'refresh', gradient: 'linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed)', bottom: false },
 ];
 
 // El set de iconos vive en shared/icons.js (vantexIcon) — antes había un

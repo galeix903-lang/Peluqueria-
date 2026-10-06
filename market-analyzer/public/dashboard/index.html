@@ -75,13 +75,13 @@
         <div class="primary-group">
           <div class="card-grid">
             ${card({
-              href: '/analyzer', icon: 'trend', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))',
+              href: '/analyzer', icon: 'trendUp', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))',
               name: 'AI Analyzer', title: 'AI Market Analyzer',
               desc: 'Sube la captura de cualquier gráfico y recibe al instante un análisis técnico generado por IA.',
               delay: 0.02,
             })}
             ${card({
-              href: '/trading', icon: 'windowLayout', gradient: 'linear-gradient(135deg, #f97316, #ef4444)',
+              href: '/trading', icon: 'windowLayout', gradient: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)',
               name: 'Paper Trading', title: 'Paper Trading',
               desc: 'Opera con dinero virtual y pon a prueba tus estrategias sin ningún riesgo real.',
               delay: 0.08,
@@ -90,19 +90,19 @@
         </div>
         <div class="card-grid card-grid--three">
           ${card({
-            href: '/picks', icon: 'search', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)',
+            href: '/picks', icon: 'search', gradient: 'linear-gradient(135deg, #fcd34d, #f59e0b, #f97316)',
             name: 'Market Scanner', title: 'Market Scanner',
             desc: 'Escaneo en vivo de los principales activos con datos de mercado reales.',
             delay: 0.14,
           })}
           ${card({
-            href: '/wallet', icon: 'pencil', gradient: 'linear-gradient(135deg, #0ea5e9, #22d3ee)',
+            href: '/wallet', icon: 'pencil', gradient: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)',
             name: 'Wallet Tracker', title: 'Wallet Tracker',
             desc: 'Sigue direcciones y observa sus holdings y actividad (modo simulado).',
             delay: 0.2,
           })}
           ${card({
-            href: '/copy', icon: 'sparkle', gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)',
+            href: '/copy', icon: 'sparkle', gradient: 'linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed)',
             name: 'Copy Trading', title: 'Copy Trading',
             desc: 'Sigue a traders modelo y replica sus operaciones (simulado, sin fondos reales).',
             delay: 0.26,
@@ -138,7 +138,7 @@
               </div>
             </div>
             <div class="stat-card">
-              <span class="stat-card__icon" style="background:linear-gradient(135deg, #8b5cf6, #a855f7);">${vantexIcon('inbox', { size: 21 })}</span>
+              <span class="stat-card__icon" style="background:linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed);">${vantexIcon('inbox', { size: 21 })}</span>
               <div class="stat-card__body">
                 <span class="stat-card__label text-meta">Posiciones abiertas</span>
                 <span class="stat-card__value">${open.length}</span>
@@ -151,14 +151,14 @@
         // falta en vez de mostrar siempre lo mismo.
         if (history.analyses.length === 0) {
           ctaEl.innerHTML = ctaBanner({
-            icon: 'brain', gradient: 'linear-gradient(135deg, var(--accent), var(--blue))',
+            icon: 'trendUp', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))',
             title: 'Analiza tu primer gráfico',
             desc: 'Sube la captura de un gráfico y prueba el AI Market Analyzer — es gratis.',
             href: '/analyzer', cta: 'Analizar ahora',
           });
         } else if (open.length === 0) {
           ctaEl.innerHTML = ctaBanner({
-            icon: 'chartBar', gradient: 'linear-gradient(135deg, #f97316, #ef4444)',
+            icon: 'chartBar', gradient: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)',
             title: 'Abre tu primera operación',
             desc: 'Practica con saldo virtual en Paper Trading, sin ningún riesgo real.',
             href: '/trading', cta: 'Abrir operación',
