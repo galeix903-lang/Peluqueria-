@@ -568,31 +568,96 @@
     .plan-duel__card--featured:hover { transform: translateY(-4px); }
   }
 
-  /* FAQ */
-  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-xs); transition: border-color .2s, box-shadow .25s; }
-  .faq-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
-  .faq-item.is-open { border-color: rgba(37, 99, 235, .35); box-shadow: 0 16px 32px -22px rgba(37, 99, 235, .35); }
+  /* FAQ — layout a dos columnas: intro + visual + tarjeta de soporte a la
+     izquierda, acordeón a la derecha (mismo patrón que el mockup de
+     referencia del usuario). */
+  .faq-layout { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 56px; align-items: start; }
+  .faq-intro__eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-dim); border-radius: 999px; padding: 7px 16px 7px 12px;
+    font-size: .75rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .04em; margin-bottom: 18px;
+  }
+  .faq-intro__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: pulseSoft 1.8s ease-in-out infinite; }
+  .faq-intro__title { font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.625rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; line-height: 1.14; }
+  .faq-intro__title em {
+    font-style: normal; background: linear-gradient(90deg, var(--accent), var(--blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .faq-intro__lead { font-size: .9375rem; color: var(--text-dim); line-height: 1.65; margin: 0 0 40px; max-width: 320px; }
+
+  .faq-intro__visual { position: relative; width: 176px; height: 176px; margin: 0 auto 32px; display: flex; align-items: center; justify-content: center; }
+  .faq-intro__ring { position: absolute; border-radius: 50%; border: 1.5px dashed rgba(37, 99, 235, .22); }
+  .faq-intro__ring--a { inset: 0; }
+  .faq-intro__ring--b { inset: 26px; border-style: solid; border-color: rgba(79, 70, 229, .14); }
+  .faq-intro__dot-accent { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 4px var(--blue-bg); }
+  .faq-intro__dot-accent--1 { top: 6px; left: 2px; }
+  .faq-intro__dot-accent--2 { bottom: 14px; right: -2px; width: 5px; height: 5px; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .faq-intro__icon {
+    position: relative; width: 104px; height: 104px; border-radius: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 30px 56px -18px rgba(37, 99, 235, .55), inset 0 1px 0 rgba(255,255,255,.35);
+    transform: rotate(-4deg);
+    animation: floatSlow 6s ease-in-out infinite;
+  }
+  .faq-intro__icon svg { width: 44px; height: 44px; }
+
+  .faq-support {
+    background: linear-gradient(165deg, #ffffff, #eef2fe);
+    border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px;
+    box-shadow: var(--relief-card); max-width: 320px; margin: 0 auto;
+  }
+  .faq-support__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .faq-support__icon {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .faq-support__title { margin: 0; font-weight: 800; font-size: .9375rem; }
+  .faq-support__desc { margin: 0 0 12px; font-size: .8125rem; color: var(--text-dim); line-height: 1.6; }
+  .faq-support__link { font-size: .8125rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+  .faq-support__link:hover { text-decoration: underline; }
+
+  .faq-list { display: flex; flex-direction: column; gap: 14px; }
+  .faq-item {
+    background: linear-gradient(165deg, #ffffff, #eef2fe);
+    border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+    box-shadow: var(--relief-card);
+    transition: border-color .2s, box-shadow .25s, transform .2s var(--ease-out);
+  }
+  .faq-item:hover { border-color: var(--border-strong); box-shadow: var(--relief-card-hover); transform: translateY(-2px); }
+  .faq-item.is-open { border-color: rgba(37, 99, 235, .4); box-shadow: 0 0 0 1px rgba(37, 99, 235, .1), var(--relief-card-hover); }
   .faq-item__q {
-    width: 100%; display: flex; align-items: center; gap: 14px;
-    padding: 16px 20px; background: none; border: none; text-align: left;
-    font-size: 1rem; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer;
+    width: 100%; display: flex; align-items: center; gap: 16px;
+    padding: 20px 24px; background: none; border: none; text-align: left;
+    font-size: 1.0625rem; font-weight: 700; color: var(--text); font-family: inherit; cursor: pointer;
   }
   .faq-item__q-icon {
-    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+    width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
     background: var(--accent-dim); color: var(--accent);
     display: flex; align-items: center; justify-content: center;
     transition: background .2s, color .2s;
   }
-  .faq-item__q-icon svg { width: 16px; height: 16px; }
+  .faq-item__q-icon svg { width: 17px; height: 17px; }
   .faq-item.is-open .faq-item__q-icon { background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; }
   .faq-item__q-text { flex: 1; }
-  .faq-item__q-chevron { width: 18px; height: 18px; color: var(--text-dim); flex-shrink: 0; transition: transform .3s var(--ease-spring), color .2s; }
-  .faq-item.is-open .faq-item__q-chevron { transform: rotate(180deg); color: var(--accent); }
+  .faq-item__q-chevron, .faq-item__q-close { width: 19px; height: 19px; color: var(--text-dim); flex-shrink: 0; transition: transform .3s var(--ease-spring), color .2s; }
+  .faq-item__q-close { display: none; color: var(--accent); }
+  .faq-item.is-open .faq-item__q-chevron { display: none; }
+  .faq-item.is-open .faq-item__q-close { display: block; }
   .faq-item__a {
     max-height: 0; overflow: hidden; transition: max-height .3s var(--ease-out);
   }
-  .faq-item__a p { margin: 0; padding: 0 20px 20px 66px; font-size: .9375rem; color: var(--text-dim); line-height: 1.65; }
+  .faq-item__a p { margin: 0; padding: 0 24px 22px 76px; font-size: .9375rem; color: var(--text-dim); line-height: 1.7; }
+
+  @media (max-width: 860px) {
+    .faq-layout { grid-template-columns: 1fr; }
+    .faq-intro { text-align: center; }
+    .faq-intro__eyebrow { margin-left: auto; margin-right: auto; }
+    .faq-intro__lead { margin-left: auto; margin-right: auto; }
+    .faq-intro__visual { margin-bottom: 24px; }
+  }
 
   /* CTA final + footer */
   .final-cta { text-align: center; }
@@ -1586,17 +1651,34 @@
     </section>
 
     <section class="section" id="faq">
-      <div class="section-head io-reveal">
-        <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="help" data-icon-size="24"></span>
-        <h2>Preguntas frecuentes</h2>
-        <p>Lo que más nos preguntan antes de empezar.</p>
-      </div>
+      <div class="faq-layout">
+        <div class="faq-intro io-reveal">
+          <span class="faq-intro__eyebrow"><span class="faq-intro__dot"></span>Preguntas frecuentes</span>
+          <h2 class="faq-intro__title">Todo lo que <em>necesitas saber</em>.</h2>
+          <p class="faq-intro__lead">Resolvemos las dudas más comunes para que empieces a analizar el mercado con total confianza.</p>
+          <div class="faq-intro__visual" aria-hidden="true">
+            <span class="faq-intro__ring faq-intro__ring--a"></span>
+            <span class="faq-intro__ring faq-intro__ring--b"></span>
+            <span class="faq-intro__dot-accent faq-intro__dot-accent--1"></span>
+            <span class="faq-intro__dot-accent faq-intro__dot-accent--2"></span>
+            <div class="faq-intro__icon" data-icon="trend" data-icon-size="44"></div>
+          </div>
+          <div class="faq-support">
+            <div class="faq-support__head">
+              <span class="faq-support__icon" data-icon="sparkle" data-icon-size="14"></span>
+              <p class="faq-support__title">¿Tienes otra pregunta?</p>
+            </div>
+            <p class="faq-support__desc">Si no encuentras la respuesta que buscas, estamos aquí para ayudarte.</p>
+            <a class="faq-support__link" href="mailto:soporte@vantex.ai">Contactar soporte →</a>
+          </div>
+        </div>
       <div class="faq-list" data-faq>
-        <div class="faq-item io-reveal">
+        <div class="faq-item io-reveal is-open">
           <button class="faq-item__q" type="button">
             <span class="faq-item__q-icon" data-icon="shieldCheck" data-icon-size="16"></span>
             <span class="faq-item__q-text">¿Es dinero real?</span>
             <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg class="faq-item__q-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>
           </button>
           <div class="faq-item__a"><p>No. Paper Trading, Wallet Tracker y Copy Trading funcionan con saldo virtual y datos simulados — puedes practicar sin arriesgar un euro real.</p></div>
         </div>
@@ -1605,6 +1687,7 @@
             <span class="faq-item__q-icon" data-icon="brain" data-icon-size="16"></span>
             <span class="faq-item__q-text">¿El análisis de IA es real?</span>
             <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg class="faq-item__q-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>
           </button>
           <div class="faq-item__a"><p>Sí. El AI Market Analyzer usa un modelo de IA real para leer el gráfico que subas y generar el análisis — no son resultados de plantilla.</p></div>
         </div>
@@ -1613,6 +1696,7 @@
             <span class="faq-item__q-icon" data-icon="star" data-icon-size="16"></span>
             <span class="faq-item__q-text">¿Necesito experiencia previa?</span>
             <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg class="faq-item__q-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>
           </button>
           <div class="faq-item__a"><p>No. Vantex está pensado para aprender practicando, con una lectura clara en cada análisis y sin arriesgar dinero mientras coges soltura.</p></div>
         </div>
@@ -1621,6 +1705,7 @@
             <span class="faq-item__q-icon" data-icon="wallet" data-icon-size="16"></span>
             <span class="faq-item__q-text">¿Qué pasa con mis datos?</span>
             <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg class="faq-item__q-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>
           </button>
           <div class="faq-item__a"><p>Tu email y contraseña se guardan de forma segura y nunca se comparten. Vantex nunca pide acceso a tus cuentas de exchange ni a tu dinero real.</p></div>
         </div>
@@ -1629,6 +1714,7 @@
             <span class="faq-item__q-icon" data-icon="refresh" data-icon-size="16"></span>
             <span class="faq-item__q-text">¿Puedo cancelar cuando quiera?</span>
             <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg class="faq-item__q-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>
           </button>
           <div class="faq-item__a"><p>Sí. Puedes cancelar tu suscripción Pro en cualquier momento desde Ajustes, sin permanencia ni penalización.</p></div>
         </div>
@@ -1637,9 +1723,11 @@
             <span class="faq-item__q-icon" data-icon="bolt" data-icon-size="16"></span>
             <span class="faq-item__q-text">¿Qué necesito para empezar?</span>
             <svg class="faq-item__q-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            <svg class="faq-item__q-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12" /><path d="M18 6 6 18" /></svg>
           </button>
           <div class="faq-item__a"><p>Solo un email. Crea tu cuenta gratis y ya puedes subir tu primer gráfico en menos de un minuto.</p></div>
         </div>
+      </div>
       </div>
     </section>
 
@@ -2184,6 +2272,11 @@
         }
       });
     });
+    // La primera pregunta empieza abierta (marcada con is-open en el HTML);
+    // su altura hay que fijarla aquí porque scrollHeight solo existe una
+    // vez montado el DOM.
+    const defaultOpenFaq = document.querySelector('[data-faq] .faq-item.is-open .faq-item__a');
+    if (defaultOpenFaq) defaultOpenFaq.style.maxHeight = `${defaultOpenFaq.scrollHeight}px`;
 
     // ---------- Aviso de actividad reciente ----------
     // Lee eventos reales (altas, análisis, posiciones abiertas) de
