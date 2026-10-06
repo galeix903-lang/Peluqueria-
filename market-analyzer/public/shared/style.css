@@ -203,6 +203,26 @@ button { font: inherit; cursor: pointer; }
 }
 .avatar-btn:hover { transform: translateY(-1px); }
 .avatar-btn:active { transform: scale(.94); }
+
+/* ---------- Iconos de criptomonedas (CryptoIcon) ----------
+   Elemento pequeño de identificación, nunca protagonista: círculo con
+   el logo real o, si no existe/falla, las iniciales sobre un color
+   estable. Mismo radius/sombra ligera que el resto de avatares de la
+   app para que se sienta parte del mismo sistema a cualquier tamaño
+   (16 a 64px, fijado vía data-size en JS). */
+.crypto-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; overflow: hidden; flex-shrink: 0;
+  background: var(--field-bg); vertical-align: middle;
+  box-shadow: 0 0 0 1px rgba(20, 22, 43, .05);
+}
+.crypto-icon__img { width: 100%; height: 100%; object-fit: contain; display: block; background: #fff; }
+.crypto-icon__fallback {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 55%; letter-spacing: 0;
+}
+.crypto-icon__skeleton { width: 100%; height: 100%; display: block; background: var(--field-bg); animation: cryptoIconPulse 1.4s ease-in-out infinite alternate; }
+@keyframes cryptoIconPulse { from { opacity: .5; } to { opacity: 1; } }
 .avatar-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- Tarjeta rápida de perfil (al tocar la foto de la topbar) ---------- */
@@ -409,13 +429,16 @@ button { font: inherit; cursor: pointer; }
 .btn-primary {
   background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%);
   color: #fff; border: none;
-  padding: 12px 22px; border-radius: 10px; font-weight: 700; font-size: .9375rem;
-  transition: transform .12s, filter .15s, box-shadow .15s;
+  padding: 12px 22px; border-radius: 14px; font-weight: 700; font-size: .9375rem;
+  transition: transform .18s var(--ease-out), filter .15s, box-shadow .18s;
   display: inline-flex; align-items: center; gap: 8px;
   position: relative; overflow: hidden; isolation: isolate;
-  /* Relieve exagerado a propósito: el "canto" sólido (0 5px 0) simula
-     el grosor físico de un botón real, no solo una sombra de contacto. */
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 8px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 18px 32px -10px rgba(37, 99, 235, .6);
+  /* Relieve redondeado y con brillo (nunca un canto recto/plano, que se
+     lee como pegatina 2D): realce interior arriba para el brillo,
+     sombra interior abajo para la curva, y una sombra exterior en dos
+     capas, difusa, con tinte de color — así la profundidad se nota sin
+     que el botón deje de parecer una pastilla física. */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(20,22,43,.18), 0 4px 10px -4px rgba(37,99,235,.45), 0 16px 30px -10px rgba(37,99,235,.55);
 }
 /* Brillo sutil que cruza el botón al pasar el ratón — un detalle de
    motion design, no una animación permanente. */
@@ -427,23 +450,23 @@ button { font: inherit; cursor: pointer; }
 }
 .btn-primary:hover:not(:disabled)::before { transform: skewX(-20deg) translateX(330%); }
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.06); transform: translateY(-2px);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(20,22,43,.22), 0 7px 0 #2d3a9e, 0 24px 40px -10px rgba(37, 99, 235, .68);
+  filter: brightness(1.06); transform: translateY(-3px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 6px rgba(20,22,43,.18), 0 6px 14px -6px rgba(37,99,235,.5), 0 22px 40px -10px rgba(37,99,235,.65);
 }
 .btn-primary:active:not(:disabled) {
-  transform: translateY(3px); filter: brightness(.98);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 8px 16px -8px rgba(37, 99, 235, .55);
+  transform: translateY(0); filter: brightness(.98);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(20,22,43,.2), 0 3px 8px -4px rgba(37,99,235,.45);
 }
 .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 .btn-primary:focus-visible, .btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-secondary {
   background: linear-gradient(180deg, #ffffff, #f8faff); border: 1px solid var(--border);
-  padding: 9px 16px; border-radius: 9px; font-weight: 600; font-size: .8125rem;
-  box-shadow: inset 0 1px 0 #fff, 0 4px 0 var(--border-strong), 0 14px 24px -12px rgba(20,22,43,.28);
-  transition: transform .12s, border-color .15s, box-shadow .15s;
+  padding: 9px 16px; border-radius: 12px; font-weight: 600; font-size: .8125rem;
+  box-shadow: inset 0 1px 0 #fff, 0 2px 6px -3px rgba(20,22,43,.12), 0 12px 22px -12px rgba(20,22,43,.22);
+  transition: transform .18s var(--ease-out), border-color .15s, box-shadow .18s;
 }
-.btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); box-shadow: inset 0 1px 0 #fff, 0 6px 0 var(--border-strong), 0 18px 30px -12px rgba(37,99,235,.3); }
-.btn-secondary:active { transform: translateY(2px); box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--border-strong), 0 6px 12px -10px rgba(20,22,43,.3); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-3px); box-shadow: inset 0 1px 0 #fff, 0 4px 10px -4px rgba(37,99,235,.2), 0 16px 28px -12px rgba(37,99,235,.3); }
+.btn-secondary:active { transform: translateY(0); box-shadow: inset 0 1px 0 #fff, 0 2px 6px -4px rgba(20,22,43,.2); }
 .error-msg { color: var(--red); font-size: .8125rem; margin-top: 8px; min-height: 1em; }
 
 /* Spinner discreto para botones en estado "cargando". */

@@ -95,34 +95,36 @@
   .site-nav.is-scrolled .site-nav__links a { color: var(--text-dim); }
   .site-nav.is-scrolled .site-nav__links a:hover { color: var(--text); }
   .site-nav__right { display: flex; align-items: center; gap: 14px; }
-  /* Mismo botón azul con relieve exagerado que el resto de CTAs de la
-     web — siempre azul, independientemente de si el nav está arriba
-     (fondo oscuro) o ya hizo scroll (fondo blanco), a propósito para
-     que destaque igual en los dos estados. */
+  /* Mismo botón azul con relieve que el resto de CTAs de la web —
+     siempre azul, independientemente de si el nav está arriba (fondo
+     oscuro) o ya hizo scroll (fondo blanco), a propósito para que
+     destaque igual en los dos estados. Relieve redondeado y con brillo,
+     nunca un canto recto (se leía plano/2D): sombra difusa en dos capas
+     con tinte de color en vez de una línea sólida. */
   .site-nav__login {
     display: inline-flex; align-items: center; justify-content: center;
     padding: 10px 20px; font-size: .875rem; font-weight: 700; border-radius: 999px; flex-shrink: 0;
     font-family: inherit; cursor: pointer; border: none; color: #fff;
     background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%);
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 7px rgba(20,22,43,.22), 0 4px 0 #2d3a9e, 0 14px 26px -10px rgba(37,99,235,.55);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(20,22,43,.18), 0 3px 8px -4px rgba(37,99,235,.45), 0 12px 24px -10px rgba(37,99,235,.5);
     transition: transform .18s var(--ease-out), box-shadow .18s, filter .15s;
   }
-  .site-nav__login:hover { transform: translateY(-2px); filter: brightness(1.06); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(20,22,43,.22), 0 6px 0 #2d3a9e, 0 18px 32px -10px rgba(37,99,235,.65); }
-  .site-nav__login:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 1px 0 #2d3a9e, 0 6px 14px -10px rgba(37,99,235,.5); }
+  .site-nav__login:hover { transform: translateY(-3px); filter: brightness(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 6px rgba(20,22,43,.18), 0 5px 12px -6px rgba(37,99,235,.5), 0 18px 32px -10px rgba(37,99,235,.6); }
+  .site-nav__login:active { transform: translateY(0); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(20,22,43,.2), 0 3px 8px -4px rgba(37,99,235,.4); }
   .site-nav__cta {
     padding: 11px 24px; font-size: .875rem; border-radius: 999px; flex-shrink: 0;
     background: linear-gradient(180deg, #ffffff 0%, #f3f5ff 100%); color: var(--electric);
-    box-shadow: inset 0 2px 0 #fff, 0 5px 0 #c3cafb, 0 16px 28px -10px rgba(0,0,0,.4);
+    box-shadow: inset 0 1px 0 #fff, 0 3px 8px -4px rgba(20,22,43,.3), 0 14px 26px -10px rgba(0,0,0,.35);
   }
   .site-nav__cta::before { display: none; }
-  .site-nav__cta:hover { filter: none; background: #fff; transform: translateY(-2px); box-shadow: inset 0 2px 0 #fff, 0 7px 0 #c3cafb, 0 20px 32px -10px rgba(0,0,0,.45); }
-  .site-nav__cta:active { transform: translateY(2px); box-shadow: inset 0 2px 0 #fff, 0 2px 0 #c3cafb, 0 8px 16px -10px rgba(0,0,0,.35); }
+  .site-nav__cta:hover { filter: none; background: #fff; transform: translateY(-3px); box-shadow: inset 0 1px 0 #fff, 0 5px 12px -6px rgba(20,22,43,.35), 0 20px 34px -10px rgba(0,0,0,.4); }
+  .site-nav__cta:active { transform: translateY(0); box-shadow: inset 0 1px 0 #fff, 0 3px 8px -4px rgba(20,22,43,.28); }
   .site-nav.is-scrolled .site-nav__cta {
     background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%); color: #fff;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 7px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 14px 26px -10px rgba(37,99,235,.5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(20,22,43,.18), 0 3px 8px -4px rgba(37,99,235,.4), 0 12px 24px -10px rgba(37,99,235,.45);
   }
-  .site-nav.is-scrolled .site-nav__cta:hover { box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(20,22,43,.22), 0 7px 0 #2d3a9e, 0 18px 32px -10px rgba(37,99,235,.6); }
-  .site-nav.is-scrolled .site-nav__cta:active { box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 1px 0 #2d3a9e, 0 6px 14px -10px rgba(37,99,235,.5); }
+  .site-nav.is-scrolled .site-nav__cta:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 6px rgba(20,22,43,.18), 0 5px 12px -6px rgba(37,99,235,.45), 0 18px 32px -10px rgba(37,99,235,.55); }
+  .site-nav.is-scrolled .site-nav__cta:active { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(20,22,43,.2), 0 3px 8px -4px rgba(37,99,235,.4); }
   @media (max-width: 760px) {
     .site-nav { padding: 14px 20px; }
     .site-nav__links { display: none; }
@@ -1045,7 +1047,7 @@
     font-weight: 700; font-size: 1.0625rem; font-family: inherit; cursor: pointer;
     min-width: 280px; height: 62px; padding: 0 30px; border-radius: 18px;
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    box-shadow: inset 0 2px 0 #fff, inset 0 -4px 6px rgba(52,77,224,.16), 0 6px 0 #c3cafb, 0 26px 44px -14px rgba(0,0,0,.45);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -3px 5px rgba(52,77,224,.14), 0 4px 10px -4px rgba(0,0,0,.3), 0 22px 40px -14px rgba(0,0,0,.4);
     transition: transform .22s var(--ease-out), box-shadow .22s;
     animation: heroCtaAttention 3.2s ease-in-out infinite;
   }
@@ -1054,12 +1056,12 @@
      ratón para no pelearse con el propio hover, y prefers-reduced-motion
      ya lo reduce a casi estático por la regla global. */
   @keyframes heroCtaAttention {
-    0%, 58%, 100% { transform: scale(1); box-shadow: 0 6px 0 #c3cafb, 0 20px 40px -14px rgba(0,0,0,.4), 0 0 0 0 rgba(255,255,255,.45); }
-    29% { transform: scale(1.045); box-shadow: 0 6px 0 #c3cafb, 0 26px 48px -14px rgba(0,0,0,.45), 0 0 0 14px rgba(255,255,255,0); }
+    0%, 58%, 100% { transform: scale(1); box-shadow: 0 4px 10px -4px rgba(0,0,0,.3), 0 16px 36px -14px rgba(0,0,0,.4), 0 0 0 0 rgba(255,255,255,.45); }
+    29% { transform: scale(1.045); box-shadow: 0 4px 10px -4px rgba(0,0,0,.3), 0 22px 44px -14px rgba(0,0,0,.45), 0 0 0 14px rgba(255,255,255,0); }
   }
-  .hero-cta:hover { animation-play-state: paused; transform: translateY(-4px) scale(1.01); box-shadow: inset 0 2px 0 #fff, inset 0 -4px 6px rgba(52,77,224,.16), 0 9px 0 #c3cafb, 0 32px 52px -14px rgba(0,0,0,.5); }
+  .hero-cta:hover { animation-play-state: paused; transform: translateY(-4px) scale(1.01); box-shadow: inset 0 1px 0 #fff, inset 0 -3px 5px rgba(52,77,224,.14), 0 6px 14px -6px rgba(0,0,0,.35), 0 28px 48px -14px rgba(0,0,0,.45); }
   .hero-cta:focus-visible { animation-play-state: paused; outline: 2px solid #fff; outline-offset: 3px; }
-  .hero-cta:active { animation-play-state: paused; transform: translateY(3px) scale(.99); box-shadow: inset 0 2px 0 #fff, inset 0 -2px 4px rgba(52,77,224,.16), 0 2px 0 #c3cafb, 0 10px 20px -14px rgba(0,0,0,.4); }
+  .hero-cta:active { animation-play-state: paused; transform: translateY(0) scale(.99); box-shadow: inset 0 1px 0 #fff, inset 0 -2px 4px rgba(52,77,224,.14), 0 4px 10px -6px rgba(0,0,0,.3); }
   .hero-trust {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px;
     margin: 20px 0 0; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.68);
@@ -1198,12 +1200,12 @@
     font-weight: 700; font-size: 1.0625rem; font-family: inherit; cursor: pointer;
     min-width: 260px; height: 60px; padding: 0 32px; border-radius: 16px;
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 8px rgba(20,22,43,.22), 0 6px 0 #2d3a9e, 0 24px 40px -12px rgba(37, 99, 235, .5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(20,22,43,.18), 0 4px 10px -4px rgba(37,99,235,.45), 0 18px 34px -12px rgba(37, 99, 235, .55);
     transition: transform .2s var(--ease-out), box-shadow .2s, filter .2s;
   }
-  .showcase-cta:hover { transform: translateY(-3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(20,22,43,.22), 0 9px 0 #2d3a9e, 0 30px 48px -12px rgba(37, 99, 235, .6); filter: brightness(1.05); }
+  .showcase-cta:hover { transform: translateY(-3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 6px rgba(20,22,43,.18), 0 6px 14px -6px rgba(37,99,235,.5), 0 24px 42px -12px rgba(37, 99, 235, .6); filter: brightness(1.05); }
   .showcase-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .showcase-cta:active { transform: translateY(3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 10px 20px -12px rgba(37, 99, 235, .45); }
+  .showcase-cta:active { transform: translateY(0); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(20,22,43,.2), 0 3px 8px -4px rgba(37,99,235,.4); }
   .showcase-microtrust {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px;
     margin-top: 18px; font-size: .8125rem; font-weight: 600; color: var(--text-dim);
@@ -1349,11 +1351,11 @@
   .auth-card .btn-primary.auth-submit {
     width: 100%; justify-content: center; margin-top: 4px;
     padding: 14px 22px; font-size: 1rem; border-radius: 12px;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 8px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 18px 32px -10px rgba(37, 99, 235, .55);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(20,22,43,.18), 0 4px 10px -4px rgba(37,99,235,.45), 0 16px 30px -10px rgba(37, 99, 235, .5);
     transition: transform .18s var(--ease-out), box-shadow .18s, filter .15s;
   }
-  .auth-card .btn-primary.auth-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(20,22,43,.22), 0 7px 0 #2d3a9e, 0 22px 38px -10px rgba(37, 99, 235, .65); }
-  .auth-card .btn-primary.auth-submit:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 8px 16px -10px rgba(37, 99, 235, .5); }
+  .auth-card .btn-primary.auth-submit:hover:not(:disabled) { transform: translateY(-3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 6px rgba(20,22,43,.18), 0 6px 14px -6px rgba(37,99,235,.5), 0 22px 38px -10px rgba(37, 99, 235, .6); }
+  .auth-card .btn-primary.auth-submit:active:not(:disabled) { transform: translateY(0); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(20,22,43,.2), 0 3px 8px -4px rgba(37,99,235,.4); }
 
   .auth-card .error-msg { min-height: 0; }
   .auth-card .error-msg:not(:empty) { animation: errorIn .28s var(--ease-out) both; }
@@ -1438,13 +1440,13 @@
     background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%); color: #fff; border: none;
     font-weight: 700; font-size: .9375rem; font-family: inherit; cursor: pointer;
     height: 52px; padding: 0 24px; border-radius: 999px;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 7px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 20px 36px -12px rgba(37, 99, 235, .55);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(20,22,43,.18), 0 4px 10px -4px rgba(37,99,235,.45), 0 16px 32px -12px rgba(37, 99, 235, .5);
     opacity: 0; transform: translateY(14px) scale(.95); pointer-events: none;
     transition: opacity .25s var(--ease-out), transform .25s var(--ease-out), box-shadow .2s, filter .2s;
   }
   .floating-cta.is-visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-  .floating-cta:hover { transform: translateY(-3px) scale(1); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(20,22,43,.22), 0 8px 0 #2d3a9e, 0 26px 44px -12px rgba(37, 99, 235, .65); filter: brightness(1.05); }
-  .floating-cta:active { transform: translateY(2px) scale(.98); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 8px 16px -12px rgba(37, 99, 235, .5); }
+  .floating-cta:hover { transform: translateY(-3px) scale(1); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -3px 6px rgba(20,22,43,.18), 0 6px 14px -6px rgba(37,99,235,.5), 0 22px 40px -12px rgba(37, 99, 235, .6); filter: brightness(1.05); }
+  .floating-cta:active { transform: translateY(0) scale(.98); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -2px 4px rgba(20,22,43,.2), 0 3px 8px -4px rgba(37,99,235,.4); }
   @media (max-width: 760px) {
     .floating-cta { right: 16px; bottom: 16px; height: 48px; padding: 0 18px; font-size: .875rem; }
   }
@@ -1556,7 +1558,7 @@
       <div class="hero-visual" data-parallax="3">
         <div class="analyzer-mock">
           <div class="analyzer-mock__head">
-            <span class="analyzer-mock__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11" /><path d="M11 20V4" /><path d="M18 20v-6" /></svg>BTC/USD</span>
+            <span class="analyzer-mock__chip"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="14"></span>BTC/USD</span>
             <span class="analyzer-mock__chip">4H</span>
             <span class="analyzer-mock__chip">Cripto</span>
             <span class="analyzer-mock__status"><span class="analyzer-mock__status-dot"></span>IA analizando</span>
@@ -1732,7 +1734,7 @@
               <div class="app-window__main">
                 <div class="app-window__chart">
                   <div class="app-window__chart-head">
-                    <span class="app-window__chart-sym">BTC/USDT</span>
+                    <span class="app-window__chart-sym" style="display:inline-flex; align-items:center; gap:6px;"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="16"></span>BTC/USDT</span>
                     <span class="app-window__chart-change">+2.34%</span>
                     <div class="app-window__chart-tf"><span>15m</span><span class="is-active">1H</span><span>4H</span><span>1D</span></div>
                   </div>
@@ -1743,7 +1745,7 @@
                     <span class="app-window__ai-label">Análisis de IA</span>
                     <span class="app-window__ai-time">Hace 2 min</span>
                   </div>
-                  <span class="app-window__ai-sym">BTC/USDT</span>
+                  <span class="app-window__ai-sym" style="display:inline-flex; align-items:center; gap:7px;"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="20"></span>BTC/USDT</span>
                   <div class="app-window__ai-signal">
                     <span class="app-window__ai-buy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5" /><path d="M6 11l6-6 6 6" /></svg>BUY</span>
                     <div class="app-window__ai-confidence"><strong>87%</strong><span>Confianza</span></div>
@@ -1762,10 +1764,10 @@
               </div>
             </div>
             <div class="app-window__tickers">
-              <div class="app-window__ticker"><span class="app-window__ticker-avatar" style="background:#f7931a;">B</span><div><span class="app-window__ticker-sym">BTC/USDT</span><span class="app-window__ticker-change">+2.34%</span></div></div>
-              <div class="app-window__ticker"><span class="app-window__ticker-avatar" style="background:#627eea;">E</span><div><span class="app-window__ticker-sym">ETH/USDT</span><span class="app-window__ticker-change">+1.12%</span></div></div>
-              <div class="app-window__ticker"><span class="app-window__ticker-avatar" style="background:#14151a;">S</span><div><span class="app-window__ticker-sym">SOL/USDT</span><span class="app-window__ticker-change">+3.76%</span></div></div>
-              <div class="app-window__ticker"><span class="app-window__ticker-avatar" style="background:#c2a633;">D</span><div><span class="app-window__ticker-sym">DOGE/USDT</span><span class="app-window__ticker-change">+0.89%</span></div></div>
+              <div class="app-window__ticker"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="24"></span><div><span class="app-window__ticker-sym">BTC/USDT</span><span class="app-window__ticker-change">+2.34%</span></div></div>
+              <div class="app-window__ticker"><span class="crypto-icon" data-crypto-icon data-symbol="ETH" data-size="24"></span><div><span class="app-window__ticker-sym">ETH/USDT</span><span class="app-window__ticker-change">+1.12%</span></div></div>
+              <div class="app-window__ticker"><span class="crypto-icon" data-crypto-icon data-symbol="SOL" data-size="24"></span><div><span class="app-window__ticker-sym">SOL/USDT</span><span class="app-window__ticker-change">+3.76%</span></div></div>
+              <div class="app-window__ticker"><span class="crypto-icon" data-crypto-icon data-symbol="DOGE" data-size="24"></span><div><span class="app-window__ticker-sym">DOGE/USDT</span><span class="app-window__ticker-change">+0.89%</span></div></div>
               <a class="app-window__explore" href="#" data-cta-signup>
                 <span class="app-window__explore-icon" data-icon="chartBar" data-icon-size="15"></span>
                 <div><p class="app-window__explore-title">Explora todos los mercados</p><p class="app-window__explore-desc">Más activos, más oportunidades.</p></div>
@@ -1777,7 +1779,7 @@
           <div class="app-phone">
             <div class="app-phone__topbar"><img src="/assets/vantex-mark.png" alt="" />Vantex.AI</div>
             <div class="app-phone__chart">
-              <div class="app-phone__chart-head"><strong>BTC/USDT</strong><span>+2.34%</span></div>
+              <div class="app-phone__chart-head"><strong style="display:inline-flex; align-items:center; gap:5px;"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="14"></span>BTC/USDT</strong><span>+2.34%</span></div>
               <div data-app-phone-chart-mount></div>
             </div>
             <div class="app-phone__ai">
@@ -1816,7 +1818,7 @@
           <span class="flow-node__label">Gráfico</span>
           <div class="flow-panel flow-panel--chart">
             <div class="flow-panel__head">
-              <span class="flow-tag">BTC/USDT</span>
+              <span class="flow-tag" style="display:inline-flex; align-items:center; gap:5px;"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="13"></span>BTC/USDT</span>
               <span class="flow-tag flow-tag--muted">4H</span>
             </div>
             <div class="flow-panel__chart" data-flow-chart-mount></div>
@@ -1847,7 +1849,7 @@
           <span class="flow-node__label">Resultado</span>
           <div class="flow-panel flow-panel--result">
             <div class="flow-panel__head">
-              <span class="flow-tag" style="color:var(--text); background:var(--field-bg); border-color:var(--border);">BTC/USDT</span>
+              <span class="flow-tag" style="color:var(--text); background:var(--field-bg); border-color:var(--border); display:inline-flex; align-items:center; gap:5px;"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="13"></span>BTC/USDT</span>
               <span class="flow-signal flow-signal--buy"><span data-icon="arrowUp" data-icon-size="15"></span>COMPRAR</span>
             </div>
             <div class="flow-confidence__label"><span>Confianza</span><strong>78%</strong></div>
@@ -1927,17 +1929,17 @@
             <div class="tool-preview">
               <span class="tool-preview__label">Vista previa del Scanner</span>
               <div class="tool-preview__row">
-                <span class="tool-preview__sym">BTC/USDT</span>
+                <span class="tool-preview__sym" style="display:inline-flex; align-items:center; gap:6px;"><span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="16"></span>BTC/USDT</span>
                 <span class="tool-preview__trend tool-preview__trend--up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5" /><path d="M6 11l6-6 6 6" /></svg>Alcista</span>
                 <span class="tool-preview__meta">Confianza <strong>82%</strong></span>
               </div>
               <div class="tool-preview__row">
-                <span class="tool-preview__sym">ETH/USDT</span>
+                <span class="tool-preview__sym" style="display:inline-flex; align-items:center; gap:6px;"><span class="crypto-icon" data-crypto-icon data-symbol="ETH" data-size="16"></span>ETH/USDT</span>
                 <span class="tool-preview__trend tool-preview__trend--flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /></svg>Lateral</span>
                 <span class="tool-preview__meta">Confianza <strong>54%</strong></span>
               </div>
               <div class="tool-preview__row">
-                <span class="tool-preview__sym">SOL/USDT</span>
+                <span class="tool-preview__sym" style="display:inline-flex; align-items:center; gap:6px;"><span class="crypto-icon" data-crypto-icon data-symbol="SOL" data-size="16"></span>SOL/USDT</span>
                 <span class="tool-preview__trend tool-preview__trend--down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14" /><path d="M18 13l-6 6-6-6" /></svg>Bajista</span>
                 <span class="tool-preview__meta">Confianza <strong>65%</strong></span>
               </div>
@@ -1966,12 +1968,12 @@
             <div class="tool-preview">
               <span class="tool-preview__label">Vista previa · Wallet Tracker (dirección de ejemplo)</span>
               <div class="tool-preview__row">
-                <span class="tool-preview__avatar" style="background:#f7931a;">B</span>
+                <span class="crypto-icon" data-crypto-icon data-symbol="BTC" data-size="26"></span>
                 <span class="tool-preview__name">BTC</span>
                 <span class="tool-preview__meta">0,42 <strong>≈ $28.040</strong></span>
               </div>
               <div class="tool-preview__row">
-                <span class="tool-preview__avatar" style="background:#627eea;">E</span>
+                <span class="crypto-icon" data-crypto-icon data-symbol="ETH" data-size="26"></span>
                 <span class="tool-preview__name">ETH</span>
                 <span class="tool-preview__meta">3,1 <strong>≈ $8.366</strong></span>
               </div>
@@ -2385,6 +2387,7 @@
   </div>
 
   <script src="/shared/icons.js"></script>
+  <script src="/shared/cryptoIcon.js"></script>
   <script src="/shared/api.js"></script>
   <script>
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2400,6 +2403,7 @@
       const size = Number(el.dataset.iconSize) || 20;
       el.innerHTML = vantexIcon(el.dataset.icon, { size });
     });
+    mountCryptoIcons(document);
 
     // El hero necesita saber la altura real de la cabecera fija completa
     // (aviso + nav, --nav-h) para reservar ese mismo espacio arriba y que

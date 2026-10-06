@@ -63,6 +63,7 @@
 
   <script src="/shared/api.js"></script>
   <script src="/shared/icons.js"></script>
+  <script src="/shared/cryptoIcon.js"></script>
   <script src="/shared/format.js"></script>
   <script src="/shared/modal.js"></script>
   <script src="/shared/toast.js"></script>
@@ -384,7 +385,7 @@
                   : '';
                 return `
                   <tr>
-                    <td>${p.symbol}${fromAnalysis}</td>
+                    <td style="display:flex; align-items:center; gap:8px;">${cryptoIconHtml(p.symbol, 20)}${p.symbol}${fromAnalysis}</td>
                     <td><span class="badge badge--${p.side}">${p.side}</span></td>
                     <td>${p.size}</td>
                     <td>${fmtUsd(p.entryPrice)}</td>
@@ -398,6 +399,7 @@
             </tbody>
           </table>
         `;
+        mountCryptoIcons(positionsEl);
 
         positionsEl.querySelectorAll('[data-close]').forEach((btn) => {
           btn.addEventListener('click', () => {

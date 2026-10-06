@@ -30,7 +30,7 @@
   .wallet-card__label { color: var(--text-dim); font-size: .8125rem; margin-top: 2px; }
   .wallet-card__value { font-weight: 800; font-size: 1.25rem; margin-top: 10px; }
   .holdings-mini { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .holdings-mini span { background: var(--field-bg); border-radius: 999px; padding: 4px 10px; font-size: .75rem; font-weight: 700; color: var(--text-dim); }
+  .holdings-mini span { display: inline-flex; align-items: center; gap: 5px; background: var(--field-bg); border-radius: 999px; padding: 4px 10px 4px 4px; font-size: .75rem; font-weight: 700; color: var(--text-dim); }
 
   .holdings-table td, .holdings-table th { padding: 8px 0; }
   .activity-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: .8125rem; }
@@ -42,6 +42,7 @@
 
   <script src="/shared/api.js"></script>
   <script src="/shared/icons.js"></script>
+  <script src="/shared/cryptoIcon.js"></script>
   <script src="/shared/format.js"></script>
   <script src="/shared/modal.js"></script>
   <script src="/shared/toast.js"></script>
@@ -100,7 +101,7 @@
               <tbody>
                 ${s.holdings.map((h) => `
                   <tr>
-                    <td><strong>${h.symbol}</strong></td>
+                    <td><strong style="display:inline-flex; align-items:center; gap:7px;">${cryptoIconHtml(h.symbol, 20)}${h.symbol}</strong></td>
                     <td>${h.amount}</td>
                     <td>${fmtUsd(h.value)}</td>
                     <td>${h.share}%</td>
@@ -111,7 +112,7 @@
             <p class="text-meta" style="margin:18px 0 4px;">Actividad reciente (simulada)</p>
             ${s.activity.map((a) => `
               <div class="activity-item">
-                <span>${a.verb} ${a.amount} ${a.symbol}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">${cryptoIconHtml(a.symbol, 16)}${a.verb} ${a.amount} ${a.symbol}</span>
                 <span class="text-caption">${fmtDate(a.at)}</span>
               </div>
             `).join('') || '<p class="text-caption">Sin actividad reciente.</p>'}
@@ -122,6 +123,7 @@
             <button type="button" class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" data-unfollow="${wallet.id}">Dejar de seguir</button>
           `,
           onOpen: (root) => {
+            mountCryptoIcons(root);
             root.querySelector('[data-unfollow]').addEventListener('click', async (e) => {
               const btn = e.currentTarget;
               btn.disabled = true;
@@ -163,12 +165,13 @@
                 </div>
                 <div class="wallet-card__value">${fmtUsd(w.snapshot.totalValue)}</div>
                 <div class="holdings-mini">
-                  ${w.snapshot.holdings.map((h) => `<span>${h.symbol} · ${h.share}%</span>`).join('')}
+                  ${w.snapshot.holdings.map((h) => `<span>${cryptoIconHtml(h.symbol, 14)}${h.symbol} · ${h.share}%</span>`).join('')}
                 </div>
               </button>
             `).join('')}
           </div>
         `;
+        mountCryptoIcons(walletsEl);
         walletsEl.querySelectorAll('[data-wallet]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const w = wallets.find((x) => x.id === btn.dataset.wallet);

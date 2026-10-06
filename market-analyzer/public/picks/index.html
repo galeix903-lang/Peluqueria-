@@ -23,6 +23,7 @@
 
   <script src="/shared/api.js"></script>
   <script src="/shared/icons.js"></script>
+  <script src="/shared/cryptoIcon.js"></script>
   <script src="/shared/format.js"></script>
   <script src="/shared/modal.js"></script>
   <script src="/shared/toast.js"></script>
@@ -74,7 +75,7 @@
             return `
             <a href="/analyzer" class="scan-card" style="display:block; text-decoration:none; color:inherit; animation-delay:${i * 0.06}s">
               <div class="scan-card__head">
-                <strong style="font-size:1rem;">${r.symbol}</strong>
+                <strong style="font-size:1rem; display:inline-flex; align-items:center; gap:7px;">${cryptoIconHtml(r.symbol, 22)}${r.symbol}</strong>
                 <span class="scan-card__signal badge badge--${sig.cls}">${vantexIcon(sig.icon, { size: 13 })}${sig.label}</span>
               </div>
               <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
@@ -88,6 +89,7 @@
           `;
           }).join('')}
         `;
+        mountCryptoIcons(listEl);
       } catch (err) {
         listEl.innerHTML = `<p class="empty-state">${err.message}</p>`;
       }

@@ -15,6 +15,7 @@ const walletRoutes = require('./routes/wallet');
 const copyRoutes = require('./routes/copy');
 const notificationsRoutes = require('./routes/notifications');
 const activityRoutes = require('./routes/activity');
+const marketRoutes = require('./routes/market');
 const billing = require('./routes/billing');
 const { scheduleCopyTradingJob } = require('./services/copyTradingJob');
 
@@ -118,6 +119,7 @@ app.use('/api/auth/signup', rateLimit({ windowMs: 5 * 60 * 1000, max: 20, messag
 // API pública (sin sesión).
 app.use('/api/auth', authRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/market', marketRoutes);
 
 // API protegida (requiere sesión).
 app.use('/api/analyzer', requireAuth, analyzerRoutes);

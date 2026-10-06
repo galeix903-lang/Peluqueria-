@@ -28,6 +28,8 @@
   .chip:hover { border-color: var(--accent); color: var(--accent); }
   .chip.is-active { background: linear-gradient(135deg, var(--accent), var(--blue)); border-color: var(--accent); color: #fff; box-shadow: 0 6px 14px -6px rgba(37, 99, 235, .5); }
   .chip:active { transform: scale(.95); }
+  .chip--asset { display: inline-flex; align-items: center; gap: 6px; }
+  .chip--asset .crypto-icon { margin: -2px 0; }
 
   .symbol-input {
     border: 1px solid var(--border); background: var(--field-bg); color: var(--text);
@@ -97,6 +99,7 @@
 
   <script src="/shared/api.js"></script>
   <script src="/shared/icons.js"></script>
+  <script src="/shared/cryptoIcon.js"></script>
   <script src="/shared/format.js"></script>
   <script src="/shared/modal.js"></script>
   <script src="/shared/toast.js"></script>
@@ -167,7 +170,7 @@
               <div class="text-meta" style="margin-bottom:8px;">Activo (opcional)</div>
               <input type="text" class="symbol-input" data-symbol-input placeholder="Cripto, acción, fondo, forex…" maxlength="20" />
               <div class="chip-row" data-symbol-chips style="margin-top:8px;">
-                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip" data-symbol="${s}" title="${REAL_DATA_SYMBOLS.includes(s) ? 'Datos de mercado reales' : 'Lectura visual de la imagen'}">${s}${REAL_DATA_SYMBOLS.includes(s) ? ' ★' : ''}</button>`).join('')}
+                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip chip--asset" data-symbol="${s}" title="${REAL_DATA_SYMBOLS.includes(s) ? 'Datos de mercado reales' : 'Lectura visual de la imagen'}">${cryptoIconHtml(s, 15)}${s}${REAL_DATA_SYMBOLS.includes(s) ? ' ★' : ''}</button>`).join('')}
               </div>
               <div class="text-meta" style="margin-top:6px; color:var(--text-dim);">★ = señal calculada con datos de mercado reales, no solo lectura de la imagen</div>
             </div>
@@ -224,6 +227,7 @@
         </div>
         <div data-history></div>
       `;
+      mountCryptoIcons(ctx.contentEl);
 
       const dropzone = ctx.contentEl.querySelector('[data-dropzone]');
       const fileInput = ctx.contentEl.querySelector('[data-file-input]');

@@ -42,6 +42,7 @@
 
   <script src="/shared/api.js"></script>
   <script src="/shared/icons.js"></script>
+  <script src="/shared/cryptoIcon.js"></script>
   <script src="/shared/format.js"></script>
   <script src="/shared/modal.js"></script>
   <script src="/shared/toast.js"></script>
@@ -89,11 +90,13 @@
               <div class="trader-card__stat"><div class="text-meta">P&amp;L 30d</div><div class="val pnl-pos">+${t.pnl30d}%</div></div>
             </div>
             <p class="trader-card__desc">${t.strategy}</p>
+            ${t.symbols && t.symbols.length ? `<div style="display:flex; gap:6px; margin:-4px 0 14px;">${t.symbols.map((s) => cryptoIconHtml(s, 20)).join('')}</div>` : ''}
             <button type="button" class="${t.following ? 'btn-secondary' : 'btn-primary'}" style="width:100%; justify-content:center;" data-follow="${t.id}" data-following="${t.following}">
               ${t.following ? 'Dejar de seguir' : 'Seguir'}
             </button>
           </div>
         `).join('');
+        mountCryptoIcons(tradersEl);
 
         tradersEl.querySelectorAll('[data-follow]').forEach((btn) => {
           btn.addEventListener('click', async () => {
@@ -135,7 +138,7 @@
                   const pnlClass = pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
                   return `
                     <tr>
-                      <td>${p.symbol}</td>
+                      <td style="display:flex; align-items:center; gap:8px;">${cryptoIconHtml(p.symbol, 20)}${p.symbol}</td>
                       <td><span class="badge badge--${p.side}">${p.side}</span></td>
                       <td>${p.size}</td>
                       <td>${fmtUsd(p.entryPrice)}</td>
@@ -149,6 +152,7 @@
             <p class="disclaimer">Estas operaciones se abren/cierran solas dentro de tu Paper Trading al seguir a un trader — mismo saldo virtual, cero fondos reales.</p>
           </div>
         `;
+        mountCryptoIcons(positionsEl);
       }
 
       async function load() {

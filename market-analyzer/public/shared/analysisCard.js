@@ -64,7 +64,7 @@ function analysisDetailHtml(a) {
   return `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
       <div>
-        <div style="font-weight:800; font-size:1.1rem;">${escapeHtml(a.asset)}</div>
+        <div style="font-weight:800; font-size:1.1rem; display:flex; align-items:center; gap:8px;">${cryptoIconHtml(a.asset, 24)}${escapeHtml(a.asset)}</div>
         <div style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
           ${a.timeframe ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${a.timeframe}</span>` : ''}
           ${a.mock ? '<span class="badge badge--mock">Modo de ejemplo</span>' : ''}
@@ -163,6 +163,7 @@ function analysisDetailHtml(a) {
 // recién generado.
 function renderAnalysisDetail(container, a) {
   container.innerHTML = analysisDetailHtml(a);
+  if (window.mountCryptoIcons) mountCryptoIcons(container);
   const scenarios = a.scenarios || {};
   const keyLevels = scenarios.keyLevels || {};
   const simulateBtn = container.querySelector('[data-simulate-btn]');
@@ -224,7 +225,7 @@ function renderAnalysisList(container, analyses, onSelect) {
         <button type="button" class="data-card" data-history-item="${a.id}" style="animation-delay:${Math.min(i, 12) * 0.04}s;">
           <div class="history-item">
             <div>
-              <strong>${escapeHtml(a.asset)}</strong>
+              <strong style="display:inline-flex; align-items:center; gap:7px; vertical-align:middle;">${cryptoIconHtml(a.asset, 18)}${escapeHtml(a.asset)}</strong>
               <span class="badge badge--${(a.signal || 'wait').toLowerCase()}" style="margin-left:8px;">${(SIGNAL_META[a.signal] || SIGNAL_META.WAIT).label}</span>
               <div class="history-item__meta">${new Date(a.createdAt).toLocaleString('es-ES')}${a.timeframe ? ' · ' + a.timeframe : ''}</div>
             </div>
@@ -234,6 +235,7 @@ function renderAnalysisList(container, analyses, onSelect) {
       `).join('')}
     </div>
   `;
+  if (window.mountCryptoIcons) mountCryptoIcons(container);
   container.querySelectorAll('[data-history-item]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const a = analyses.find((x) => x.id === btn.dataset.historyItem);
