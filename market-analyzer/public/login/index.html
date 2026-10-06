@@ -104,11 +104,15 @@
   .site-nav.is-scrolled .site-nav__login:hover { color: var(--text); }
   .site-nav__cta {
     padding: 11px 24px; font-size: .875rem; border-radius: 999px; flex-shrink: 0;
-    background: #fff; color: var(--electric); box-shadow: 0 8px 20px -8px rgba(0,0,0,.35);
+    background: linear-gradient(180deg, #ffffff 0%, #f3f5ff 100%); color: var(--electric);
+    box-shadow: inset 0 1px 0 #fff, 0 8px 20px -8px rgba(0,0,0,.35);
   }
   .site-nav__cta::before { display: none; }
   .site-nav__cta:hover { filter: none; background: #fff; transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); }
-  .site-nav.is-scrolled .site-nav__cta { background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; box-shadow: 0 8px 20px -8px rgba(37,99,235,.5); }
+  .site-nav.is-scrolled .site-nav__cta {
+    background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%); color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.14), 0 8px 20px -8px rgba(37,99,235,.5);
+  }
   @media (max-width: 760px) {
     .site-nav { padding: 14px 20px; }
     .site-nav__links { display: none; }
@@ -444,30 +448,95 @@
   .price-card__list svg { width: 17px; height: 17px; color: var(--accent); stroke-width: 3; flex-shrink: 0; margin-top: 1px; }
   .price-card .btn-primary, .price-card .btn-secondary { width: 100%; justify-content: center; }
 
-  /* Comparación Pro vs. Business: el precio ya se ve en las tarjetas de
-     arriba, aquí solo lo que cambia función a función — para que el
-     único diferenciador real (el límite diario de análisis) quede
-     imposible de pasar por alto. */
-  .plan-compare { max-width: 680px; margin: 56px auto 0; }
-  .plan-compare__title { text-align: center; font-size: .9375rem; color: var(--text-dim); margin: 0 0 18px; }
-  .plan-compare { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
-  .plan-compare__row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; align-items: center; gap: 8px; padding: 13px 22px; border-top: 1px solid var(--border); }
-  .plan-compare__row:first-child { border-top: none; }
-  .plan-compare__row--head {
-    background: var(--field-bg); font-weight: 800; font-size: .75rem;
-    text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim);
+  /* ======================================================================
+     Duelo de planes Pro vs. Business — ya no una tabla de filas, sino
+     dos tarjetas de pricing propias. Business queda claramente por
+     delante (borde con el color de marca, fondo con una pizca de
+     degradado, badge, CTA primario) sin llenar la sección de gradients:
+     solo la card destacada lleva uno, muy sutil. ====================== */
+  .plan-duel { max-width: 920px; margin: 64px auto 0; }
+  .plan-duel__head { text-align: center; max-width: 480px; margin: 0 auto 40px; }
+  .plan-duel__title { font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 10px; color: var(--text); }
+  .plan-duel__lead { font-size: .9375rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
+
+  .plan-duel__cards { display: flex; align-items: flex-start; justify-content: center; gap: 24px; }
+  .plan-duel__card {
+    position: relative; isolation: isolate; flex: 1 1 320px; max-width: 360px;
+    background: linear-gradient(165deg, #ffffff, #f8faff);
+    border: 1px solid var(--border); border-radius: 24px;
+    padding: 36px 32px 32px; display: flex; flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: transform .25s var(--ease-out), box-shadow .25s, border-color .25s;
   }
-  .plan-compare__row span:first-child { font-size: .9375rem; color: var(--text); }
-  .plan-compare__row:not(.plan-compare__row--head) span:nth-child(2),
-  .plan-compare__row:not(.plan-compare__row--head) span:nth-child(3) { text-align: center; font-size: .9375rem; color: var(--text-dim); }
-  .plan-compare__row--head span:nth-child(2), .plan-compare__row--head span:nth-child(3) { text-align: center; }
-  .plan-compare__row strong { color: var(--accent); font-weight: 800; }
-  .plan-compare__row svg { width: 18px; height: 18px; color: var(--accent); }
-  @media (max-width: 640px) {
-    .plan-compare__row { grid-template-columns: 1.3fr .85fr .85fr; padding: 11px 14px; }
-    .plan-compare__row span:first-child { font-size: .8125rem; }
-    .plan-compare__row:not(.plan-compare__row--head) span:nth-child(2),
-    .plan-compare__row:not(.plan-compare__row--head) span:nth-child(3) { font-size: .8125rem; }
+  .plan-duel__card::before {
+    content: ''; position: absolute; top: 0; left: 24px; right: 24px; height: 1px; z-index: 1;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+  }
+  .plan-duel__card:hover { transform: translateY(-5px); box-shadow: 0 22px 44px -22px rgba(37, 99, 235, .25); border-color: var(--border-strong); }
+  .plan-duel__card--featured {
+    border: 1.5px solid rgba(37, 99, 235, .4);
+    background: linear-gradient(165deg, #f5f7ff, #ffffff 55%);
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, .06), 0 26px 52px -24px rgba(37, 99, 235, .32);
+    transform: translateY(-10px);
+  }
+  .plan-duel__card--featured:hover { transform: translateY(-14px); box-shadow: 0 0 0 1px rgba(37, 99, 235, .08), 0 30px 58px -22px rgba(37, 99, 235, .4); }
+  .plan-duel__badge {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    font-size: .6875rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    padding: 6px 14px; border-radius: 999px; box-shadow: 0 8px 16px -6px rgba(37, 99, 235, .5);
+    animation: badgePop .5s var(--ease-spring) .3s both;
+  }
+  @keyframes badgePop { from { opacity: 0; transform: translateX(-50%) scale(.7); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+  .plan-duel__name { font-size: .875rem; font-weight: 700; color: var(--text-dim); margin: 0 0 6px; }
+  .plan-duel__price { font-size: 2.75rem; font-weight: 800; letter-spacing: -.02em; color: var(--text); margin: 0 0 22px; line-height: 1; }
+  .plan-duel__price span { font-size: 1rem; font-weight: 600; color: var(--text-dim); }
+
+  /* La cifra que de verdad diferencia los dos planes, con su propia
+     tarjeta dentro de la tarjeta — no una fila más entre otras. */
+  .plan-duel__stat {
+    display: flex; align-items: baseline; gap: 10px;
+    background: var(--field-bg); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 18px; margin: 0 0 24px;
+  }
+  .plan-duel__stat strong { font-size: 1.75rem; font-weight: 800; color: var(--accent); letter-spacing: -.01em; }
+  .plan-duel__stat span { font-size: .8125rem; color: var(--text-dim); line-height: 1.3; }
+  .plan-duel__card--featured .plan-duel__stat {
+    background: linear-gradient(135deg, var(--accent-dim), #eef2ff);
+    border-color: rgba(37, 99, 235, .25);
+  }
+  .plan-duel__stat--infinite strong {
+    font-size: 2.125rem; background: linear-gradient(135deg, var(--accent), var(--blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: infinitePulse 2.6s ease-in-out infinite;
+  }
+  @keyframes infinitePulse { 0%, 100% { opacity: 1; } 50% { opacity: .72; } }
+
+  .plan-duel__features { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-direction: column; gap: 13px; flex: 1; }
+  .plan-duel__features li { display: flex; align-items: center; gap: 10px; font-size: .875rem; color: var(--text); opacity: 0; animation: pdFeatureIn .45s var(--ease-out) forwards; }
+  .plan-duel__features li:nth-child(1) { animation-delay: .05s; }
+  .plan-duel__features li:nth-child(2) { animation-delay: .12s; }
+  .plan-duel__features li:nth-child(3) { animation-delay: .19s; }
+  .plan-duel__features li:nth-child(4) { animation-delay: .26s; }
+  .plan-duel__features li:nth-child(5) { animation-delay: .33s; }
+  @keyframes pdFeatureIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+  .plan-duel__check {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent-dim); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .plan-duel__check svg { width: 11px; height: 11px; stroke-width: 3.2; }
+  .plan-duel__card--featured .plan-duel__check { background: var(--accent); color: #fff; }
+
+  .plan-duel__card .btn-primary, .plan-duel__card .btn-secondary { width: 100%; justify-content: center; margin-top: auto; }
+  .plan-duel__card .btn-secondary:hover { transform: translateY(-1px); }
+
+  @media (max-width: 760px) {
+    .plan-duel__cards { flex-direction: column; align-items: center; gap: 36px; }
+    .plan-duel__card, .plan-duel__card--featured { max-width: 380px; width: 100%; transform: none; }
+    .plan-duel__card--featured:hover { transform: translateY(-4px); }
   }
 
   /* FAQ */
@@ -997,10 +1066,10 @@
   .floating-cta {
     position: fixed; right: 24px; bottom: 24px; z-index: 30;
     display: inline-flex; align-items: center; gap: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff; border: none;
+    background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%); color: #fff; border: none;
     font-weight: 700; font-size: .9375rem; font-family: inherit; cursor: pointer;
     height: 52px; padding: 0 24px; border-radius: 999px;
-    box-shadow: 0 16px 32px -12px rgba(37, 99, 235, .5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 5px rgba(20,22,43,.16), 0 16px 32px -12px rgba(37, 99, 235, .5);
     opacity: 0; transform: translateY(14px) scale(.95); pointer-events: none;
     transition: opacity .25s var(--ease-out), transform .25s var(--ease-out), box-shadow .2s, filter .2s;
   }
@@ -1393,42 +1462,45 @@
         </div>
       </div>
 
-      <div class="plan-compare io-reveal">
-        <p class="plan-compare__title">Pro vs. Business, en una sola fila: el límite de análisis al día.</p>
-        <div class="plan-compare__row plan-compare__row--head">
-          <span></span>
-          <span>Pro · 1€/mes</span>
-          <span>Business · 4,99€/mes</span>
+      <div class="plan-duel">
+        <div class="plan-duel__head io-reveal">
+          <h3 class="plan-duel__title">Elige cómo quieres analizar.</h3>
+          <p class="plan-duel__lead">Empieza con lo esencial. Desbloquea todo el potencial de Vantex cuando estés preparado.</p>
         </div>
-        <div class="plan-compare__row">
-          <span>Análisis con IA al día</span>
-          <span>15</span>
-          <span><strong>Ilimitados</strong></span>
-        </div>
-        <div class="plan-compare__row">
-          <span>Copy Trading simulado</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
-        </div>
-        <div class="plan-compare__row">
-          <span>Paper Trading</span>
-          <span>Ilimitado</span>
-          <span>Ilimitado</span>
-        </div>
-        <div class="plan-compare__row">
-          <span>Market Scanner</span>
-          <span>En vivo</span>
-          <span>En vivo</span>
-        </div>
-        <div class="plan-compare__row">
-          <span>Wallet Tracker</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
-        </div>
-        <div class="plan-compare__row">
-          <span>Cancela cuando quieras</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+        <div class="plan-duel__cards io-reveal">
+          <div class="plan-duel__card">
+            <p class="plan-duel__name">Pro</p>
+            <p class="plan-duel__price">1€<span>/mes</span></p>
+            <div class="plan-duel__stat">
+              <strong>15</strong>
+              <span>análisis<br>IA / día</span>
+            </div>
+            <ul class="plan-duel__features">
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Copy Trading simulado</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Paper Trading ilimitado</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Market Scanner en vivo</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Wallet Tracker</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Cancela cuando quieras</li>
+            </ul>
+            <button class="btn-secondary" type="button" data-plan-preview="pro">Empezar con Pro →</button>
+          </div>
+          <div class="plan-duel__card plan-duel__card--featured">
+            <span class="plan-duel__badge">Recomendado</span>
+            <p class="plan-duel__name">Business</p>
+            <p class="plan-duel__price">4,99€<span>/mes</span></p>
+            <div class="plan-duel__stat plan-duel__stat--infinite">
+              <strong>∞</strong>
+              <span>análisis<br>IA / día</span>
+            </div>
+            <ul class="plan-duel__features">
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Copy Trading simulado</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Paper Trading ilimitado</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Market Scanner en vivo</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Wallet Tracker</li>
+              <li><span class="plan-duel__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>Cancela cuando quieras</li>
+            </ul>
+            <button class="btn-primary" type="button" data-plan-preview="business">Elegir Business →</button>
+          </div>
         </div>
       </div>
     </section>
