@@ -171,10 +171,20 @@
   .hero-bg__particles { position: absolute; inset: 0; transition: transform .15s linear; }
   .particle {
     position: absolute; border-radius: 50%; background: #fff; pointer-events: none;
-    animation: particleFloat linear infinite, particlePulse ease-in-out infinite;
+    opacity: 0; animation: particleDrift ease-in-out infinite;
   }
-  @keyframes particleFloat { from { transform: translateY(6px); } to { transform: translateY(-26px); } }
-  @keyframes particlePulse { 0%, 100% { opacity: var(--p-min, .15); } 50% { opacity: var(--p-max, .6); } }
+  /* Una sola animación (no dos en paralelo): sube despacio Y se apaga
+     del todo justo antes de volver a la posición inicial, así el salto
+     de "fin de bucle → otra vez arriba" ocurre siempre invisible — antes
+     la opacidad nunca llegaba a 0 (mínimo .15) y el salto en seco se
+     notaba como un parpadeo/reseteo cada vuelta. */
+  @keyframes particleDrift {
+    0%   { transform: translateY(10px); opacity: 0; }
+    12%  { opacity: var(--p-max, .6); }
+    45%  { opacity: var(--p-max, .6); }
+    88%  { transform: translateY(-24px); opacity: 0; }
+    100% { transform: translateY(-28px); opacity: 0; }
+  }
   @media (max-width: 760px) { .hero-bg__particles { display: none; } }
 
   /* ---------- Secciones de la landing (cómo funciona, herramientas, precio, FAQ) ----------
@@ -204,33 +214,141 @@
   .section-head h2 { font-size: clamp(2rem, 1.5rem + 2.1vw, 3.25rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; line-height: 1.12; }
   .section-head p { font-size: 1.0625rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
 
-  /* Pasos */
-  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 44px; }
-  .step-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 32px 26px; transition: transform .22s var(--ease-spring), box-shadow .22s, border-color .22s;
+  /* ======================================================================
+     Vantex Intelligence Flow — sustituye a las tres "step cards"
+     genéricas. No es un carrusel de tarjetas: es una sola composición
+     editorial (eyebrow + headline + lead) seguida de una visualización
+     GRÁFICO → VANTEX AI → RESULTADO, con los datos "viajando" de verdad
+     entre los tres nodos mediante un pulso que recorre cada conector en
+     bucle lento — nunca una animación de aparición/desaparición que
+     parpadee, para que se sienta como un sistema en marcha, no como una
+     demo que se repite. Reutiliza el motor de gráficos ya existente
+     (buildChart) y respeta prefers-reduced-motion (regla global). ====== */
+  .flow-section {
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, #f6f8ff 0%, #fbfbff 55%, #fff 100%);
+    padding: 120px 20px 110px;
   }
-  .step-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -18px rgba(37, 99, 235, .3); border-color: var(--border-strong); }
-  .step-card__icon-wrap { position: relative; display: inline-flex; margin-bottom: 20px; }
-  .step-card__icon {
-    width: 56px; height: 56px; border-radius: 16px;
-    display: flex; align-items: center; justify-content: center; color: #fff;
-    box-shadow: 0 12px 24px -10px rgba(37, 99, 235, .45);
-    transition: transform .25s var(--ease-spring);
+  .flow-head { text-align: center; max-width: 620px; margin: 0 auto 72px; }
+  .flow-eyebrow {
+    display: inline-block; font-size: .75rem; font-weight: 800;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent);
+    margin-bottom: 18px;
   }
-  .step-card__icon svg { width: 25px; height: 25px; }
-  .step-card:hover .step-card__icon { transform: scale(1.08) rotate(-4deg); }
-  .step-card__num {
-    position: absolute; right: -7px; bottom: -7px;
-    width: 24px; height: 24px; border-radius: 50%;
-    background: var(--text); color: #fff; border: 3px solid var(--surface);
-    font-size: .6875rem; font-weight: 800;
+  .flow-title {
+    font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem); font-weight: 800;
+    letter-spacing: -.025em; line-height: 1.08; margin: 0 0 18px; color: var(--text);
+  }
+  .flow-lead { font-size: 1.0625rem; color: var(--text-dim); line-height: 1.6; margin: 0; }
+
+  /* ---------- Composición de los tres nodos ---------- */
+  .flow-stage {
+    position: relative; display: flex; align-items: flex-start; justify-content: center;
+    max-width: 1180px; margin: 0 auto; padding: 0 12px;
+  }
+  .flow-stage::before {
+    content: ''; position: absolute; top: 50%; left: 50%; width: 640px; height: 420px;
+    transform: translate(-50%, -50%); z-index: -1; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(37, 99, 235, .09), transparent 72%);
+  }
+  .flow-node { display: flex; flex-direction: column; align-items: center; flex: 1 1 340px; min-width: 0; }
+  .flow-node--core { flex: 0 0 168px; }
+  .flow-node__label {
+    font-size: .6875rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 16px;
+  }
+
+  /* Paneles compartidos (gráfico oscuro + resultado claro) */
+  .flow-panel { width: 100%; border-radius: 22px; overflow: hidden; }
+  .flow-panel--chart {
+    position: relative; isolation: isolate;
+    background: linear-gradient(165deg, #10173f, #0a0e2c);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 26px 52px -26px rgba(6,10,36,.4), 0 10px 26px -14px rgba(37,99,235,.28);
+  }
+  .flow-panel--chart::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; z-index: 1;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.5) 20%, rgba(255,255,255,.5) 80%, transparent);
+  }
+  .flow-panel__head { display: flex; align-items: center; gap: 8px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .flow-tag {
+    font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+    padding: 5px 11px; border-radius: 999px;
+  }
+  .flow-tag--muted { color: rgba(255,255,255,.55); }
+  .flow-panel__chart { position: relative; min-height: 172px; padding: 14px 6px 8px 0; }
+  .flow-panel__chart svg { display: block; width: 100%; height: auto; aspect-ratio: 760 / 230; }
+
+  .flow-panel--result {
+    background: var(--surface); border: 1px solid var(--border);
+    box-shadow: 0 22px 44px -26px rgba(37, 99, 235, .2);
+    padding: 20px 22px 22px;
+  }
+  .flow-panel--result .flow-panel__head { padding: 0 0 16px; border: none; justify-content: space-between; }
+  .flow-signal {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 1.0625rem; font-weight: 800; letter-spacing: -.01em;
+    padding: 7px 16px; border-radius: 999px;
+  }
+  .flow-signal--buy { color: #15803d; background: #eafbef; border: 1px solid rgba(22,163,74,.22); }
+  .flow-confidence__label { display: flex; justify-content: space-between; font-size: .8125rem; color: var(--text-dim); margin-bottom: 7px; }
+  .flow-confidence__label strong { color: var(--text); font-variant-numeric: tabular-nums; }
+  .flow-confidence__bar { height: 7px; border-radius: 999px; background: var(--field-bg); overflow: hidden; }
+  .flow-confidence__bar span { display: block; height: 100%; width: 78%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--blue)); }
+  .flow-levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .flow-levels div { display: flex; flex-direction: column; gap: 3px; }
+  .flow-levels span { font-size: .6875rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em; }
+  .flow-levels strong { font-size: .875rem; font-variant-numeric: tabular-nums; color: var(--text); }
+
+  /* ---------- Núcleo Vantex AI ---------- */
+  .flow-core { position: relative; width: 108px; height: 108px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .flow-core__ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(37, 99, 235, .4); animation: flowRing 3.4s ease-out infinite; }
+  .flow-core__ring--2 { animation-delay: 1.7s; }
+  @keyframes flowRing { 0% { transform: scale(.68); opacity: .55; } 100% { transform: scale(1.5); opacity: 0; } }
+  .flow-core__mark {
+    position: relative; z-index: 2; width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
     display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 16px 30px -12px rgba(37, 99, 235, .55);
+    animation: flowCorePulse 3.4s ease-in-out infinite;
   }
-  .step-card h3 { margin: 0 0 7px; font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; }
-  .step-card p { margin: 0; color: var(--text-dim); font-size: .875rem; line-height: 1.6; }
-  .section-cta { text-align: center; }
+  .flow-core__mark svg { width: 27px; height: 27px; }
+  @keyframes flowCorePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+  .flow-core__status { display: inline-flex; align-items: center; gap: 7px; font-size: .75rem; font-weight: 700; color: var(--text-dim); }
+  .flow-core__status-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.18); animation: pulseSoft 1.6s ease-in-out infinite; }
+
+  /* ---------- Conectores: el dato "viajando" entre nodos ---------- */
+  .flow-link { position: relative; flex: 0 1 72px; min-width: 32px; height: 2px; align-self: center; margin: 0 2px; }
+  .flow-link::before {
+    content: ''; position: absolute; inset: 0; border-radius: 2px;
+    background: linear-gradient(90deg, rgba(37,99,235,.08), rgba(37,99,235,.4), rgba(37,99,235,.08));
+  }
+  .flow-link__dot {
+    position: absolute; top: 50%; left: 0; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 10px 2px rgba(37,99,235,.55);
+    transform: translate(-50%, -50%); animation: flowTravelX 3.4s ease-in-out infinite;
+  }
+  .flow-link__dot--b { opacity: .55; animation-delay: 1.7s; }
+  @keyframes flowTravelX { 0% { left: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+  .flow-disclaimer { text-align: center; font-size: .75rem; color: var(--text-dim); max-width: 440px; margin: 40px auto 0; line-height: 1.5; }
+  .section-cta { text-align: center; margin-top: 56px; }
   .section-cta .social-proof { display: flex; justify-content: center; }
+
+  @media (max-width: 980px) {
+    .flow-stage { flex-direction: column; gap: 0; }
+    .flow-node { width: 100%; max-width: 380px; flex: none; }
+    .flow-node--core { flex: none; }
+    .flow-link { flex: none; width: 2px; height: 48px; margin: 6px 0; }
+    .flow-link::before { background: linear-gradient(180deg, rgba(37,99,235,.08), rgba(37,99,235,.4), rgba(37,99,235,.08)); }
+    .flow-link__dot { animation-name: flowTravelY; }
+    @keyframes flowTravelY { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+  }
+  @media (max-width: 640px) {
+    .flow-section { padding: 88px 18px 80px; }
+    .flow-head { margin-bottom: 48px; }
+  }
 
   /* Herramientas: bloques de color */
   .tool-blocks { display: flex; flex-direction: column; gap: 24px; }
@@ -317,8 +435,34 @@
   .price-card__amount span { font-size: .9375rem; font-weight: 600; color: var(--text-dim); }
   .price-card__list { list-style: none; margin: 0 0 26px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
   .price-card__list li { display: flex; align-items: flex-start; gap: 10px; font-size: .9375rem; }
-  .price-card__list svg { width: 17px; height: 17px; color: var(--green); flex-shrink: 0; margin-top: 1px; }
+  .price-card__list svg { width: 17px; height: 17px; color: var(--accent); stroke-width: 3; flex-shrink: 0; margin-top: 1px; }
   .price-card .btn-primary, .price-card .btn-secondary { width: 100%; justify-content: center; }
+
+  /* Comparación Pro vs. Business: el precio ya se ve en las tarjetas de
+     arriba, aquí solo lo que cambia función a función — para que el
+     único diferenciador real (el límite diario de análisis) quede
+     imposible de pasar por alto. */
+  .plan-compare { max-width: 680px; margin: 56px auto 0; }
+  .plan-compare__title { text-align: center; font-size: .9375rem; color: var(--text-dim); margin: 0 0 18px; }
+  .plan-compare { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+  .plan-compare__row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; align-items: center; gap: 8px; padding: 13px 22px; border-top: 1px solid var(--border); }
+  .plan-compare__row:first-child { border-top: none; }
+  .plan-compare__row--head {
+    background: var(--field-bg); font-weight: 800; font-size: .75rem;
+    text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim);
+  }
+  .plan-compare__row span:first-child { font-size: .9375rem; color: var(--text); }
+  .plan-compare__row:not(.plan-compare__row--head) span:nth-child(2),
+  .plan-compare__row:not(.plan-compare__row--head) span:nth-child(3) { text-align: center; font-size: .9375rem; color: var(--text-dim); }
+  .plan-compare__row--head span:nth-child(2), .plan-compare__row--head span:nth-child(3) { text-align: center; }
+  .plan-compare__row strong { color: var(--accent); font-weight: 800; }
+  .plan-compare__row svg { width: 18px; height: 18px; color: var(--accent); }
+  @media (max-width: 640px) {
+    .plan-compare__row { grid-template-columns: 1.3fr .85fr .85fr; padding: 11px 14px; }
+    .plan-compare__row span:first-child { font-size: .8125rem; }
+    .plan-compare__row:not(.plan-compare__row--head) span:nth-child(2),
+    .plan-compare__row:not(.plan-compare__row--head) span:nth-child(3) { font-size: .8125rem; }
+  }
 
   /* FAQ */
   .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
@@ -432,6 +576,10 @@
     animation: gradientShift 5s ease-in-out infinite;
   }
   @keyframes gradientShift { 0%, 100% { background-position: 0% center; } 50% { background-position: 100% center; } }
+  .hero-tagline {
+    font-size: .875rem; font-weight: 700; letter-spacing: .01em;
+    color: rgba(255,255,255,.62); margin: 0 0 16px;
+  }
   .hero-subtitle {
     font-size: clamp(1.0625rem, 1rem + .3vw, 1.25rem); line-height: 1.55;
     color: rgba(255,255,255,.78); max-width: 640px; margin: 0 0 36px;
@@ -758,6 +906,40 @@
   .auth-card__legal a { color: var(--text-dim); text-decoration: underline; text-underline-offset: 2px; }
   .auth-card__legal a:hover { color: var(--accent); }
 
+  /* ---------- Vista previa de plan al pulsar un plan de pago ----------
+     Antes de ir directos al registro, un resumen honesto de lo que se
+     va a contratar: nombre real, precio real (sin tachar uno falso al
+     lado), y la misma lista de funciones que ya aparece en la tarjeta
+     de precios — nunca una cuenta regresiva, una cifra de usuarios o
+     una reseña inventada para meter prisa. */
+  .plan-card {
+    position: relative; isolation: isolate;
+    text-align: left; background: var(--surface);
+    border: 1px solid rgba(20, 22, 43, .08);
+    border-radius: 24px; padding: 36px 34px;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 1px 1px rgba(20, 22, 43, .04), 0 30px 60px -28px rgba(37, 99, 235, .3), 0 10px 28px -14px rgba(20, 22, 43, .14);
+  }
+  .plan-card__glow {
+    position: absolute; top: -160px; left: 50%; width: 380px; height: 280px;
+    transform: translateX(-50%); z-index: -1; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(37, 99, 235, .18), transparent 72%);
+  }
+  .plan-card__brand { display: flex; align-items: center; justify-content: center; gap: 9px; margin-bottom: 22px; }
+  .plan-card__brand img { width: 26px; height: 26px; border-radius: 8px; }
+  .plan-card__brand span { font-weight: 800; font-size: 1rem; letter-spacing: -.01em; }
+  .plan-card__head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .plan-card__icon { width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; }
+  .plan-card__icon svg { width: 21px; height: 21px; }
+  .plan-card__name { font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; margin: 0; }
+  .plan-card__price { font-size: .875rem; color: var(--text-dim); margin: 2px 0 0; }
+  .plan-card__price strong { color: var(--text); font-size: 1rem; }
+  .plan-card__list { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .plan-card__list li { display: flex; align-items: flex-start; gap: 10px; font-size: .9375rem; line-height: 1.4; }
+  .plan-card__list svg { width: 17px; height: 17px; color: var(--accent); stroke-width: 3; flex-shrink: 0; margin-top: 1px; }
+  .plan-card .btn-primary { width: 100%; justify-content: center; padding: 13px 22px; }
+  .plan-card__note { text-align: center; font-size: .75rem; color: var(--text-dim); margin: 14px 0 0; }
+
   /* Sello de confianza al final de la tarjeta: un contador real (nº de
      cuentas creadas). */
   .trust-stat {
@@ -783,10 +965,10 @@
   }
   .live-toast.is-visible { opacity: 1; transform: translateY(0); }
   .live-toast__icon {
-    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+    flex-shrink: 0; width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
   }
+  .live-toast__icon img { width: 34px; height: 34px; border-radius: 10px; display: block; }
   .live-toast__body { min-width: 0; }
   .live-toast__text { margin: 0; font-size: .8125rem; font-weight: 700; color: var(--text); line-height: 1.3; }
   .live-toast__time { margin: 2px 0 0; font-size: .75rem; color: var(--text-dim); }
@@ -905,6 +1087,7 @@
       </div>
       <span class="hero-badge"><span class="hero-badge-dot"></span>Sesgo, escenarios y niveles — nunca una certeza inventada</span>
       <h1 class="hero-title">Lee el mercado.<span class="hero-title__accent">Antes de que se mueva.</span></h1>
+      <p class="hero-tagline">El analizador de IA para leer el mercado antes de operar.</p>
       <p class="hero-subtitle">Sube cualquier gráfico y deja que la IA detecte patrones, niveles y contexto en segundos — sin ruido, sin adivinar.</p>
       <button class="hero-cta" type="button" data-cta-signup>Analizar mi gráfico →</button>
       <div class="hero-trust" data-trust-row>
@@ -999,38 +1182,65 @@
   </section>
 
   <main>
-    <section class="section section--glow" id="como-funciona">
-      <div class="section-head io-reveal">
-        <span class="section-icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="bolt" data-icon-size="24"></span>
-        <h2>Sube tu gráfico. Analiza. Decide.</h2>
-        <p>En tres pasos simples, convierte cualquier gráfico en un plan claro para tu siguiente operación.</p>
+    <section class="flow-section" id="como-funciona">
+      <div class="flow-head io-reveal">
+        <span class="flow-eyebrow">Cómo funciona Vantex</span>
+        <h2 class="flow-title">Del gráfico a una decisión clara.</h2>
+        <p class="flow-lead">Vantex analiza tu gráfico, identifica las señales relevantes y transforma los datos en una lectura sencilla del mercado.</p>
       </div>
-      <div class="steps-grid">
-        <div class="step-card io-reveal">
-          <span class="step-card__icon-wrap">
-            <span class="step-card__icon" style="background:linear-gradient(135deg, var(--accent), var(--blue));" data-icon="upload" data-icon-size="25"></span>
-            <span class="step-card__num">1</span>
-          </span>
-          <h3>Sube una captura</h3>
-          <p>Arrastra el gráfico de cualquier mercado, cripto o activo que quieras estudiar — sin instalar nada.</p>
+
+      <div class="flow-stage io-reveal">
+        <div class="flow-node flow-node--chart">
+          <span class="flow-node__label">Gráfico</span>
+          <div class="flow-panel flow-panel--chart">
+            <div class="flow-panel__head">
+              <span class="flow-tag">BTC/USDT</span>
+              <span class="flow-tag flow-tag--muted">4H</span>
+            </div>
+            <div class="flow-panel__chart" data-flow-chart-mount></div>
+          </div>
         </div>
-        <div class="step-card io-reveal" style="animation-delay:.1s">
-          <span class="step-card__icon-wrap">
-            <span class="step-card__icon" style="background:linear-gradient(135deg, #f97316, #ef4444);" data-icon="brain" data-icon-size="25"></span>
-            <span class="step-card__num">2</span>
-          </span>
-          <h3>La IA lo analiza</h3>
-          <p>En segundos detecta patrones, soportes y resistencias sobre tu propio gráfico, no una plantilla.</p>
+
+        <div class="flow-link" aria-hidden="true">
+          <span class="flow-link__dot"></span>
+          <span class="flow-link__dot flow-link__dot--b"></span>
         </div>
-        <div class="step-card io-reveal" style="animation-delay:.2s">
-          <span class="step-card__icon-wrap">
-            <span class="step-card__icon" style="background:linear-gradient(135deg, #16a34a, #22c55e);" data-icon="shieldCheck" data-icon-size="25"></span>
-            <span class="step-card__num">3</span>
-          </span>
-          <h3>Recibe tu plan</h3>
-          <p>Nivel de confianza, niveles clave y una lectura clara para que decidas tu siguiente paso.</p>
+
+        <div class="flow-node flow-node--core">
+          <span class="flow-node__label">Vantex AI</span>
+          <div class="flow-core">
+            <span class="flow-core__ring"></span>
+            <span class="flow-core__ring flow-core__ring--2"></span>
+            <span class="flow-core__mark" data-icon="trend" data-icon-size="27"></span>
+          </div>
+          <span class="flow-core__status"><span class="flow-core__status-dot"></span>Analizando señales</span>
+        </div>
+
+        <div class="flow-link" aria-hidden="true">
+          <span class="flow-link__dot" style="animation-delay:1.7s"></span>
+          <span class="flow-link__dot flow-link__dot--b" style="animation-delay:3.4s"></span>
+        </div>
+
+        <div class="flow-node flow-node--result">
+          <span class="flow-node__label">Resultado</span>
+          <div class="flow-panel flow-panel--result">
+            <div class="flow-panel__head">
+              <span class="flow-tag" style="color:var(--text); background:var(--field-bg); border-color:var(--border);">BTC/USDT</span>
+              <span class="flow-signal flow-signal--buy"><span data-icon="arrowUp" data-icon-size="15"></span>COMPRAR</span>
+            </div>
+            <div class="flow-confidence__label"><span>Confianza</span><strong>78%</strong></div>
+            <div class="flow-confidence__bar"><span></span></div>
+            <div class="flow-levels">
+              <div><span>Resistencia</span><strong>68.420</strong></div>
+              <div><span>Soporte</span><strong>64.950</strong></div>
+              <div><span>Riesgo</span><strong>Medio</strong></div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <p class="flow-disclaimer io-reveal">Vista ilustrativa de cómo se ve un análisis dentro de la app — no es una recomendación de inversión.</p>
+
       <div class="section-cta io-reveal">
         <button class="btn-primary" type="button" data-cta-signup>Probar el AI Analyzer gratis →</button>
         <div class="social-proof" data-social-proof hidden style="justify-content:center; margin:16px 0 0;">
@@ -1147,7 +1357,7 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Copy Trading simulado</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Todo lo del plan gratis</li>
           </ul>
-          <button class="btn-secondary" type="button" data-cta-signup>Elegir Pro</button>
+          <button class="btn-secondary" type="button" data-plan-preview="pro">Elegir Pro</button>
         </div>
         <div class="price-card price-card--pro io-reveal" style="animation-delay:.1s">
           <span class="price-card__ribbon">Más popular</span>
@@ -1160,7 +1370,46 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Todo lo del plan gratis</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>Cancela cuando quieras</li>
           </ul>
-          <button class="btn-primary" type="button" data-cta-signup>Hazte Business</button>
+          <button class="btn-primary" type="button" data-plan-preview="business">Hazte Business</button>
+        </div>
+      </div>
+
+      <div class="plan-compare io-reveal">
+        <p class="plan-compare__title">Pro vs. Business, en una sola fila: el límite de análisis al día.</p>
+        <div class="plan-compare__row plan-compare__row--head">
+          <span></span>
+          <span>Pro · 1€/mes</span>
+          <span>Business · 4,99€/mes</span>
+        </div>
+        <div class="plan-compare__row">
+          <span>Análisis con IA al día</span>
+          <span>15</span>
+          <span><strong>Ilimitados</strong></span>
+        </div>
+        <div class="plan-compare__row">
+          <span>Copy Trading simulado</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+        </div>
+        <div class="plan-compare__row">
+          <span>Paper Trading</span>
+          <span>Ilimitado</span>
+          <span>Ilimitado</span>
+        </div>
+        <div class="plan-compare__row">
+          <span>Market Scanner</span>
+          <span>En vivo</span>
+          <span>En vivo</span>
+        </div>
+        <div class="plan-compare__row">
+          <span>Wallet Tracker</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+        </div>
+        <div class="plan-compare__row">
+          <span>Cancela cuando quieras</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
         </div>
       </div>
     </section>
@@ -1368,6 +1617,32 @@
     </div>
   </div>
 
+  <!-- Vista previa de un plan de pago: se abre al pulsar "Elegir Pro" /
+       "Hazte Business" antes de llevar al registro, con el precio y las
+       funciones reales (ver nota en el CSS de .plan-card). -->
+  <div class="auth-modal-backdrop" data-plan-modal hidden role="dialog" aria-modal="true" aria-label="Detalles del plan">
+    <div class="plan-card">
+      <button type="button" class="auth-modal__close" data-plan-modal-close aria-label="Cerrar">
+        <span data-icon="close" data-icon-size="15"></span>
+      </button>
+      <div class="plan-card__glow" aria-hidden="true"></div>
+      <div class="plan-card__brand">
+        <img src="/assets/vantex-mark.png" alt="" />
+        <span>Vantex<span style="opacity:.6;">.Ai</span></span>
+      </div>
+      <div class="plan-card__head">
+        <span class="plan-card__icon" data-plan-modal-icon></span>
+        <div>
+          <p class="plan-card__name" data-plan-modal-name></p>
+          <p class="plan-card__price" data-plan-modal-price></p>
+        </div>
+      </div>
+      <ul class="plan-card__list" data-plan-modal-list></ul>
+      <button class="btn-primary" type="button" data-plan-modal-cta>Crear cuenta y continuar →</button>
+      <p class="plan-card__note">Pago seguro con Stripe. Cancela cuando quieras desde tu cuenta.</p>
+    </div>
+  </div>
+
   <script src="/shared/icons.js"></script>
   <script src="/shared/api.js"></script>
   <script>
@@ -1495,16 +1770,18 @@
     }
     buildChart('[data-chart-mount]', [44, 47, 45, 49, 52, 50, 54, 58, 56, 60, 57, 53, 55, 59, 63, 61, 66, 64, 68, 72, 70, 75, 78, 82]);
     buildChart('[data-chart-mount-2]', [58, 54, 57, 52, 55, 50, 53, 48, 51, 47, 50, 53, 51, 56, 54, 59, 57, 63, 60, 66, 64, 71, 75, 80]);
+    buildChart('[data-flow-chart-mount]', [44, 47, 45, 49, 52, 50, 54, 58, 56, 60, 57, 53, 55, 59, 63, 61, 66, 64, 68, 72, 70, 75, 78, 82]);
 
     // ---------- Partículas del fondo del hero ----------
     (function buildParticles() {
       const host = document.querySelector('[data-particles]');
       if (!host || reduceMotion) return;
-      // Densidad y altura calcadas de la referencia (Polifly): un
-      // campo de estrellas que cubre todo el hero, no solo la parte
-      // alta — es lo que le da esa sensación de profundidad "de cielo
-      // nocturno" en vez de unos pocos puntos sueltos arriba.
-      const COUNT = window.innerWidth < 760 ? 0 : 46;
+      // Campo de estrellas que cubre todo el hero (no solo la parte
+      // alta), bastante más denso que al principio — cada partícula usa
+      // una sola animación (sube + se apaga) con su propia duración y
+      // retraso negativo aleatorios, así el conjunto nunca se ve
+      // sincronizado ni "parpadea a la vez".
+      const COUNT = window.innerWidth < 760 ? 0 : 90;
       for (let i = 0; i < COUNT; i++) {
         const p = document.createElement('span');
         p.className = 'particle';
@@ -1513,10 +1790,9 @@
         p.style.height = `${size}px`;
         p.style.left = `${Math.random() * 100}%`;
         p.style.top = `${Math.random() * 94}%`;
-        p.style.setProperty('--p-min', (0.08 + Math.random() * 0.15).toFixed(2));
-        p.style.setProperty('--p-max', (0.4 + Math.random() * 0.4).toFixed(2));
-        p.style.animationDuration = `${5 + Math.random() * 6}s, ${3 + Math.random() * 4}s`;
-        p.style.animationDelay = `${Math.random() * -8}s, ${Math.random() * -6}s`;
+        p.style.setProperty('--p-max', (0.35 + Math.random() * 0.45).toFixed(2));
+        p.style.animationDuration = `${6 + Math.random() * 7}s`;
+        p.style.animationDelay = `${Math.random() * -12}s`;
         host.appendChild(p);
       }
     })();
@@ -1669,6 +1945,57 @@
       openAuthModal('login');
     }));
 
+    // ---------- Vista previa de plan (Pro / Business) ----------
+    // Mismos datos reales que ya se ven en las tarjetas de precio — nunca
+    // un precio tachado falso ni una cuenta atrás. Su CTA lleva al mismo
+    // modal de registro de siempre; la elección real del plan (y el cobro
+    // con Stripe) ocurre ya dentro de la app, como siempre ha sido.
+    const PLAN_DATA = {
+      pro: {
+        name: 'Vantex Pro', priceHtml: '<strong>1€</strong> / mes',
+        icon: 'refresh', iconBg: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        features: ['15 análisis con IA al día', 'Copy Trading simulado', 'Todo lo del plan gratis'],
+      },
+      business: {
+        name: 'Vantex Business', priceHtml: '<strong>4,99€</strong> / mes',
+        icon: 'star', iconBg: 'linear-gradient(135deg, var(--accent), var(--blue))',
+        features: ['Análisis con IA ilimitados', 'Copy Trading simulado', 'Todo lo del plan gratis', 'Cancela cuando quieras'],
+      },
+    };
+    const planModal = document.querySelector('[data-plan-modal]');
+    if (planModal) {
+      const planIconEl = planModal.querySelector('[data-plan-modal-icon]');
+      const planNameEl = planModal.querySelector('[data-plan-modal-name]');
+      const planPriceEl = planModal.querySelector('[data-plan-modal-price]');
+      const planListEl = planModal.querySelector('[data-plan-modal-list]');
+      const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg>';
+      function openPlanModal(planKey) {
+        const plan = PLAN_DATA[planKey];
+        if (!plan) return;
+        planIconEl.style.background = plan.iconBg;
+        planIconEl.innerHTML = vantexIcon(plan.icon, { size: 21 });
+        planNameEl.textContent = plan.name;
+        planPriceEl.innerHTML = plan.priceHtml;
+        planListEl.innerHTML = plan.features.map((f) => `<li>${checkSvg}${f}</li>`).join('');
+        planModal.hidden = false;
+        requestAnimationFrame(() => planModal.classList.add('is-open'));
+        document.body.style.overflow = 'hidden';
+      }
+      function closePlanModal() {
+        planModal.classList.remove('is-open');
+        document.body.style.overflow = '';
+        setTimeout(() => { planModal.hidden = true; }, 220);
+      }
+      document.querySelectorAll('[data-plan-preview]').forEach((btn) => btn.addEventListener('click', () => openPlanModal(btn.dataset.planPreview)));
+      planModal.querySelector('[data-plan-modal-close]').addEventListener('click', closePlanModal);
+      planModal.addEventListener('mousedown', (e) => { if (e.target === planModal) closePlanModal(); });
+      planModal.querySelector('[data-plan-modal-cta]').addEventListener('click', () => {
+        closePlanModal();
+        openAuthModal('signup');
+      });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !planModal.hidden) closePlanModal(); });
+    }
+
     // Acordeón de FAQ: solo una pregunta abierta a la vez, altura animada
     // calculando scrollHeight (max-height: none no se puede animar con CSS).
     document.querySelectorAll('[data-faq] .faq-item__q').forEach((btn) => {
@@ -1704,6 +2031,7 @@
         if (ev.type === 'signup') return 'Nueva cuenta creada en Vantex';
         if (ev.type === 'analysis') return ev.symbol ? `Alguien acaba de analizar ${ev.symbol} con IA` : 'Alguien acaba de analizar un gráfico con IA';
         if (ev.type === 'trade_open') return ev.symbol ? `Se abrió una posición de ${ev.symbol} en Paper Trading` : 'Se abrió una posición en Paper Trading';
+        if (ev.type === 'trade_close') return ev.symbol ? `Se cerró una posición de ${ev.symbol} en Paper Trading` : 'Se cerró una posición en Paper Trading';
         return null;
       }
       function timeAgo(iso) {
@@ -1719,9 +2047,9 @@
         const items = (events || []).map((ev) => ({ ...ev, text: label(ev) })).filter((ev) => ev.text);
         if (!items.length) return;
         let i = 0;
+        iconEl.innerHTML = vantexLogo({ size: 34 });
         function show(index) {
           const ev = items[index];
-          iconEl.innerHTML = vantexIcon(ICONS[ev.type] || 'bolt', { size: 16 });
           textEl.textContent = ev.text;
           timeEl.textContent = timeAgo(ev.at);
           el.classList.add('is-visible');

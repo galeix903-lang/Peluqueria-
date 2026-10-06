@@ -382,6 +382,8 @@ async function listRecentActivity(limit = 12) {
      (SELECT 'analysis' AS type, data->>'asset' AS symbol, created_at AS at FROM analyses)
      UNION ALL
      (SELECT 'trade_open' AS type, symbol, opened_at AS at FROM positions)
+     UNION ALL
+     (SELECT 'trade_close' AS type, symbol, closed_at AS at FROM positions WHERE closed_at IS NOT NULL)
      ORDER BY at DESC LIMIT $1`,
     [limit]
   );
