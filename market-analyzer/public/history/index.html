@@ -93,6 +93,15 @@
 
     mountShell({ page: 'history', title: 'Historial' }).then((ctx) => {
       if (!ctx) return;
+      showSectionIntro(ctx.user, 'history', {
+        icon: 'clock', iconBg: 'linear-gradient(135deg, #a5b4fc, #6366f1, #8b5cf6)',
+        title: 'Tu historial de análisis',
+        desc: 'Cada análisis que generas con el AI Analyzer se guarda aquí automáticamente, tal y como se generó.',
+        points: [
+          'Haz clic en cualquier entrada para reabrir el análisis completo, con sus niveles y escenarios.',
+          'Desde un análisis antiguo puedes simularlo en Paper Trading cuando quieras.',
+        ],
+      });
       ctx.contentEl.innerHTML = `
         <div class="panel reveal" style="margin-bottom:20px;">
           <div class="history-head">

@@ -71,6 +71,16 @@
   <script>
     mountShell({ page: 'trading', title: 'Paper Trading' }).then((ctx) => {
       if (!ctx) return;
+      showSectionIntro(ctx.user, 'trading', {
+        icon: 'chartBar', iconBg: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)',
+        title: 'Paper Trading — practica sin riesgo',
+        desc: 'Empiezas con 100.000$ virtuales para abrir operaciones long/short y poner a prueba tus ideas sin arriesgar dinero real.',
+        points: [
+          'Puedes fijar un Stop Loss y un Take Profit opcionales — la posición se cierra sola si el precio los cruza.',
+          'Tu saldo y P&amp;L se actualizan en vivo mientras se mueve el mercado.',
+          'Ningún movimiento aquí usa dinero real ni se puede retirar.',
+        ],
+      });
       ctx.contentEl.innerHTML = `
         <div class="panel reveal-pop" data-sim-price-banner hidden style="margin-bottom:14px; background:var(--amber-bg); border-color:var(--amber); display:flex; align-items:center; gap:10px;">
           ${vantexIcon('alertTriangle', { size: 16 })}

@@ -94,5 +94,39 @@ function openModal({ title, bodyHtml = '', footerHtml = '', onOpen, onClose } = 
   return closeModal;
 }
 
+// Mensaje de "cómo funciona esto" al entrar por primera vez a cada
+// apartado — una vez por usuario y por página (clave por cuenta, no por
+// navegador, para que no se repita en otra sesión del mismo usuario ni
+// aparezca para una cuenta distinta en el mismo dispositivo).
+function showSectionIntro(user, page, { icon, iconBg, title, desc, points = [] } = {}) {
+  if (!user) return;
+  const key = `vantex_intro_${page}_${user.id}`;
+  if (localStorage.getItem(key)) return;
+  openModal({
+    title,
+    bodyHtml: `
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div style="width:40px; height:40px; border-radius:11px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; background:${iconBg || 'linear-gradient(135deg, var(--accent), var(--blue))'};">${vantexIcon(icon || 'sparkle', { size: 19 })}</div>
+          <p style="margin:6px 0 0; line-height:1.55; font-size:.9375rem;">${desc}</p>
+        </div>
+        ${points.length ? `
+          <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;">
+            ${points.map((p) => `
+              <li style="display:flex; gap:9px; align-items:flex-start; font-size:.875rem; line-height:1.5; color:var(--text-dim);">
+                <span style="color:var(--accent); flex-shrink:0; margin-top:2px;">${vantexIcon('check', { size: 15 })}</span>
+                <span>${p}</span>
+              </li>
+            `).join('')}
+          </ul>
+        ` : ''}
+      </div>
+    `,
+    footerHtml: `<button type="button" class="btn-primary" data-modal-close style="width:100%; justify-content:center;">Entendido</button>`,
+    onClose: () => localStorage.setItem(key, '1'),
+  });
+}
+
 window.openModal = openModal;
 window.closeModal = closeModal;
+window.showSectionIntro = showSectionIntro;

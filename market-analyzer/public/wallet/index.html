@@ -50,6 +50,15 @@
   <script>
     mountShell({ page: 'wallet', title: 'Wallet Tracker' }).then((ctx) => {
       if (!ctx) return;
+      showSectionIntro(ctx.user, 'wallet', {
+        icon: 'wallet', iconBg: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)',
+        title: 'Wallet Tracker',
+        desc: 'Sigue cualquier dirección de wallet y consulta sus holdings y actividad reciente, directamente desde esta pantalla.',
+        points: [
+          'Los datos se generan en modo simulado — ideal para explorar la función sin depender de una red blockchain real.',
+          'Puedes seguir varias direcciones a la vez y dejar de seguir cualquiera cuando quieras.',
+        ],
+      });
       ctx.contentEl.innerHTML = `
         <div class="panel reveal" style="margin-bottom:20px;">
           <div class="tool-head">

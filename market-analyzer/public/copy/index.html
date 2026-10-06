@@ -50,6 +50,15 @@
   <script>
     mountShell({ page: 'copy', title: 'Copy Trading' }).then((ctx) => {
       if (!ctx) return;
+      showSectionIntro(ctx.user, 'copy', {
+        icon: 'refresh', iconBg: 'linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed)',
+        title: 'Copy Trading',
+        desc: 'Sigue a un trader modelo y replica automáticamente sus operaciones dentro de tu propio Paper Trading.',
+        points: [
+          'Todo ocurre en modo simulado, con tu saldo virtual — nunca se mueve dinero real.',
+          'Puedes dejar de seguir a un trader en cualquier momento desde su tarjeta.',
+        ],
+      });
       ctx.contentEl.innerHTML = `
         <div class="panel reveal" style="margin-bottom:20px;">
           <div class="tool-head">

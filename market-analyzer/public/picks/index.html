@@ -39,6 +39,15 @@
 
     mountShell({ page: 'picks', title: 'Market Scanner' }).then(async (ctx) => {
       if (!ctx) return;
+      showSectionIntro(ctx.user, 'picks', {
+        icon: 'search', iconBg: 'linear-gradient(135deg, #fcd34d, #f59e0b, #f97316)',
+        title: 'Market Scanner — señales en vivo',
+        desc: 'Un escaneo del mercado con datos reales, calculado con el mismo motor determinista del AI Analyzer pero sin intervención de un LLM.',
+        points: [
+          'Cada activo recibe un sesgo (alcista/bajista/neutral), un nivel de confianza y un nivel de riesgo.',
+          'Haz clic en cualquier tarjeta para abrirlo en el AI Analyzer y profundizar.',
+        ],
+      });
       ctx.contentEl.innerHTML = `
         <div class="panel reveal" style="margin-bottom:18px;">
           <div class="analyzer-head">

@@ -27,6 +27,17 @@
       // Personaliza el título ahora que ya conocemos al usuario.
       document.querySelector('.topbar h1').textContent = `Bienvenido de nuevo, ${ctx.user.name} 👋`;
 
+      showSectionIntro(ctx.user, 'dashboard', {
+        icon: 'home', iconBg: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))',
+        title: 'Tu panel principal',
+        desc: 'Aquí tienes un resumen de tu cuenta — saldo, P&amp;L abierto y posiciones abiertas — además de accesos directos a todas las herramientas de Vantex.',
+        points: [
+          'Las dos tarjetas grandes son tus herramientas principales: AI Analyzer y Paper Trading.',
+          'Más abajo encontrarás Market Scanner, Wallet Tracker y Copy Trading.',
+          'El icono de ajustes (⚙) te deja cambiar tu nombre y ver tu plan actual.',
+        ],
+      });
+
       const params = new URLSearchParams(location.search);
       let banner = '';
       if (params.get('upgraded') === 'plus') {
