@@ -54,7 +54,7 @@
           <div class="tool-head">
             <div class="tool-head__icon">${vantexIcon('wallet', { size: 22 })}</div>
             <div style="flex:1; min-width:200px;">
-              <div class="text-h3">Wallet Tracker</div>
+              <div class="text-h3">Wallet Tracker 👛</div>
               <div class="text-caption">Sigue direcciones y observa sus holdings y actividad reciente.</div>
             </div>
             <span class="badge badge--sim">${vantexIcon('shieldCheck', { size: 12 })} Modo simulado</span>
@@ -191,7 +191,7 @@
         try {
           await api('/wallet', { method: 'POST', body: JSON.stringify(payload) });
           form.reset();
-          showToast({ type: 'success', message: 'Wallet añadida.' });
+          showToast({ type: 'success', message: 'Wallet añadida. ✅' });
           await load();
         } catch (err) {
           errorEl.textContent = err.message;

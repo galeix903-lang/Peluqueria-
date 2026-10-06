@@ -417,7 +417,7 @@
                 try {
                   await api(`/trading/${id}/close`, { method: 'POST' });
                   closeModal();
-                  showToast({ type: 'success', message: `Operación de ${pos.symbol} cerrada.` });
+                  showToast({ type: 'success', message: `Operación de ${pos.symbol} cerrada. 🔒` });
                   await load();
                 } catch (err) {
                   closeModal();
@@ -465,7 +465,7 @@
               sideButtons.forEach((b) => b.classList.remove('is-active'));
               ctx.contentEl.querySelector('[data-side="long"]').classList.add('is-active');
               sideInput.value = 'long';
-              showToast({ type: 'success', message: 'Operación abierta.' });
+              showToast({ type: 'success', message: 'Operación abierta. 📈' });
               await load();
             } catch (err) {
               closeModal();
