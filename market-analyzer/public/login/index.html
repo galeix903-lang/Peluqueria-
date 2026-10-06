@@ -94,25 +94,35 @@
   .site-nav__links a:hover { color: #fff; }
   .site-nav.is-scrolled .site-nav__links a { color: var(--text-dim); }
   .site-nav.is-scrolled .site-nav__links a:hover { color: var(--text); }
-  .site-nav__right { display: flex; align-items: center; gap: 18px; }
+  .site-nav__right { display: flex; align-items: center; gap: 14px; }
+  /* Mismo botón azul con relieve exagerado que el resto de CTAs de la
+     web — siempre azul, independientemente de si el nav está arriba
+     (fondo oscuro) o ya hizo scroll (fondo blanco), a propósito para
+     que destaque igual en los dos estados. */
   .site-nav__login {
-    font-size: .875rem; font-weight: 700; color: rgba(255,255,255,.85); background: none; border: none;
-    font-family: inherit; cursor: pointer; transition: color .2s;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 20px; font-size: .875rem; font-weight: 700; border-radius: 999px; flex-shrink: 0;
+    font-family: inherit; cursor: pointer; border: none; color: #fff;
+    background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 7px rgba(20,22,43,.22), 0 4px 0 #2d3a9e, 0 14px 26px -10px rgba(37,99,235,.55);
+    transition: transform .18s var(--ease-out), box-shadow .18s, filter .15s;
   }
-  .site-nav__login:hover { color: #fff; }
-  .site-nav.is-scrolled .site-nav__login { color: var(--text-dim); }
-  .site-nav.is-scrolled .site-nav__login:hover { color: var(--text); }
+  .site-nav__login:hover { transform: translateY(-2px); filter: brightness(1.06); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(20,22,43,.22), 0 6px 0 #2d3a9e, 0 18px 32px -10px rgba(37,99,235,.65); }
+  .site-nav__login:active { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 1px 0 #2d3a9e, 0 6px 14px -10px rgba(37,99,235,.5); }
   .site-nav__cta {
     padding: 11px 24px; font-size: .875rem; border-radius: 999px; flex-shrink: 0;
     background: linear-gradient(180deg, #ffffff 0%, #f3f5ff 100%); color: var(--electric);
-    box-shadow: inset 0 1px 0 #fff, 0 8px 20px -8px rgba(0,0,0,.35);
+    box-shadow: inset 0 2px 0 #fff, 0 5px 0 #c3cafb, 0 16px 28px -10px rgba(0,0,0,.4);
   }
   .site-nav__cta::before { display: none; }
-  .site-nav__cta:hover { filter: none; background: #fff; transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); }
+  .site-nav__cta:hover { filter: none; background: #fff; transform: translateY(-2px); box-shadow: inset 0 2px 0 #fff, 0 7px 0 #c3cafb, 0 20px 32px -10px rgba(0,0,0,.45); }
+  .site-nav__cta:active { transform: translateY(2px); box-shadow: inset 0 2px 0 #fff, 0 2px 0 #c3cafb, 0 8px 16px -10px rgba(0,0,0,.35); }
   .site-nav.is-scrolled .site-nav__cta {
     background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%); color: #fff;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.14), 0 8px 20px -8px rgba(37,99,235,.5);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 7px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 14px 26px -10px rgba(37,99,235,.5);
   }
+  .site-nav.is-scrolled .site-nav__cta:hover { box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(20,22,43,.22), 0 7px 0 #2d3a9e, 0 18px 32px -10px rgba(37,99,235,.6); }
+  .site-nav.is-scrolled .site-nav__cta:active { box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 1px 0 #2d3a9e, 0 6px 14px -10px rgba(37,99,235,.5); }
   @media (max-width: 760px) {
     .site-nav { padding: 14px 20px; }
     .site-nav__links { display: none; }
@@ -1035,7 +1045,7 @@
     font-weight: 700; font-size: 1.0625rem; font-family: inherit; cursor: pointer;
     min-width: 280px; height: 62px; padding: 0 30px; border-radius: 18px;
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    box-shadow: inset 0 1px 0 #fff, inset 0 -2px 4px rgba(52,77,224,.12), 0 20px 40px -14px rgba(0,0,0,.4);
+    box-shadow: inset 0 2px 0 #fff, inset 0 -4px 6px rgba(52,77,224,.16), 0 6px 0 #c3cafb, 0 26px 44px -14px rgba(0,0,0,.45);
     transition: transform .22s var(--ease-out), box-shadow .22s;
     animation: heroCtaAttention 3.2s ease-in-out infinite;
   }
@@ -1044,12 +1054,12 @@
      ratón para no pelearse con el propio hover, y prefers-reduced-motion
      ya lo reduce a casi estático por la regla global. */
   @keyframes heroCtaAttention {
-    0%, 58%, 100% { transform: scale(1); box-shadow: 0 20px 40px -14px rgba(0,0,0,.4), 0 0 0 0 rgba(255,255,255,.45); }
-    29% { transform: scale(1.045); box-shadow: 0 26px 48px -14px rgba(0,0,0,.45), 0 0 0 14px rgba(255,255,255,0); }
+    0%, 58%, 100% { transform: scale(1); box-shadow: 0 6px 0 #c3cafb, 0 20px 40px -14px rgba(0,0,0,.4), 0 0 0 0 rgba(255,255,255,.45); }
+    29% { transform: scale(1.045); box-shadow: 0 6px 0 #c3cafb, 0 26px 48px -14px rgba(0,0,0,.45), 0 0 0 14px rgba(255,255,255,0); }
   }
-  .hero-cta:hover { animation-play-state: paused; transform: translateY(-3px) scale(1.01); box-shadow: 0 26px 48px -14px rgba(0,0,0,.45); }
+  .hero-cta:hover { animation-play-state: paused; transform: translateY(-4px) scale(1.01); box-shadow: inset 0 2px 0 #fff, inset 0 -4px 6px rgba(52,77,224,.16), 0 9px 0 #c3cafb, 0 32px 52px -14px rgba(0,0,0,.5); }
   .hero-cta:focus-visible { animation-play-state: paused; outline: 2px solid #fff; outline-offset: 3px; }
-  .hero-cta:active { animation-play-state: paused; transform: translateY(-1px) scale(.99); }
+  .hero-cta:active { animation-play-state: paused; transform: translateY(3px) scale(.99); box-shadow: inset 0 2px 0 #fff, inset 0 -2px 4px rgba(52,77,224,.16), 0 2px 0 #c3cafb, 0 10px 20px -14px rgba(0,0,0,.4); }
   .hero-trust {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px;
     margin: 20px 0 0; font-size: .8125rem; font-weight: 600; color: rgba(255,255,255,.68);
@@ -1188,12 +1198,12 @@
     font-weight: 700; font-size: 1.0625rem; font-family: inherit; cursor: pointer;
     min-width: 260px; height: 60px; padding: 0 32px; border-radius: 16px;
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 6px rgba(20,22,43,.14), 0 16px 32px -12px rgba(37, 99, 235, .45);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 8px rgba(20,22,43,.22), 0 6px 0 #2d3a9e, 0 24px 40px -12px rgba(37, 99, 235, .5);
     transition: transform .2s var(--ease-out), box-shadow .2s, filter .2s;
   }
-  .showcase-cta:hover { transform: translateY(-2px); box-shadow: 0 20px 38px -12px rgba(37, 99, 235, .55); filter: brightness(1.05); }
+  .showcase-cta:hover { transform: translateY(-3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(20,22,43,.22), 0 9px 0 #2d3a9e, 0 30px 48px -12px rgba(37, 99, 235, .6); filter: brightness(1.05); }
   .showcase-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .showcase-cta:active { transform: translateY(0); }
+  .showcase-cta:active { transform: translateY(3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 10px 20px -12px rgba(37, 99, 235, .45); }
   .showcase-microtrust {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px;
     margin-top: 18px; font-size: .8125rem; font-weight: 600; color: var(--text-dim);
@@ -1339,11 +1349,11 @@
   .auth-card .btn-primary.auth-submit {
     width: 100%; justify-content: center; margin-top: 4px;
     padding: 14px 22px; font-size: 1rem; border-radius: 12px;
-    box-shadow: 0 12px 26px -10px rgba(37, 99, 235, .55);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 8px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 18px 32px -10px rgba(37, 99, 235, .55);
     transition: transform .18s var(--ease-out), box-shadow .18s, filter .15s;
   }
-  .auth-card .btn-primary.auth-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 32px -10px rgba(37, 99, 235, .6); }
-  .auth-card .btn-primary.auth-submit:active:not(:disabled) { transform: translateY(0) scale(.98); }
+  .auth-card .btn-primary.auth-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(20,22,43,.22), 0 7px 0 #2d3a9e, 0 22px 38px -10px rgba(37, 99, 235, .65); }
+  .auth-card .btn-primary.auth-submit:active:not(:disabled) { transform: translateY(3px); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 8px 16px -10px rgba(37, 99, 235, .5); }
 
   .auth-card .error-msg { min-height: 0; }
   .auth-card .error-msg:not(:empty) { animation: errorIn .28s var(--ease-out) both; }
@@ -1428,13 +1438,13 @@
     background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%); color: #fff; border: none;
     font-weight: 700; font-size: .9375rem; font-family: inherit; cursor: pointer;
     height: 52px; padding: 0 24px; border-radius: 999px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 5px rgba(20,22,43,.16), 0 16px 32px -12px rgba(37, 99, 235, .5);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 7px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 20px 36px -12px rgba(37, 99, 235, .55);
     opacity: 0; transform: translateY(14px) scale(.95); pointer-events: none;
     transition: opacity .25s var(--ease-out), transform .25s var(--ease-out), box-shadow .2s, filter .2s;
   }
   .floating-cta.is-visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-  .floating-cta:hover { transform: translateY(-2px) scale(1); box-shadow: 0 20px 38px -12px rgba(37, 99, 235, .6); filter: brightness(1.05); }
-  .floating-cta:active { transform: translateY(0) scale(.98); }
+  .floating-cta:hover { transform: translateY(-3px) scale(1); box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 7px rgba(20,22,43,.22), 0 8px 0 #2d3a9e, 0 26px 44px -12px rgba(37, 99, 235, .65); filter: brightness(1.05); }
+  .floating-cta:active { transform: translateY(2px) scale(.98); box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 8px 16px -12px rgba(37, 99, 235, .5); }
   @media (max-width: 760px) {
     .floating-cta { right: 16px; bottom: 16px; height: 48px; padding: 0 18px; font-size: .875rem; }
   }
@@ -1507,8 +1517,8 @@
         <a href="#faq">FAQ</a>
       </div>
       <div class="site-nav__right">
-        <button class="site-nav__login" type="button" data-cta-login>Iniciar sesión</button>
         <button class="btn-primary site-nav__cta" type="button" data-cta-signup>Analizar un gráfico →</button>
+        <button class="site-nav__login" type="button" data-cta-login>Iniciar sesión</button>
       </div>
     </nav>
   </div>

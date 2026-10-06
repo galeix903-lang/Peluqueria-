@@ -413,7 +413,9 @@ button { font: inherit; cursor: pointer; }
   transition: transform .12s, filter .15s, box-shadow .15s;
   display: inline-flex; align-items: center; gap: 8px;
   position: relative; overflow: hidden; isolation: isolate;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 6px rgba(20,22,43,.14), 0 6px 16px -8px rgba(37, 99, 235, .5);
+  /* Relieve exagerado a propósito: el "canto" sólido (0 5px 0) simula
+     el grosor físico de un botón real, no solo una sombra de contacto. */
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.6), inset 0 -4px 8px rgba(20,22,43,.22), 0 5px 0 #2d3a9e, 0 18px 32px -10px rgba(37, 99, 235, .6);
 }
 /* Brillo sutil que cruza el botón al pasar el ratón — un detalle de
    motion design, no una animación permanente. */
@@ -424,18 +426,24 @@ button { font: inherit; cursor: pointer; }
   transition: transform .5s var(--ease-out);
 }
 .btn-primary:hover:not(:disabled)::before { transform: skewX(-20deg) translateX(330%); }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 12px 26px -8px rgba(37, 99, 235, .6); }
-.btn-primary:active:not(:disabled) { transform: scale(.97); }
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06); transform: translateY(-2px);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.65), inset 0 -4px 8px rgba(20,22,43,.22), 0 7px 0 #2d3a9e, 0 24px 40px -10px rgba(37, 99, 235, .68);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(3px); filter: brightness(.98);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.5), inset 0 -2px 4px rgba(20,22,43,.22), 0 2px 0 #2d3a9e, 0 8px 16px -8px rgba(37, 99, 235, .55);
+}
 .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 .btn-primary:focus-visible, .btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-secondary {
   background: linear-gradient(180deg, #ffffff, #f8faff); border: 1px solid var(--border);
   padding: 9px 16px; border-radius: 9px; font-weight: 600; font-size: .8125rem;
-  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(20,22,43,.04);
+  box-shadow: inset 0 1px 0 #fff, 0 4px 0 var(--border-strong), 0 14px 24px -12px rgba(20,22,43,.28);
   transition: transform .12s, border-color .15s, box-shadow .15s;
 }
-.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-.btn-secondary:active { transform: scale(.96); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); box-shadow: inset 0 1px 0 #fff, 0 6px 0 var(--border-strong), 0 18px 30px -12px rgba(37,99,235,.3); }
+.btn-secondary:active { transform: translateY(2px); box-shadow: inset 0 1px 0 #fff, 0 1px 0 var(--border-strong), 0 6px 12px -10px rgba(20,22,43,.3); }
 .error-msg { color: var(--red); font-size: .8125rem; margin-top: 8px; min-height: 1em; }
 
 /* Spinner discreto para botones en estado "cargando". */
