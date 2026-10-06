@@ -11,7 +11,7 @@
   --text-dim: #71758d;
   --accent: #4f46e5;
   --accent-dim: #eef0fd;
-  --blue: #2563eb;
+  --blue: #3b8bfb;
   --blue-bright: #3b82f6;
   --blue-bg: #eaf1ff;
   --green: #16a34a;
@@ -279,7 +279,8 @@ button { font: inherit; cursor: pointer; }
 @media (max-width: 860px) { .card-grid, .card-grid--three { grid-template-columns: 1fr; } }
 
 .feature-card {
-  background: var(--surface);
+  position: relative; isolation: isolate;
+  background: linear-gradient(165deg, #ffffff, #f8faff);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   text-decoration: none;
@@ -289,10 +290,17 @@ button { font: inherit; cursor: pointer; }
   box-shadow: var(--shadow-xs);
   transition: border-color .25s, transform .25s cubic-bezier(.16,.84,.44,1), box-shadow .25s;
 }
+/* Filo superior de cristal — mismo lenguaje de "relieve" ya usado en el
+   preview del Analyzer, aquí en una tarjeta clara: separa una superficie
+   plana de una con profundidad real. */
+.feature-card::before {
+  content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+}
 .feature-card:hover {
   border-color: var(--border-strong);
   transform: translateY(-5px);
-  box-shadow: 0 20px 40px -18px rgba(37, 99, 235, .28);
+  box-shadow: 0 22px 44px -18px rgba(37, 99, 235, .32);
 }
 .feature-card:hover .feature-card__icon-lg { transform: scale(1.07) rotate(-2deg); }
 .feature-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -388,14 +396,17 @@ button { font: inherit; cursor: pointer; }
   font-size: .9375rem; background: var(--field-bg);
 }
 .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Botón "de cristal": degradado vertical claro→oscuro (no diagonal
+   plano) + brillo interior arriba y sombra interior abajo — el relieve
+   3D de un botón físico, no un rectángulo de color liso. */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--blue));
+  background: linear-gradient(180deg, #8b7ef5 0%, var(--accent) 48%, var(--blue) 100%);
   color: #fff; border: none;
   padding: 12px 22px; border-radius: 10px; font-weight: 700; font-size: .9375rem;
   transition: transform .12s, filter .15s, box-shadow .15s;
   display: inline-flex; align-items: center; gap: 8px;
   position: relative; overflow: hidden; isolation: isolate;
-  box-shadow: 0 6px 16px -8px rgba(37, 99, 235, .5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 6px rgba(20,22,43,.14), 0 6px 16px -8px rgba(37, 99, 235, .5);
 }
 /* Brillo sutil que cruza el botón al pasar el ratón — un detalle de
    motion design, no una animación permanente. */

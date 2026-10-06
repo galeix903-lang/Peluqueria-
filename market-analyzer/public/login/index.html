@@ -576,10 +576,21 @@
     animation: gradientShift 5s ease-in-out infinite;
   }
   @keyframes gradientShift { 0%, 100% { background-position: 0% center; } 50% { background-position: 100% center; } }
+  /* Efecto "máquina de escribir": el texto se escribe solo una vez al
+     cargar y el cursor se queda parpadeando al final — mismo detalle
+     que se ve en la referencia, aplicado a nuestra propia frase. */
   .hero-tagline {
     font-size: .875rem; font-weight: 700; letter-spacing: .01em;
     color: rgba(255,255,255,.62); margin: 0 0 16px;
+    display: inline-block; overflow: hidden; white-space: nowrap;
+    max-width: 100%; vertical-align: top;
+    border-right: 2px solid rgba(255,255,255,.55);
+    width: 0;
+    animation: taglineType 1.7s steps(57, end) .6s 1 normal forwards,
+               taglineCursor .75s step-end infinite .6s;
   }
+  @keyframes taglineType { to { width: 58ch; } }
+  @keyframes taglineCursor { 50% { border-color: transparent; } }
   .hero-subtitle {
     font-size: clamp(1.0625rem, 1rem + .3vw, 1.25rem); line-height: 1.55;
     color: rgba(255,255,255,.78); max-width: 640px; margin: 0 0 36px;
