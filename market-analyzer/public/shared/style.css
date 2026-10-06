@@ -31,8 +31,8 @@
      elevación amplia) más un realce interior superior — para que la
      profundidad se note sin pasar por hover, y un filo inferior sutil que
      simula el borde físico de la tarjeta. */
-  --relief-card: 0 1px 1px rgba(20, 22, 43, .05), 0 3px 8px rgba(20, 22, 43, .07), 0 20px 40px -20px rgba(37, 99, 235, .28), inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -1px 0 rgba(20, 22, 43, .04);
-  --relief-card-hover: 0 2px 3px rgba(20, 22, 43, .06), 0 8px 16px rgba(20, 22, 43, .08), 0 30px 56px -20px rgba(37, 99, 235, .36), inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 -1px 0 rgba(20, 22, 43, .05);
+  --relief-card: 0 1px 2px rgba(20, 22, 43, .07), 0 5px 12px rgba(20, 22, 43, .08), 0 26px 50px -18px rgba(37, 99, 235, .36), inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -1px 0 rgba(20, 22, 43, .05);
+  --relief-card-hover: 0 3px 5px rgba(20, 22, 43, .08), 0 12px 22px rgba(20, 22, 43, .1), 0 36px 64px -18px rgba(37, 99, 235, .44), inset 0 1px 0 rgba(255, 255, 255, .85), inset 0 -1px 0 rgba(20, 22, 43, .06);
   --ease-out: cubic-bezier(.16, .84, .44, 1);
   --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
   /* Escala tipográfica — un único lugar del que cuelgan H1/H2/H3/body/
@@ -54,8 +54,9 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); o
 body {
   min-height: 100vh;
   background:
-    radial-gradient(1100px 480px at 12% -8%, rgba(37, 99, 235, .05), transparent 60%),
-    radial-gradient(900px 420px at 96% -6%, rgba(79, 70, 229, .045), transparent 60%),
+    radial-gradient(1100px 480px at 12% -8%, rgba(37, 99, 235, .1), transparent 62%),
+    radial-gradient(900px 420px at 96% -6%, rgba(79, 70, 229, .09), transparent 62%),
+    radial-gradient(800px 500px at 50% 100%, rgba(59, 139, 251, .05), transparent 65%),
     var(--bg);
   background-attachment: fixed;
 }
@@ -91,7 +92,7 @@ button { font: inherit; cursor: pointer; }
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: linear-gradient(180deg, #fbfaff, var(--surface) 220px);
+  background: linear-gradient(180deg, #f3f1ff, #fafaff 180px, var(--surface) 360px);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -178,8 +179,8 @@ button { font: inherit; cursor: pointer; }
   padding: 40px 40px 32px;
   gap: 20px;
   background:
-    radial-gradient(760px 260px at 8% -30%, rgba(37, 99, 235, .09), transparent 65%),
-    radial-gradient(560px 240px at 92% -40%, rgba(79, 70, 229, .07), transparent 65%);
+    radial-gradient(760px 260px at 8% -30%, rgba(37, 99, 235, .16), transparent 65%),
+    radial-gradient(560px 240px at 92% -40%, rgba(79, 70, 229, .13), transparent 65%);
 }
 .topbar h1 { font-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.125rem); font-weight: 800; margin: 0; letter-spacing: -.015em; line-height: 1.15; }
 .topbar__user {
@@ -286,7 +287,7 @@ button { font: inherit; cursor: pointer; }
 
 .feature-card {
   position: relative; isolation: isolate;
-  background: linear-gradient(165deg, #ffffff, #f8faff);
+  background: linear-gradient(165deg, #ffffff, #eef2fe);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   text-decoration: none;
@@ -555,7 +556,7 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
    con el resto del sistema pero con menos presencia que .feature-card. */
 .stat-card {
   position: relative; isolation: isolate;
-  background: linear-gradient(165deg, #ffffff, #f8faff);
+  background: linear-gradient(165deg, #ffffff, #eef2fe);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 22px 24px;
