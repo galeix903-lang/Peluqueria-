@@ -26,8 +26,8 @@
   body { position: relative; }
   :root {
     --electric: #344de0;
-    --navy-deep: #060a24;
-    --navy-mid: #0d1750;
+    --navy-deep: #0c296d;
+    --navy-mid: #173aa0;
   }
 
   /* ---------- Cabecera fija: aviso + nav ----------
@@ -118,11 +118,25 @@
   /* ---------- Hero: fondo oscuro por capas ---------- */
   .hero-section { position: relative; overflow: hidden; background: var(--navy-deep); }
   .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  /* Degradado calcado por muestreo de píxeles directo sobre una captura
+     real de polifly.io (referencia de nivel pedida por el usuario, "lo
+     quiero exactamente igual al de Polifly") — nunca azul casi negro
+     arriba, siempre un azul índigo vivo que aclara hasta blanco.
+     Paradas en px (ni % ni vh): el hero de Vantex es mucho más alto que
+     el de Polifly porque debajo sigue el preview del producto (así que
+     % se estira y llega a blanco demasiado abajo), y vh depende del
+     alto de la ventana, no del contenido — en una ventana baja (portátil
+     con poca altura) el degradado llegaba a blanco ANTES de tiempo y el
+     botón blanco "Analizar mi gráfico" desaparecía sobre fondo blanco.
+     En px, llega a blanco siempre en el mismo punto real del contenido
+     (justo donde Polifly también lo hace), sin importar el alto de la
+     ventana. */
   .hero-bg__gradient {
     position: absolute; inset: 0;
     background: linear-gradient(180deg,
-      var(--navy-deep) 0%, var(--navy-mid) 20%, var(--electric) 48%,
-      #5470ee 68%, #eef1ff 90%, #fff 100%);
+      #0a2563 0, #0c296d 120px, #103180 180px, #173aa0 240px,
+      #1940b7 300px, #234fd2 400px, #3c66df 490px, #567fe8 580px,
+      #7599ed 670px, #a9c2f8 760px, #e8eefe 820px, #fff 850px);
   }
   .hero-bg__grid {
     position: absolute; inset: -40px; opacity: .1;
@@ -1486,7 +1500,11 @@
     (function buildParticles() {
       const host = document.querySelector('[data-particles]');
       if (!host || reduceMotion) return;
-      const COUNT = window.innerWidth < 760 ? 0 : 26;
+      // Densidad y altura calcadas de la referencia (Polifly): un
+      // campo de estrellas que cubre todo el hero, no solo la parte
+      // alta — es lo que le da esa sensación de profundidad "de cielo
+      // nocturno" en vez de unos pocos puntos sueltos arriba.
+      const COUNT = window.innerWidth < 760 ? 0 : 46;
       for (let i = 0; i < COUNT; i++) {
         const p = document.createElement('span');
         p.className = 'particle';
@@ -1494,7 +1512,7 @@
         p.style.width = `${size}px`;
         p.style.height = `${size}px`;
         p.style.left = `${Math.random() * 100}%`;
-        p.style.top = `${Math.random() * 70}%`;
+        p.style.top = `${Math.random() * 94}%`;
         p.style.setProperty('--p-min', (0.08 + Math.random() * 0.15).toFixed(2));
         p.style.setProperty('--p-max', (0.4 + Math.random() * 0.4).toFixed(2));
         p.style.animationDuration = `${5 + Math.random() * 6}s, ${3 + Math.random() * 4}s`;
