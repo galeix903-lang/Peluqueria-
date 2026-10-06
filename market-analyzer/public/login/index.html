@@ -140,6 +140,20 @@
     background: radial-gradient(closest-side, rgba(255,255,255,.18), transparent 72%);
     transition: transform .15s linear;
   }
+  /* Marcas de precisión a los lados — un detalle propio de Vantex
+     (regla de medición, no decoración genérica): refuerza "precisión /
+     datos" sin caer en cliché cripto. Extremadamente sutil a propósito;
+     se oculta en pantallas estrechas donde no hay margen lateral real. */
+  .hero-bg__ticks { position: absolute; inset: 0; opacity: .55; }
+  .hero-bg__ticks::before, .hero-bg__ticks::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 1px;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,.3) 0 1px, transparent 1px 28px);
+    mask-image: linear-gradient(180deg, transparent, rgba(0,0,0,.8) 12%, rgba(0,0,0,.8) 55%, transparent);
+    -webkit-mask-image: linear-gradient(180deg, transparent, rgba(0,0,0,.8) 12%, rgba(0,0,0,.8) 55%, transparent);
+  }
+  .hero-bg__ticks::before { left: 56px; }
+  .hero-bg__ticks::after { right: 56px; }
+  @media (max-width: 1000px) { .hero-bg__ticks { display: none; } }
   .hero-bg__particles { position: absolute; inset: 0; transition: transform .15s linear; }
   .particle {
     position: absolute; border-radius: 50%; background: #fff; pointer-events: none;
@@ -444,6 +458,14 @@
     box-shadow: 0 30px 60px -24px rgba(6,10,36,.4), 0 10px 30px -14px rgba(37,99,235,.3), 0 0 0 1px rgba(255,255,255,.04) inset;
     opacity: 0; transform: translateY(28px) scale(.98);
     animation: mockIn .7s var(--ease-out) .15s both;
+  }
+  /* Filo superior de cristal: la misma luz "rozando el borde" que las
+     tarjetas de herramientas, aquí mucho más visible por el fondo oscuro
+     — es lo que hace que un panel oscuro se lea como vidrio premium y no
+     como un rectángulo plano con un degradado. */
+  .analyzer-mock::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; z-index: 1;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.5) 20%, rgba(255,255,255,.5) 80%, transparent);
   }
   @keyframes mockIn { to { opacity: 1; transform: translateY(0) scale(1); } }
   .analyzer-mock__head {
@@ -840,6 +862,7 @@
     <div class="hero-bg" aria-hidden="true">
       <div class="hero-bg__gradient"></div>
       <div class="hero-bg__grid" data-parallax="2"></div>
+      <div class="hero-bg__ticks" data-parallax="3"></div>
       <div class="hero-bg__glow" data-parallax="7"></div>
       <div class="hero-bg__particles" data-particles data-parallax="5"></div>
     </div>
@@ -1704,6 +1727,17 @@
           el.hidden = false;
         });
       }).catch(() => {});
+    })();
+
+    // Cuando el usuario se va a otra pestaña, el título cambia a un
+    // mensaje de "vuelve" — y se restaura el título real en cuanto
+    // vuelve a esta pestaña (nunca se queda pegado el mensaje).
+    (function setupTabReengagement() {
+      const originalTitle = document.title;
+      const awayTitle = '😢 Por favor, vuelve';
+      document.addEventListener('visibilitychange', () => {
+        document.title = document.hidden ? awayTitle : originalTitle;
+      });
     })();
 
     // Cada campo de contraseña lleva su propio botón de mostrar/ocultar,
