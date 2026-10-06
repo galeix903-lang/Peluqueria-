@@ -649,6 +649,33 @@
     padding: 3px 9px; border-radius: 999px; margin-left: 10px; vertical-align: middle;
   }
 
+  /* Capturas de ejemplo dentro de cada bloque de herramienta — una
+     miniatura ilustrativa de lo que se ve dentro de la app, mismo
+     lenguaje visual que el resto de vistas previas de producto. */
+  .tool-preview {
+    display: flex; flex-direction: column; gap: 8px; margin: 22px 0 24px;
+    background: rgba(255,255,255,.65); border: 1px solid rgba(0,0,0,.06); border-radius: 14px;
+    padding: 14px 16px; box-shadow: var(--shadow-xs);
+  }
+  .tool-preview__label { font-size: .6875rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+  .tool-preview__row { display: flex; align-items: center; gap: 10px; }
+  .tool-preview__row + .tool-preview__row { padding-top: 8px; border-top: 1px solid rgba(0,0,0,.05); }
+  .tool-preview__avatar {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .6875rem; font-weight: 800;
+  }
+  .tool-preview__sym { font-size: .8125rem; font-weight: 700; flex-shrink: 0; width: 92px; }
+  .tool-preview__trend { display: inline-flex; align-items: center; gap: 4px; font-size: .75rem; font-weight: 700; flex-shrink: 0; width: 92px; }
+  .tool-preview__trend svg { width: 12px; height: 12px; }
+  .tool-preview__trend--up { color: var(--green); }
+  .tool-preview__trend--down { color: var(--red); }
+  .tool-preview__trend--flat { color: var(--text-dim); }
+  .tool-preview__meta { margin-left: auto; font-size: .75rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .tool-preview__meta strong { color: var(--text); }
+  .tool-preview__name { font-size: .8125rem; font-weight: 700; }
+  .tool-preview__sub { font-size: .75rem; color: var(--text-dim); }
+
   /* Precio */
   .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; max-width: 1080px; margin: 0 auto; }
   .price-card {
@@ -1887,6 +1914,24 @@
                 <button class="tool-block__col-cta" type="button" data-cta-signup>Ver un ejemplo →</button>
               </div>
             </div>
+            <div class="tool-preview">
+              <span class="tool-preview__label">Vista previa del Scanner</span>
+              <div class="tool-preview__row">
+                <span class="tool-preview__sym">BTC/USDT</span>
+                <span class="tool-preview__trend tool-preview__trend--up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5" /><path d="M6 11l6-6 6 6" /></svg>Alcista</span>
+                <span class="tool-preview__meta">Confianza <strong>82%</strong></span>
+              </div>
+              <div class="tool-preview__row">
+                <span class="tool-preview__sym">ETH/USDT</span>
+                <span class="tool-preview__trend tool-preview__trend--flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /></svg>Lateral</span>
+                <span class="tool-preview__meta">Confianza <strong>54%</strong></span>
+              </div>
+              <div class="tool-preview__row">
+                <span class="tool-preview__sym">SOL/USDT</span>
+                <span class="tool-preview__trend tool-preview__trend--down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14" /><path d="M18 13l-6 6-6-6" /></svg>Bajista</span>
+                <span class="tool-preview__meta">Confianza <strong>65%</strong></span>
+              </div>
+            </div>
             <button class="btn-secondary" type="button" data-cta-signup>Ver el Scanner →</button>
           </div>
 
@@ -1906,6 +1951,30 @@
                 <div class="tool-block__col-head"><span data-icon="refresh" data-icon-size="17"></span><h4>Copy Trading simulado</h4></div>
                 <p>Copia automáticamente las operaciones de traders modelo dentro de tu saldo virtual.</p>
                 <button class="tool-block__col-cta" type="button" data-cta-signup>Ver traders →</button>
+              </div>
+            </div>
+            <div class="tool-preview">
+              <span class="tool-preview__label">Vista previa · Wallet Tracker (dirección de ejemplo)</span>
+              <div class="tool-preview__row">
+                <span class="tool-preview__avatar" style="background:#f7931a;">B</span>
+                <span class="tool-preview__name">BTC</span>
+                <span class="tool-preview__meta">0,42 <strong>≈ $28.040</strong></span>
+              </div>
+              <div class="tool-preview__row">
+                <span class="tool-preview__avatar" style="background:#627eea;">E</span>
+                <span class="tool-preview__name">ETH</span>
+                <span class="tool-preview__meta">3,1 <strong>≈ $8.366</strong></span>
+              </div>
+            </div>
+            <div class="tool-preview">
+              <span class="tool-preview__label">Vista previa · Trader modelo real de Copy Trading</span>
+              <div class="tool-preview__row">
+                <span class="tool-preview__avatar" style="background:linear-gradient(135deg, #4f46e5, #7c72f0);">N</span>
+                <div>
+                  <p class="tool-preview__name" style="margin:0;">Nova Quant</p>
+                  <p class="tool-preview__sub" style="margin:0;">Sigue tendencias en BTC/ETH con gestión de riesgo ajustada.</p>
+                </div>
+                <span class="tool-preview__meta"><strong>68%</strong> acierto</span>
               </div>
             </div>
             <button class="btn-secondary" type="button" data-cta-signup>Ver cómo funciona →</button>
