@@ -422,9 +422,10 @@ button { font: inherit; cursor: pointer; }
 .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 .btn-primary:focus-visible, .btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-secondary {
-  background: var(--surface); border: 1px solid var(--border);
+  background: linear-gradient(180deg, #ffffff, #f8faff); border: 1px solid var(--border);
   padding: 9px 16px; border-radius: 9px; font-weight: 600; font-size: .8125rem;
-  transition: transform .12s, border-color .15s;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(20,22,43,.04);
+  transition: transform .12s, border-color .15s, box-shadow .15s;
 }
 .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
 .btn-secondary:active { transform: scale(.96); }
@@ -547,7 +548,8 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
    (historial, holdings, traders...). Comparten esquina/sombra/transición
    con el resto del sistema pero con menos presencia que .feature-card. */
 .stat-card {
-  background: var(--surface);
+  position: relative; isolation: isolate;
+  background: linear-gradient(165deg, #ffffff, #f8faff);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 22px 24px;
@@ -555,6 +557,10 @@ tbody tr:nth-child(5) { animation-delay: .22s; }
   display: flex; align-items: center; gap: 16px;
   min-width: 0;
   transition: transform .2s var(--ease-out), box-shadow .2s, border-color .2s;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 18px; right: 18px; height: 1px; z-index: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
 }
 .stat-card:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -22px rgba(37, 99, 235, .3); border-color: var(--border-strong); }
 .stat-card__icon {
