@@ -10,12 +10,139 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="stylesheet" href="/shared/style.css" />
 <style>
-  .scan-card { padding: 18px 0; border-top: 1px solid var(--border); animation: fadeInUp .45s cubic-bezier(.16,.84,.44,1) both; transition: background .15s; }
-  .scan-card:first-child { border-top: none; padding-top: 0; }
-  .scan-card:hover { background: var(--field-bg); border-radius: 10px; }
-  .scan-card__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; flex-wrap: wrap; }
-  .scan-card__signal { display: flex; align-items: center; gap: 6px; font-weight: 800; }
-  .scan-card__signal svg { width: 16px; height: 16px; }
+  .scanner-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .scanner-head__title { display: flex; align-items: center; gap: 10px; }
+  .scanner-head__title h1 { margin: 0; }
+  .scanner-live {
+    display: inline-flex; align-items: center; gap: 6px; font-size: .6875rem; font-weight: 800;
+    letter-spacing: .04em; color: var(--green); background: var(--green-bg);
+    border-radius: 999px; padding: 3px 10px 3px 8px;
+  }
+  .scanner-live__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulseSoft 1.6s ease-in-out infinite; }
+  .scanner-head__actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .scanner-updated { display: inline-flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--text-dim); }
+  .scanner-updated__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+
+  .scanner-layout { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+  /* Los hijos de grid no se encogen por debajo del contenido intrínseco
+     por defecto (min-width:auto) — sin esto, la tabla con celdas
+     white-space:nowrap empuja la columna entera (y el body) más ancha
+     que el viewport en móvil, aunque .scanner-table-wrap ya tenga su
+     propio overflow-x:auto. */
+  .scanner-layout > div { min-width: 0; }
+  @media (max-width: 1100px) { .scanner-layout { grid-template-columns: 1fr; } }
+
+  .scanner-highlights { padding: 18px 20px; margin-bottom: 16px; }
+  .scanner-highlights__head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; margin-bottom: 14px; }
+  .scanner-highlights__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 760px) { .scanner-highlights__grid { grid-template-columns: 1fr; } }
+  .highlight-card {
+    display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 14px;
+    background: var(--field-bg); border: 1px solid var(--border); cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  .highlight-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .highlight-card__head { display: flex; align-items: center; justify-content: space-between; font-size: .8125rem; font-weight: 700; color: var(--text-dim); }
+  .highlight-card__head svg { width: 15px; height: 15px; }
+  .highlight-card__asset { display: flex; align-items: center; gap: 8px; }
+  .highlight-card__name { font-weight: 700; font-size: .875rem; }
+  .highlight-card__badge {
+    font-size: .625rem; font-weight: 800; letter-spacing: .03em; color: var(--text-dim);
+    background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px;
+  }
+  .highlight-card__row { display: flex; align-items: center; justify-content: space-between; font-size: .8125rem; }
+  .highlight-card__empty { color: var(--text-dim); font-size: .8125rem; padding: 6px 0; }
+
+  .scanner-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .scanner-tabs { display: flex; gap: 6px; background: var(--field-bg); border-radius: 999px; padding: 4px; }
+  .scanner-tab {
+    border: none; background: transparent; color: var(--text-dim); font-weight: 700; font-size: .8125rem;
+    padding: 7px 14px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px;
+    transition: background .15s, color .15s;
+  }
+  .scanner-tab.is-active { background: #fff; color: var(--text); box-shadow: 0 2px 6px rgba(20,22,43,.1); }
+  .scanner-sorts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .scanner-sort {
+    border: 1px solid var(--border); background: #fff; color: var(--text-dim); font-weight: 600; font-size: .75rem;
+    padding: 7px 12px; border-radius: 10px; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .scanner-sort.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .scanner-search { position: relative; margin-left: auto; min-width: 200px; flex: 1 1 200px; max-width: 280px; }
+  .scanner-search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-dim); }
+  .scanner-search input {
+    width: 100%; border: 1px solid var(--border); background: var(--field-bg); border-radius: 10px;
+    padding: 9px 12px 9px 32px; font-size: .8125rem; color: var(--text);
+  }
+  .scanner-search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+
+  .scanner-table-wrap { overflow-x: auto; }
+  .scanner-table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
+  .scanner-table th {
+    text-align: left; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    color: var(--text-dim); padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .scanner-table td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+  .scanner-row { cursor: pointer; transition: background .12s; }
+  .scanner-row:hover { background: var(--field-bg); }
+  .scanner-row.is-selected { background: var(--accent-dim); }
+  .scanner-row__asset { display: flex; align-items: center; gap: 10px; }
+  .scanner-row__name { font-weight: 700; }
+  .scanner-row__sym { color: var(--text-dim); font-size: .75rem; display: flex; align-items: center; gap: 5px; }
+  .scanner-meme-badge {
+    font-size: .5625rem; font-weight: 800; letter-spacing: .03em; color: #5b7a63;
+    background: #eaf3ec; border-radius: 999px; padding: 1px 6px;
+  }
+  .scanner-change--pos { color: var(--green); font-weight: 700; }
+  .scanner-change--neg { color: var(--red); font-weight: 700; }
+  .activity-bar { width: 72px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+  .activity-bar span { display: block; height: 100%; border-radius: 999px; }
+  .activity-bar--alta span, .activity-bar--muy_alta span { background: linear-gradient(90deg, #4ade80, #16a34a); }
+  .activity-bar--momentum span { background: linear-gradient(90deg, #818cf8, var(--accent)); }
+  .activity-bar--normal span { background: linear-gradient(90deg, #93c5fd, var(--blue)); }
+  .estado-badge { font-size: .75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+  .estado-badge--alta, .estado-badge--muy_alta { color: var(--green); }
+  .estado-badge--momentum { color: var(--accent); }
+  .estado-badge--normal { color: var(--text-dim); }
+  .scanner-row__chevron { color: var(--text-dim); display: flex; }
+
+  .scanner-detail {
+    position: sticky; top: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .scanner-detail__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .scanner-detail__asset { display: flex; align-items: center; gap: 12px; }
+  .scanner-detail__asset img, .scanner-detail__asset .crypto-icon { width: 44px; height: 44px; }
+  .scanner-detail__name { font-weight: 800; font-size: 1.0625rem; display: flex; align-items: center; gap: 8px; }
+  .scanner-detail__sub { color: var(--text-dim); font-size: .8125rem; margin-top: 2px; }
+  .scanner-detail__close { color: var(--text-dim); border-radius: 8px; padding: 4px; }
+  .scanner-detail__close:hover { background: var(--field-bg); color: var(--text); }
+  .scanner-detail__price { font-size: 1.75rem; font-weight: 800; letter-spacing: -.01em; }
+  .scanner-detail__price-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .scanner-detail__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .scanner-detail__stat { background: var(--field-bg); border-radius: 12px; padding: 10px 12px; }
+  .scanner-detail__stat .label { font-size: .6875rem; color: var(--text-dim); margin-bottom: 2px; }
+  .scanner-detail__stat .val { font-weight: 700; font-size: .875rem; }
+  .scanner-detail__chart { height: 90px; }
+  .scanner-detail__chart svg { width: 100%; height: 100%; display: block; }
+  .scanner-detail__tfs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .scanner-detail__tf {
+    border: 1px solid var(--border); background: #fff; color: var(--text-dim); font-size: .75rem; font-weight: 700;
+    padding: 5px 11px; border-radius: 8px;
+  }
+  .scanner-detail__tf.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .scanner-detail__ai {
+    background: linear-gradient(165deg, #f5f3ff, #eef2fe); border: 1px solid var(--accent-dim);
+    border-radius: 14px; padding: 14px 16px;
+  }
+  .scanner-detail__ai-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .scanner-detail__ai-title { font-weight: 700; font-size: .875rem; display: flex; align-items: center; gap: 6px; }
+  .scanner-detail__ai-badge { font-size: .6875rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; }
+  .scanner-detail__ai-badge--buy { color: var(--green); background: var(--green-bg); }
+  .scanner-detail__ai-badge--sell { color: var(--red); background: var(--red-bg); }
+  .scanner-detail__ai-badge--wait { color: var(--text-dim); background: var(--field-bg); }
+  .scanner-detail__ai-text { font-size: .8125rem; color: var(--text-dim); line-height: 1.55; margin: 0; }
+  .scanner-detail__note { display: flex; gap: 8px; font-size: .75rem; color: var(--text-dim); line-height: 1.5; }
+  .scanner-detail__note svg { flex-shrink: 0; margin-top: 1px; width: 14px; height: 14px; }
+  .scanner-detail__empty { text-align: center; padding: 40px 10px; color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -29,13 +156,18 @@
   <script src="/shared/toast.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
-    const SIGNAL_META = {
-      BUY: { icon: 'arrowUp', label: 'Sesgo alcista', cls: 'buy' },
-      SELL: { icon: 'arrowDown', label: 'Sesgo bajista', cls: 'sell' },
-      WAIT: { icon: 'arrowRight', label: 'Neutral', cls: 'wait' },
+    const ESTADO_META = {
+      MUY_ALTA: { label: 'Muy alta', cls: 'muy_alta' },
+      ALTA: { label: 'Alta actividad', cls: 'alta' },
+      MOMENTUM: { label: 'Momentum', cls: 'momentum' },
+      NORMAL: { label: 'Normal', cls: 'normal' },
     };
-    const TREND_LABEL = { BULLISH: 'Alcista', BEARISH: 'Bajista', SIDEWAYS: 'Lateral' };
-    const RISK_LABEL = { LOW: 'Bajo', MEDIUM: 'Medio', HIGH: 'Alto' };
+    const CATEGORY_LABEL = { crypto: 'Crypto', memecoin: 'Memecoin' };
+    const SIGNAL_BADGE = {
+      BUY: { label: 'Señal positiva', cls: 'buy' },
+      SELL: { label: 'Señal negativa', cls: 'sell' },
+      WAIT: { label: 'Neutral', cls: 'wait' },
+    };
 
     mountShell({ page: 'picks', title: 'Market Scanner' }).then(async (ctx) => {
       if (!ctx) return;
@@ -48,60 +180,317 @@
           'Haz clic en cualquier tarjeta para abrirlo en el AI Analyzer y profundizar.',
         ],
       });
+
       ctx.contentEl.innerHTML = `
-        <div class="panel reveal" style="margin-bottom:18px;">
-          <div class="analyzer-head">
-            <div class="analyzer-head__icon">${vantexIcon('search', { size: 22 })}</div>
-            <div>
-              <div class="text-h3">Market Scanner 🔍</div>
-              <div class="text-caption">Escaneo en vivo de los activos con datos de mercado reales — el mismo motor determinista del AI Analyzer, sin intervención de un LLM.</div>
+        <div class="scanner-head">
+          <div>
+            <div class="scanner-head__title">
+              <span class="scanner-live"><span class="scanner-live__dot"></span>LIVE</span>
+            </div>
+            <p class="text-caption" style="margin-top:4px;">Detecta los activos que están mostrando mayor actividad y señales relevantes en tiempo real.</p>
+          </div>
+          <div class="scanner-head__actions">
+            <button class="btn-secondary" type="button" data-refresh>${vantexIcon('refresh', { size: 15 })} Actualizar</button>
+            <span class="scanner-updated"><span class="scanner-updated__dot"></span>Última actualización: <span data-updated-ago>—</span></span>
+          </div>
+        </div>
+
+        <div class="scanner-layout">
+          <div>
+            <div class="panel scanner-highlights reveal" data-highlights>
+              <div class="scanner-highlights__head"><span>⚡ Market Highlights</span></div>
+              <div class="scanner-highlights__grid" data-highlights-grid></div>
+            </div>
+
+            <div class="scanner-filters">
+              <div class="scanner-tabs" data-category-tabs>
+                <button type="button" class="scanner-tab is-active" data-cat="all">Todos</button>
+                <button type="button" class="scanner-tab" data-cat="crypto">Crypto</button>
+                <button type="button" class="scanner-tab" data-cat="memecoin">🐸 Memecoins</button>
+              </div>
+              <div class="scanner-sorts" data-sorts>
+                <button type="button" class="scanner-sort is-active" data-sort="volume24h">Volumen ⌄</button>
+                <button type="button" class="scanner-sort" data-sort="confidence">Momentum ⌄</button>
+                <button type="button" class="scanner-sort" data-sort="volatilityPct">Volatilidad ⌄</button>
+              </div>
+              <div class="scanner-search">
+                ${vantexIcon('search', { size: 15 })}
+                <input type="text" placeholder="Buscar activo, símbolo..." data-search />
+              </div>
+            </div>
+
+            <div class="panel scanner-table-wrap reveal" style="padding:0;">
+              <table class="scanner-table">
+                <thead>
+                  <tr>
+                    <th style="width:28px;"><input type="checkbox" disabled /></th>
+                    <th>Activo</th><th>Precio</th><th>24h</th><th>Volumen (24h)</th><th>Actividad</th><th>Estado</th><th></th>
+                  </tr>
+                </thead>
+                <tbody data-rows></tbody>
+              </table>
+              <div data-empty-state></div>
             </div>
           </div>
-        </div>
-        <div class="panel reveal" data-scan-list>
-          <div class="empty-state">
-            <div class="empty-state__icon"><span class="spinner" style="border-color:var(--accent-dim); border-top-color:var(--accent); width:20px; height:20px;"></span></div>
-            Escaneando el mercado…
-          </div>
+
+          <div class="panel scanner-detail reveal" data-detail></div>
         </div>
       `;
-      const listEl = ctx.contentEl.querySelector('[data-scan-list]');
-      try {
-        const { results, unavailable, updatedAt } = await api('/picks');
-        if (unavailable || !results.length) {
-          listEl.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state__icon">${vantexIcon('alertTriangle', { size: 26 })}</div>
-              No se han podido obtener datos de mercado en tiempo real en este momento. El escáner nunca muestra una lectura inventada — inténtalo de nuevo en unos minutos.
+
+      const highlightsGridEl = ctx.contentEl.querySelector('[data-highlights-grid]');
+      const rowsEl = ctx.contentEl.querySelector('[data-rows]');
+      const emptyStateEl = ctx.contentEl.querySelector('[data-empty-state]');
+      const detailEl = ctx.contentEl.querySelector('[data-detail]');
+      const updatedAgoEl = ctx.contentEl.querySelector('[data-updated-ago]');
+      const refreshBtn = ctx.contentEl.querySelector('[data-refresh]');
+      const searchInput = ctx.contentEl.querySelector('[data-search]');
+
+      let allResults = [];
+      let activeCategory = 'all';
+      let activeSort = 'volume24h';
+      let searchQuery = '';
+      let selectedSymbol = null;
+      let lastUpdatedAt = null;
+
+      function highlightCardHtml(key, icon, title, h) {
+        if (!h) return `<div class="highlight-card"><div class="highlight-card__head">${icon} ${title}</div><div class="highlight-card__empty">Sin datos suficientes ahora mismo.</div></div>`;
+        const changeCls = h.change24h != null && h.change24h < 0 ? 'scanner-change--neg' : 'scanner-change--pos';
+        return `
+          <div class="highlight-card" data-highlight-pick="${h.symbol}">
+            <div class="highlight-card__head">${icon} ${title}</div>
+            <div class="highlight-card__asset">
+              ${cryptoIconHtml(h.symbol, 22)}
+              <div>
+                <div class="highlight-card__name">${h.symbol} <span class="text-caption">${escapeHtml(h.name || '')}</span></div>
+              </div>
+              ${h.category === 'memecoin' ? '<span class="highlight-card__badge">MEMECOIN</span>' : ''}
+            </div>
+            <div class="highlight-card__row">
+              <span class="${changeCls}">${h.change24h != null ? fmtPct(h.change24h) : '—'}</span>
+              <span class="text-caption">Vol. ${h.volume24h != null ? fmtCompactUsd(h.volume24h) : '—'}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderHighlights(highlights) {
+        if (!highlights) { highlightsGridEl.innerHTML = '<p class="text-caption">Sin datos de mercado disponibles ahora mismo.</p>'; return; }
+        highlightsGridEl.innerHTML = [
+          highlightCardHtml('activity', '🔥', 'Mayor actividad', highlights.activity),
+          highlightCardHtml('momentum', vantexIcon('trendUp', { size: 15 }), 'Mayor momentum', highlights.momentum),
+          highlightCardHtml('volume', '⚡', 'Mayor volumen', highlights.volume),
+        ].join('');
+        mountCryptoIcons(highlightsGridEl);
+        highlightsGridEl.querySelectorAll('[data-highlight-pick]').forEach((card) => {
+          card.addEventListener('click', () => selectSymbol(card.dataset.highlightPick));
+        });
+      }
+
+      function filteredSortedRows() {
+        let rows = allResults;
+        if (activeCategory !== 'all') rows = rows.filter((r) => r.category === activeCategory);
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          rows = rows.filter((r) => r.symbol.toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q));
+        }
+        return [...rows].sort((a, b) => (b[activeSort] ?? -Infinity) - (a[activeSort] ?? -Infinity));
+      }
+
+      function renderRows() {
+        const rows = filteredSortedRows();
+        if (!rows.length) {
+          rowsEl.innerHTML = '';
+          emptyStateEl.innerHTML = `
+            <div class="empty-state" style="padding:40px 20px;">
+              <div class="empty-state__icon">${vantexIcon('search', { size: 24 })}</div>
+              ${allResults.length ? 'Ningún activo coincide con el filtro o la búsqueda.' : 'No se han podido obtener datos de mercado en tiempo real ahora mismo. El escáner nunca muestra una lectura inventada — inténtalo de nuevo en unos minutos.'}
             </div>
           `;
           return;
         }
-        listEl.innerHTML = `
-          <p class="text-caption" style="margin:0 0 14px;">Actualizado ${new Date(updatedAt).toLocaleTimeString('es-ES')}</p>
-          ${results.map((r, i) => {
-            const sig = SIGNAL_META[r.signal] || SIGNAL_META.WAIT;
-            return `
-            <a href="/analyzer" class="scan-card" style="display:block; text-decoration:none; color:inherit; animation-delay:${i * 0.06}s">
-              <div class="scan-card__head">
-                <strong style="font-size:1rem; display:inline-flex; align-items:center; gap:7px;">${cryptoIconHtml(r.symbol, 22)}${r.symbol}</strong>
-                <span class="scan-card__signal badge badge--${sig.cls}">${vantexIcon(sig.icon, { size: 13 })}${sig.label}</span>
-              </div>
-              <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
-                <span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${TREND_LABEL[r.trend] || r.trend}</span>
-                <span class="badge" style="background:var(--field-bg); color:var(--text-dim);">Confianza ${r.confidence}%</span>
-                <span class="badge badge--${(r.risk || 'medium').toLowerCase()}">Riesgo ${RISK_LABEL[r.risk] || r.risk}</span>
-                ${r.price ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${fmtPrice(r.price)}</span>` : ''}
-              </div>
-              <p style="margin:0; line-height:1.5; color:var(--text-dim);">${r.mainReason}</p>
-            </a>
+        emptyStateEl.innerHTML = '';
+        rowsEl.innerHTML = rows.map((r) => {
+          const estado = ESTADO_META[r.estado] || ESTADO_META.NORMAL;
+          const changeCls = r.change24h != null && r.change24h < 0 ? 'scanner-change--neg' : 'scanner-change--pos';
+          return `
+            <tr class="scanner-row ${r.symbol === selectedSymbol ? 'is-selected' : ''}" data-row="${r.symbol}">
+              <td><input type="checkbox" /></td>
+              <td>
+                <div class="scanner-row__asset">
+                  ${cryptoIconHtml(r.symbol, 30)}
+                  <div>
+                    <div class="scanner-row__name">${escapeHtml(r.name || r.symbol)}</div>
+                    <div class="scanner-row__sym">${r.symbol}${r.category === 'memecoin' ? '<span class="scanner-meme-badge">MEMECOIN</span>' : ''}</div>
+                  </div>
+                </div>
+              </td>
+              <td>${fmtPrice(r.price)}</td>
+              <td class="${changeCls}">${r.change24h != null ? fmtPct(r.change24h) : '—'}</td>
+              <td>${r.volume24h != null ? fmtCompactUsd(r.volume24h) : '—'}</td>
+              <td><div class="activity-bar activity-bar--${estado.cls}"><span style="width:${r.activityScore}%;"></span></div></td>
+              <td><span class="estado-badge estado-badge--${estado.cls}">${estado.label}</span></td>
+              <td class="scanner-row__chevron">${vantexIcon('chevronRight', { size: 16 })}</td>
+            </tr>
           `;
-          }).join('')}
-        `;
-        mountCryptoIcons(listEl);
-      } catch (err) {
-        listEl.innerHTML = `<p class="empty-state">${err.message}</p>`;
+        }).join('');
+        mountCryptoIcons(rowsEl);
+        rowsEl.querySelectorAll('[data-row]').forEach((tr) => {
+          tr.addEventListener('click', () => selectSymbol(tr.dataset.row));
+        });
       }
+
+      function sparklineSvg(history) {
+        const w = 300, h = 90;
+        if (!history || history.length < 2) {
+          return `<svg viewBox="0 0 ${w} ${h}"><text x="8" y="${h / 2}" font-size="11" fill="currentColor" opacity=".5">Histórico insuficiente todavía en esta sesión.</text></svg>`;
+        }
+        const prices = history.map((p) => p.price);
+        const min = Math.min(...prices), max = Math.max(...prices);
+        const span = (max - min) || 1;
+        const up = prices[prices.length - 1] >= prices[0];
+        const points = prices.map((p, i) => {
+          const x = (i / (prices.length - 1)) * w;
+          const y = h - 6 - ((p - min) / span) * (h - 14);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+        const color = up ? '#16a34a' : '#dc2626';
+        return `
+          <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+            <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        `;
+      }
+
+      function renderDetail(symbol) {
+        const r = allResults.find((x) => x.symbol === symbol);
+        if (!r) {
+          detailEl.innerHTML = `
+            <div class="scanner-detail__empty">
+              ${vantexIcon('search', { size: 26 })}
+              <p style="margin-top:10px;">Selecciona un activo de la tabla para ver su detalle.</p>
+            </div>
+          `;
+          return;
+        }
+        const sig = SIGNAL_BADGE[r.signal] || SIGNAL_BADGE.WAIT;
+        detailEl.innerHTML = `
+          <div class="scanner-detail__head">
+            <div class="scanner-detail__asset">
+              ${cryptoIconHtml(r.symbol, 44)}
+              <div>
+                <div class="scanner-detail__name">${escapeHtml(r.name || r.symbol)} ${r.category === 'memecoin' ? '<span class="highlight-card__badge">MEMECOIN</span>' : ''}</div>
+                <div class="scanner-detail__sub">${r.symbol}${r.network ? ' · ' + escapeHtml(r.network) : ''}</div>
+              </div>
+            </div>
+            <button type="button" class="scanner-detail__close" data-close-detail aria-label="Cerrar">${vantexIcon('close', { size: 16 })}</button>
+          </div>
+
+          <div class="scanner-detail__price-row">
+            <span class="scanner-detail__price">${fmtPrice(r.price)}</span>
+            <span class="${r.change24h != null && r.change24h < 0 ? 'scanner-change--neg' : 'scanner-change--pos'}">${r.change24h != null ? fmtPct(r.change24h) : '—'} ${r.change24h != null ? (r.change24h < 0 ? '↘' : '↗') : ''}</span>
+          </div>
+
+          <div class="scanner-detail__stats">
+            <div class="scanner-detail__stat"><div class="label">Volumen (24h)</div><div class="val">${r.volume24h != null ? fmtCompactUsd(r.volume24h) : 'No disponible'}</div></div>
+            <div class="scanner-detail__stat"><div class="label">Market Cap</div><div class="val">${r.marketCap != null ? fmtCompactUsd(r.marketCap) : 'No disponible'}</div></div>
+            <div class="scanner-detail__stat"><div class="label">Liquidez</div><div class="val">No disponible</div></div>
+          </div>
+
+          <div class="scanner-detail__chart">${sparklineSvg(r.sparkline)}</div>
+
+          <div class="scanner-detail__tfs">
+            ${['1h', '4h', '1d', '1s', '1m'].map((tf) => `<button type="button" class="scanner-detail__tf ${tf === '1d' ? 'is-active' : ''}" data-tf="${tf}">${tf}</button>`).join('')}
+          </div>
+
+          <div class="scanner-detail__ai">
+            <div class="scanner-detail__ai-head">
+              <span class="scanner-detail__ai-title">✨ Análisis de IA</span>
+              <span class="scanner-detail__ai-badge scanner-detail__ai-badge--${sig.cls}">${sig.label}</span>
+            </div>
+            <p class="scanner-detail__ai-text">${escapeHtml(r.mainReason || 'Sin motivo determinante todavía.')}</p>
+          </div>
+
+          <button type="button" class="btn-primary" style="width:100%; justify-content:center;" data-analyze="${r.symbol}" data-category="${r.category}">Analizar con Vantex AI →</button>
+
+          <div class="scanner-detail__note">
+            ${vantexIcon('alertTriangle', { size: 14 })}
+            <span>Recuerda: este análisis es una estimación generada con datos reales de mercado y no constituye un consejo de inversión.</span>
+          </div>
+        `;
+        mountCryptoIcons(detailEl);
+        detailEl.querySelector('[data-close-detail]').addEventListener('click', () => selectSymbol(null));
+        detailEl.querySelectorAll('[data-tf]').forEach((btn) => btn.addEventListener('click', () => {
+          detailEl.querySelectorAll('[data-tf]').forEach((b) => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+        }));
+        const analyzeBtn = detailEl.querySelector('[data-analyze]');
+        analyzeBtn.addEventListener('click', () => {
+          location.href = `/analyzer?symbol=${encodeURIComponent(analyzeBtn.dataset.analyze)}&category=${encodeURIComponent(analyzeBtn.dataset.category)}`;
+        });
+      }
+
+      function selectSymbol(symbol) {
+        selectedSymbol = symbol;
+        renderRows();
+        renderDetail(symbol);
+      }
+
+      function updateAgoLabel() {
+        if (!lastUpdatedAt) { updatedAgoEl.textContent = '—'; return; }
+        const secs = Math.max(0, Math.round((Date.now() - lastUpdatedAt) / 1000));
+        updatedAgoEl.textContent = secs < 60 ? `hace ${secs}s` : `hace ${Math.round(secs / 60)} min`;
+      }
+      setInterval(updateAgoLabel, 1000);
+
+      ctx.contentEl.querySelectorAll('[data-cat]').forEach((btn) => btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.cat;
+        ctx.contentEl.querySelectorAll('[data-cat]').forEach((b) => b.classList.toggle('is-active', b === btn));
+        renderRows();
+      }));
+      ctx.contentEl.querySelectorAll('[data-sort]').forEach((btn) => btn.addEventListener('click', () => {
+        activeSort = btn.dataset.sort;
+        ctx.contentEl.querySelectorAll('[data-sort]').forEach((b) => b.classList.toggle('is-active', b === btn));
+        renderRows();
+      }));
+      searchInput.addEventListener('input', () => { searchQuery = searchInput.value.trim(); renderRows(); });
+
+      async function load() {
+        const { results, highlights, unavailable, updatedAt } = await api('/picks');
+        allResults = results;
+        lastUpdatedAt = new Date(updatedAt).getTime();
+        updateAgoLabel();
+        renderHighlights(highlights);
+        renderRows();
+        if (!selectedSymbol && results.length) selectSymbol((highlights && highlights.activity && highlights.activity.symbol) || results[0].symbol);
+        else renderDetail(selectedSymbol);
+        if (unavailable) {
+          emptyStateEl.innerHTML = `
+            <div class="empty-state" style="padding:40px 20px;">
+              <div class="empty-state__icon">${vantexIcon('alertTriangle', { size: 24 })}</div>
+              No se han podido obtener datos de mercado en tiempo real en este momento. El escáner nunca muestra una lectura inventada — inténtalo de nuevo en unos minutos.
+            </div>
+          `;
+        }
+      }
+
+      refreshBtn.addEventListener('click', async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<span class="spinner"></span> Actualizando…';
+        try {
+          await load();
+          showToast({ type: 'success', message: 'Market Scanner actualizado.' });
+        } catch (err) {
+          showToast({ type: 'error', message: err.message });
+        } finally {
+          refreshBtn.disabled = false;
+          refreshBtn.innerHTML = `${vantexIcon('refresh', { size: 15 })} Actualizar`;
+        }
+      });
+
+      renderDetail(null);
+      load().catch((err) => {
+        emptyStateEl.innerHTML = `<p class="error-msg">${err.message}</p>`;
+      });
     });
   </script>
 </body>

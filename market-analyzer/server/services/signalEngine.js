@@ -331,6 +331,10 @@ function computeSignal({ candles, timeframeNote }) {
 
   return {
     signal, confidence, risk: risk.label,
+    // Volatilidad real (ATR/precio, %) — no una puntuación inventada; el
+    // Market Scanner la usa para el orden "Volatilidad", nunca se muestra
+    // como riesgo si no hay suficientes velas para calcularla (null).
+    volatilityPct: risk.atrPct != null ? Math.round(risk.atrPct * 1000) / 10 : null,
     price, trend: trend.label, momentum: momentum.label,
     volume: volume.label, structure: structureLabel === 'alcista' ? 'BULLISH' : structureLabel === 'bajista' ? 'BEARISH' : 'MIXED',
     support: priceStructure.support, resistance: priceStructure.resistance,

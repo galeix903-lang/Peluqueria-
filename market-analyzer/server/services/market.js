@@ -304,9 +304,51 @@ function hasRealDataFor(symbol) {
   return !!SYMBOL_TO_COINGECKO_ID[symbol?.toUpperCase()];
 }
 
+// ---------- Estadísticas de mercado enriquecidas (Market Scanner) ----------
+// A diferencia de fetchPrices() (solo precio puntual), /coins/markets trae
+// de una sola vez precio, variación 24h, volumen 24h y capitalización —
+// todo real, mismo proveedor (CoinGecko), una sola llamada para los
+// símbolos que ya sigue Vantex. Nunca se inventa un campo: si la llamada
+// falla, se devuelve la caché previa (aunque esté vencida) o, si no hay
+// nada, un objeto vacío — quien llama debe tratar un símbolo ausente como
+// "no disponible", nunca rellenarlo con un valor aproximado.
+const MARKET_STATS_CACHE_TTL_MS = 60 * 1000;
+let marketStatsCache = { data: null, fetchedAt: 0 };
+
+async function fetchMarketStats() {
+  const now = Date.now();
+  if (marketStatsCache.data && now - marketStatsCache.fetchedAt < MARKET_STATS_CACHE_TTL_MS) {
+    return marketStatsCache.data;
+  }
+  try {
+    const ids = Object.values(SYMBOL_TO_COINGECKO_ID).join(',');
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&per_page=250&sparkline=false&price_change_percentage=24h`;
+    const payload = await fetchJsonWithRetry(url, { timeoutMs: 8000 });
+    if (!Array.isArray(payload)) throw new Error('Respuesta de /coins/markets con forma inesperada.');
+    const byId = new Map(payload.map((c) => [c.id, c]));
+    const stats = {};
+    for (const [symbol, geckoId] of Object.entries(SYMBOL_TO_COINGECKO_ID)) {
+      const c = byId.get(geckoId);
+      if (!c) continue;
+      stats[symbol] = {
+        name: c.name,
+        logo: c.image || null,
+        price: typeof c.current_price === 'number' ? c.current_price : null,
+        change24h: typeof c.price_change_percentage_24h === 'number' ? c.price_change_percentage_24h : null,
+        volume24h: typeof c.total_volume === 'number' ? c.total_volume : null,
+        marketCap: typeof c.market_cap === 'number' ? c.market_cap : null,
+      };
+    }
+    marketStatsCache = { data: stats, fetchedAt: now };
+    return stats;
+  } catch (err) {
+    return marketStatsCache.data || {};
+  }
+}
+
 module.exports = {
   fetchPrices, getPrice, getHistory, isUsingFallbackPrices, getPricingStatus,
-  getCandles, getMultiTimeframeCandles, hasRealDataFor,
+  getCandles, getMultiTimeframeCandles, hasRealDataFor, fetchMarketStats,
   SUPPORTED_SYMBOLS: Object.keys(SYMBOL_TO_COINGECKO_ID),
   DATA_STATUS,
 };

@@ -37,6 +37,20 @@ function fmtPrice(n) {
   return value.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 }
 
+// Volumen/capitalización en formato compacto ($2.4B, $892M, $245.6K) —
+// para cifras grandes donde fmtUsd() con todos los dígitos sería
+// ilegible. null/no-finito se muestra como "—", nunca como "$0".
+function fmtCompactUsd(n) {
+  const value = Number(n);
+  if (!Number.isFinite(value)) return '—';
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
+  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+  if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(1)}K`;
+  return `${sign}$${abs.toFixed(0)}`;
+}
+
 function fmtPct(n, { signed = true } = {}) {
   const value = Number(n);
   const sign = signed && value > 0 ? '+' : '';

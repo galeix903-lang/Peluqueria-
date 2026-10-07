@@ -15,9 +15,10 @@ const { scanMarket } = require('../services/marketScanner');
 const router = express.Router();
 
 router.get('/', asyncHandler(async (req, res) => {
-  const results = await scanMarket();
+  const { results, highlights } = await scanMarket();
   res.json({
     results,
+    highlights,
     unavailable: results.length === 0,
     updatedAt: new Date().toISOString(),
   });
