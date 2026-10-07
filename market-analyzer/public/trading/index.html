@@ -36,26 +36,70 @@
   .skeleton-table-row { display: flex; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
   .skeleton-table-row:first-child { border-top: none; }
 
-  /* Calculadora de riesgo: matemática sobre el saldo real del usuario y
-     los precios que introduce — nunca una cifra de "beneficio garantizado". */
   .risk-calc__row { display: flex; justify-content: space-between; align-items: center; font-size: .8125rem; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
   .risk-calc__row span:last-child { color: var(--text); font-variant-numeric: tabular-nums; }
-  .risk-calc input[type="range"] {
-    width: 100%; appearance: none; height: 4px; border-radius: 999px;
-    background: var(--field-bg); outline: none; margin-bottom: 4px;
-  }
-  .risk-calc input[type="range"]::-webkit-slider-thumb {
-    appearance: none; width: 16px; height: 16px; border-radius: 50%;
-    background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer;
-  }
-  .risk-calc input[type="range"]::-moz-range-thumb {
-    width: 16px; height: 16px; border-radius: 50%; background: var(--accent);
-    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer;
-  }
+  .risk-calc input[type="range"] { width: 100%; appearance: none; height: 4px; border-radius: 999px; background: var(--field-bg); outline: none; margin-bottom: 4px; }
+  .risk-calc input[type="range"]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer; }
+  .risk-calc input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer; }
   .risk-calc__grid { display: flex; gap: 16px; flex-wrap: wrap; margin: 14px 0; }
   .risk-calc__grid .field { min-width: 140px; margin-bottom: 0; }
   .risk-calc__result { background: var(--field-bg); border-radius: 10px; padding: 12px 14px; font-size: .8125rem; color: var(--text-dim); }
   .risk-calc__result strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Rediseño: cabecera + layout de dos columnas ---------- */
+  .pt-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+  .pt-layout > div { min-width: 0; }
+  @media (max-width: 1100px) { .pt-layout { grid-template-columns: 1fr; } }
+
+  .pt-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .pt-head__left { display: flex; align-items: center; gap: 10px; }
+  .pt-head__icon { width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(135deg, #fb923c, #f97316); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pt-head__label { font-weight: 800; font-size: .8125rem; letter-spacing: .03em; }
+  .pt-badge-active { font-size: .625rem; font-weight: 800; letter-spacing: .03em; color: var(--green); background: var(--green-bg); border-radius: 999px; padding: 3px 9px; margin-left: 4px; }
+  .pt-range-pills { display: flex; gap: 4px; background: var(--field-bg); border-radius: 10px; padding: 3px; }
+  .pt-range-pill { border: none; background: transparent; font-size: .75rem; font-weight: 700; color: var(--text-dim); padding: 6px 11px; border-radius: 7px; }
+  .pt-range-pill.is-active { background: #fff; color: var(--accent); box-shadow: 0 2px 6px rgba(20,22,43,.1); }
+
+  .pt-balance-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+  .pt-balance-chart { width: 180px; height: 50px; flex-shrink: 0; }
+  .pt-balance-chart svg { width: 100%; height: 100%; display: block; }
+
+  .pt-info-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .pt-info-chip { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; color: var(--text-dim); background: var(--field-bg); border-radius: 999px; padding: 6px 12px; }
+  .pt-info-chip strong { color: var(--text); font-weight: 700; }
+  .pt-info-chip svg { width: 13px; height: 13px; }
+
+  .pt-tabs { display: flex; gap: 16px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .pt-tab { border: none; background: transparent; color: var(--text-dim); font-weight: 700; font-size: .8125rem; padding: 8px 2px 10px; border-bottom: 2px solid transparent; display: inline-flex; align-items: center; gap: 6px; margin-bottom: -1px; }
+  .pt-tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+  .pt-tools-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .pt-search { position: relative; min-width: 180px; flex: 1 1 180px; max-width: 260px; }
+  .pt-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-dim); }
+  .pt-search input { width: 100%; border: 1px solid var(--border); background: var(--field-bg); border-radius: 9px; padding: 8px 10px 8px 30px; font-size: .8125rem; color: var(--text); }
+  .pt-side-filter { border: 1px solid var(--border); background: var(--field-bg); border-radius: 9px; padding: 8px 10px; font-size: .8125rem; color: var(--text-dim); }
+
+  .pt-perf-card { padding: 18px 20px; }
+  .pt-perf-title { font-weight: 700; display: flex; align-items: center; gap: 7px; margin-bottom: 2px; }
+  .pt-perf-sub { font-size: .75rem; color: var(--text-dim); margin-bottom: 14px; }
+  .pt-perf-main .label { font-size: .75rem; color: var(--text-dim); }
+  .pt-perf-main .val { font-size: 1.375rem; font-weight: 800; margin-top: 2px; }
+  .pt-perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .pt-perf-grid .label { font-size: .6875rem; color: var(--text-dim); margin-bottom: 2px; }
+  .pt-perf-grid .val { font-weight: 700; font-size: .9375rem; }
+
+  .pt-note { background: linear-gradient(135deg, var(--accent-dim), var(--blue-bg)); border: 1px solid var(--accent-dim); border-radius: 14px; padding: 14px 16px; font-size: .8125rem; color: var(--text-dim); display: flex; gap: 10px; }
+  .pt-note svg { flex-shrink: 0; margin-top: 1px; width: 15px; height: 15px; color: var(--accent); }
+  .pt-tips-card { padding: 18px 20px; }
+  .pt-tips-title { font-weight: 700; display: flex; align-items: center; gap: 7px; margin-bottom: 12px; }
+  .pt-tips-list { display: flex; flex-direction: column; gap: 10px; }
+  .pt-tip { display: flex; align-items: flex-start; gap: 9px; font-size: .8125rem; color: var(--text-dim); line-height: 1.45; }
+  .pt-tip-check { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid var(--border-strong); flex-shrink: 0; margin-top: 1px; }
+
+  .pt-cta-card { background: linear-gradient(135deg, var(--accent), var(--blue)); border-radius: 16px; padding: 18px; color: #fff; display: flex; align-items: center; gap: 14px; cursor: pointer; border: none; width: 100%; text-align: left; }
+  .pt-cta-card__icon { width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pt-cta-card__title { font-weight: 700; font-size: .875rem; }
+  .pt-cta-card__desc { font-size: .75rem; opacity: .85; margin-top: 2px; }
+  .pt-cta-card__arrow { margin-left: auto; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -69,6 +113,18 @@
   <script src="/shared/toast.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
+    const PT_RANGES = { '1D': 1, '1S': 7, '1M': 30, '3M': 90, '1A': 365 };
+
+    function fmtDuration(ms) {
+      if (ms == null) return '—';
+      const mins = Math.round(ms / 60000);
+      if (mins < 60) return `${mins} min`;
+      const hours = Math.round(mins / 60);
+      if (hours < 24) return `${hours} h`;
+      const days = Math.round(hours / 24);
+      return `${days} d`;
+    }
+
     mountShell({ page: 'trading', title: 'Paper Trading' }).then((ctx) => {
       if (!ctx) return;
       showSectionIntro(ctx.user, 'trading', {
@@ -86,90 +142,174 @@
           ${vantexIcon('alertTriangle', { size: 16 })}
           <span style="font-size:.8125rem; color:var(--text);"><strong>Precios simulados.</strong> No se ha podido conectar con la fuente de precios en vivo; estos precios son una aproximación generada por el servidor, no cotizaciones reales.</span>
         </div>
-        <div class="panel reveal" style="margin-bottom:20px;">
-          <div class="stat-row">
-            <div class="stat-row__item">
-              <div class="label">Saldo</div>
-              <div class="value" data-balance>—</div>
+
+        <div class="pt-layout">
+          <div>
+            <div class="panel reveal" style="margin-bottom:20px;">
+              <div class="pt-head">
+                <div class="pt-head__left">
+                  <span class="pt-head__icon">${vantexIcon('chartBar', { size: 18 })}</span>
+                  <span class="pt-head__label">PAPER TRADING</span>
+                  <span class="pt-badge-active">ACTIVO</span>
+                </div>
+                <div class="pt-range-pills" data-range-pills>
+                  ${Object.keys(PT_RANGES).map((r, i) => `<button type="button" class="pt-range-pill ${i === 0 ? 'is-active' : ''}" data-range="${r}">${r}</button>`).join('')}
+                </div>
+              </div>
+
+              <div class="pt-balance-row">
+                <div class="stat-row" style="margin:0;">
+                  <div class="stat-row__item">
+                    <div class="label">Saldo virtual</div>
+                    <div class="value" data-balance>—</div>
+                  </div>
+                  <div class="stat-row__item">
+                    <div class="label">P&amp;L actual</div>
+                    <div class="value" data-open-pnl>—</div>
+                  </div>
+                </div>
+                <div class="pt-balance-chart" data-balance-chart></div>
+              </div>
+
+              <form data-trade-form>
+                <input type="hidden" name="analysisId" data-analysis-id-input />
+                <div class="ticket-row">
+                  <div class="field">
+                    <label>Símbolo</label>
+                    <div class="symbol-row">
+                      <select name="symbol" data-symbol-select></select>
+                      <span class="sparkline" data-sparkline></span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Precio actual</label>
+                    <div class="live-price" data-live-price>—</div>
+                  </div>
+                  <div class="field">
+                    <label>Dirección</label>
+                    <div class="side-toggle">
+                      <button type="button" data-side="long" class="is-active">${vantexIcon('arrowUp', { size: 14 })} Comprar</button>
+                      <button type="button" data-side="short">${vantexIcon('arrowDown', { size: 14 })} Vender</button>
+                    </div>
+                    <input type="hidden" name="side" value="long" data-side-input />
+                  </div>
+                  <div class="field">
+                    <label>Cantidad</label>
+                    <input type="number" name="size" step="0.0001" min="0.0001" placeholder="0.5" required />
+                  </div>
+                </div>
+
+                <details class="ticket-advanced" data-sltp-details>
+                  <summary>${vantexIcon('chevronRight', { size: 14 })} Stop-loss / Take-profit (opcional)</summary>
+                  <div class="ticket-advanced__body">
+                    <div class="field">
+                      <label>Stop-loss</label>
+                      <input type="number" name="stopLoss" step="any" min="0" placeholder="Precio" data-risk-sl-link />
+                    </div>
+                    <div class="field">
+                      <label>Take-profit</label>
+                      <input type="number" name="takeProfit" step="any" min="0" placeholder="Precio" />
+                    </div>
+                  </div>
+                </details>
+
+                <details class="ticket-advanced risk-calc" data-risk-calc>
+                  <summary>${vantexIcon('chartBar', { size: 14 })} Calculadora de tamaño de posición (opcional)</summary>
+                  <div class="ticket-advanced__body" style="flex-direction:column; align-items:stretch;">
+                    <p class="text-caption" style="margin:0 0 14px;">Calcula cuántas unidades comprar según cuánto de tu saldo estás dispuesto a arriesgar — no es una promesa de beneficio, solo matemática sobre tus propios números.</p>
+                    <div class="risk-calc__row">
+                      <span>Riesgo por operación</span>
+                      <span data-risk-pct-label>1%</span>
+                    </div>
+                    <input type="range" min="0.25" max="5" step="0.25" value="1" data-risk-pct-input />
+                    <div class="risk-calc__grid">
+                      <div class="field">
+                        <label>Precio de entrada</label>
+                        <input type="number" step="any" min="0" placeholder="Precio actual" data-risk-entry-input />
+                      </div>
+                    </div>
+                    <div class="risk-calc__result" data-risk-output>Añade un stop-loss arriba y un precio de entrada para calcular el tamaño según tu riesgo.</div>
+                    <button type="button" class="btn-secondary" data-risk-apply hidden style="margin-top:12px; align-self:flex-start;">Usar este tamaño en el ticket</button>
+                  </div>
+                </details>
+
+                <div style="margin-top:18px;">
+                  <button class="btn-primary" type="submit">${vantexIcon('bolt', { size: 16 })} Abrir operación</button>
+                </div>
+              </form>
+              <p class="error-msg" data-error></p>
+
+              <div class="pt-info-chips">
+                <span class="pt-info-chip">${vantexIcon('bolt', { size: 13 })} Apalancamiento: <strong>1x (sin apalancamiento)</strong></span>
+                <span class="pt-info-chip">${vantexIcon('shieldCheck', { size: 13 })} Comisión: <strong>0%</strong></span>
+                <span class="pt-info-chip">${vantexIcon('clock', { size: 13 })} Modo: <strong>Simulación</strong></span>
+              </div>
             </div>
-            <div class="stat-row__item">
-              <div class="label">P&amp;L abierto</div>
-              <div class="value" data-open-pnl>—</div>
+
+            <div class="panel reveal" style="animation-delay:.08s;">
+              <div class="pt-tabs" data-pt-tabs>
+                <button type="button" class="pt-tab is-active" data-tab="open">${vantexIcon('windowLayout', { size: 15 })} Posiciones</button>
+                <button type="button" class="pt-tab" data-tab="closed">${vantexIcon('clock', { size: 15 })} Historial</button>
+                <button type="button" class="pt-tab" data-tab="stats">${vantexIcon('chartBar', { size: 15 })} Estadísticas</button>
+              </div>
+              <div class="pt-tools-row">
+                <div class="pt-search">
+                  ${vantexIcon('search', { size: 14 })}
+                  <input type="text" placeholder="Buscar activo…" data-pos-search />
+                </div>
+                <select class="pt-side-filter" data-pos-side-filter>
+                  <option value="all">Todos</option>
+                  <option value="long">Solo compras</option>
+                  <option value="short">Solo ventas</option>
+                </select>
+              </div>
+              <div data-positions>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-text skeleton-text--md"></div><div class="skeleton skeleton-text skeleton-text--sm"></div></div></div>
+                <div class="skeleton-table-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-text skeleton-text--md"></div><div class="skeleton skeleton-text skeleton-text--sm"></div></div></div>
+              </div>
             </div>
           </div>
 
-          <form data-trade-form>
-            <input type="hidden" name="analysisId" data-analysis-id-input />
-            <div class="ticket-row">
-              <div class="field">
-                <label>Símbolo</label>
-                <div class="symbol-row">
-                  <select name="symbol" data-symbol-select></select>
-                  <span class="sparkline" data-sparkline></span>
-                </div>
+          <div>
+            <div class="panel pt-perf-card reveal" style="animation-delay:.04s;">
+              <div class="pt-perf-title">${vantexIcon('chartBar', { size: 16 })} Mi rendimiento</div>
+              <div class="pt-perf-sub">Evolución de tu cuenta de trading</div>
+              <div class="pt-perf-main">
+                <div class="label">Beneficio/Pérdida</div>
+                <div class="val" data-perf-pnl>—</div>
               </div>
-              <div class="field">
-                <label>Precio actual</label>
-                <div class="live-price" data-live-price>—</div>
-              </div>
-              <div class="field">
-                <label>Dirección</label>
-                <div class="side-toggle">
-                  <button type="button" data-side="long" class="is-active">${vantexIcon('arrowUp', { size: 14 })} Comprar</button>
-                  <button type="button" data-side="short">${vantexIcon('arrowDown', { size: 14 })} Vender</button>
-                </div>
-                <input type="hidden" name="side" value="long" data-side-input />
-              </div>
-              <div class="field">
-                <label>Cantidad</label>
-                <input type="number" name="size" step="0.0001" min="0.0001" placeholder="0.5" required />
+              <div class="pt-perf-grid">
+                <div><div class="label">Operaciones</div><div class="val" data-perf-trades>—</div></div>
+                <div><div class="label">Acierto</div><div class="val" data-perf-winrate>—</div></div>
+                <div><div class="label">Operación más larga</div><div class="val" data-perf-longest>—</div></div>
+                <div><div class="label">Operación más corta</div><div class="val" data-perf-shortest>—</div></div>
               </div>
             </div>
 
-            <details class="ticket-advanced" data-sltp-details>
-              <summary>${vantexIcon('chevronRight', { size: 14 })} Stop-loss / Take-profit (opcional)</summary>
-              <div class="ticket-advanced__body">
-                <div class="field">
-                  <label>Stop-loss</label>
-                  <input type="number" name="stopLoss" step="any" min="0" placeholder="Precio" data-risk-sl-link />
-                </div>
-                <div class="field">
-                  <label>Take-profit</label>
-                  <input type="number" name="takeProfit" step="any" min="0" placeholder="Precio" />
-                </div>
-              </div>
-            </details>
-
-            <details class="ticket-advanced risk-calc" data-risk-calc>
-              <summary>${vantexIcon('chartBar', { size: 14 })} Calculadora de tamaño de posición (opcional)</summary>
-              <div class="ticket-advanced__body" style="flex-direction:column; align-items:stretch;">
-                <p class="text-caption" style="margin:0 0 14px;">Calcula cuántas unidades comprar según cuánto de tu saldo estás dispuesto a arriesgar — no es una promesa de beneficio, solo matemática sobre tus propios números.</p>
-                <div class="risk-calc__row">
-                  <span>Riesgo por operación</span>
-                  <span data-risk-pct-label>1%</span>
-                </div>
-                <input type="range" min="0.25" max="5" step="0.25" value="1" data-risk-pct-input />
-                <div class="risk-calc__grid">
-                  <div class="field">
-                    <label>Precio de entrada</label>
-                    <input type="number" step="any" min="0" placeholder="Precio actual" data-risk-entry-input />
-                  </div>
-                </div>
-                <div class="risk-calc__result" data-risk-output>Añade un stop-loss arriba y un precio de entrada para calcular el tamaño según tu riesgo.</div>
-                <button type="button" class="btn-secondary" data-risk-apply hidden style="margin-top:12px; align-self:flex-start;">Usar este tamaño en el ticket</button>
-              </div>
-            </details>
-
-            <div style="margin-top:18px;">
-              <button class="btn-primary" type="submit">${vantexIcon('bolt', { size: 16 })} Abrir operación</button>
+            <div class="pt-note" style="margin:16px 0;">
+              ${vantexIcon('shieldCheck', { size: 15 })}
+              <span>El modo Paper Trading te permite practicar en un entorno real sin riesgo de pérdida de capital.</span>
             </div>
-          </form>
-          <p class="error-msg" data-error></p>
-        </div>
 
-        <div class="panel reveal" style="animation-delay:.08s" data-positions>
-          <div class="skeleton-table-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-text skeleton-text--md"></div><div class="skeleton skeleton-text skeleton-text--sm"></div></div></div>
-          <div class="skeleton-table-row"><div class="skeleton skeleton-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-text skeleton-text--md"></div><div class="skeleton skeleton-text skeleton-text--sm"></div></div></div>
+            <div class="panel pt-tips-card reveal" style="animation-delay:.08s; margin-bottom:16px;">
+              <div class="pt-tips-title">💡 Consejos para empezar</div>
+              <div class="pt-tips-list">
+                <div class="pt-tip"><span class="pt-tip-check"></span>Empieza con activos de alta liquidez (como BTC o ETH).</div>
+                <div class="pt-tip"><span class="pt-tip-check"></span>Define siempre un stop-loss antes de abrir la operación.</div>
+                <div class="pt-tip"><span class="pt-tip-check"></span>Gestiona tu riesgo con la calculadora de tamaño de posición.</div>
+                <div class="pt-tip"><span class="pt-tip-check"></span>Analiza tus resultados y mejora tu estrategia.</div>
+              </div>
+            </div>
+
+            <button type="button" class="pt-cta-card" data-goto-analyzer>
+              <span class="pt-cta-card__icon">${vantexIcon('trendUp', { size: 18 })}</span>
+              <span>
+                <div class="pt-cta-card__title">Mejora tu estrategia</div>
+                <div class="pt-cta-card__desc">Analiza el mercado con Vantex AI y lleva tu trading al siguiente nivel.</div>
+              </span>
+              <span class="pt-cta-card__arrow">${vantexIcon('chevronRight', { size: 18 })}</span>
+            </button>
+          </div>
         </div>
       `;
 
@@ -185,16 +325,41 @@
       const analysisIdInput = form.querySelector('[data-analysis-id-input]');
       const errorEl = ctx.contentEl.querySelector('[data-error]');
       const positionsEl = ctx.contentEl.querySelector('[data-positions]');
+      const balanceChartEl = ctx.contentEl.querySelector('[data-balance-chart]');
+      const rangePillsEl = ctx.contentEl.querySelector('[data-range-pills]');
+      const posSearchInput = ctx.contentEl.querySelector('[data-pos-search]');
+      const posSideFilter = ctx.contentEl.querySelector('[data-pos-side-filter]');
       let lastBalance = null;
       let lastOpenPnl = null;
       let firstLoad = true;
       const seenClosedIds = new Set();
+      let latestData = null;
+      let activeTab = 'open';
+      let activeRange = '1D';
+      let posSearch = '';
+      let posSide = 'all';
+
+      ctx.contentEl.querySelector('[data-goto-analyzer]').addEventListener('click', () => { location.href = '/analyzer'; });
 
       sideButtons.forEach((btn) => btn.addEventListener('click', () => {
         sideButtons.forEach((b) => b.classList.remove('is-active'));
         btn.classList.add('is-active');
         sideInput.value = btn.dataset.side;
       }));
+
+      rangePillsEl.querySelectorAll('[data-range]').forEach((btn) => btn.addEventListener('click', () => {
+        activeRange = btn.dataset.range;
+        rangePillsEl.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('is-active', b === btn));
+        if (latestData) renderBalanceChart(latestData.balanceHistory);
+      }));
+
+      ctx.contentEl.querySelector('[data-pt-tabs]').querySelectorAll('[data-tab]').forEach((btn) => btn.addEventListener('click', () => {
+        activeTab = btn.dataset.tab;
+        ctx.contentEl.querySelectorAll('[data-pt-tabs] [data-tab]').forEach((b) => b.classList.toggle('is-active', b === btn));
+        if (latestData) renderPositions(latestData);
+      }));
+      posSearchInput.addEventListener('input', () => { posSearch = posSearchInput.value.trim().toLowerCase(); if (latestData) renderPositions(latestData); });
+      posSideFilter.addEventListener('change', () => { posSide = posSideFilter.value; if (latestData) renderPositions(latestData); });
 
       // Puente "Simular este escenario" desde el AI Analyzer: rellena el
       // ticket con el símbolo/lado/SL/TP del análisis, nunca lo envía solo
@@ -253,10 +418,35 @@
       }
       symbolSelect.addEventListener('change', loadSparkline);
 
+      // Evolución real del saldo (balanceHistory ya viene reconstruida en
+      // el servidor a partir del historial real de cierres) — el filtro
+      // de rango solo recorta esa misma serie real por fecha, nunca
+      // genera puntos nuevos. Con 0 operaciones cerradas, la línea es
+      // plana en 100.000 — eso es lo honesto para una cuenta nueva.
+      function renderBalanceChart(balanceHistory) {
+        const w = 180, h = 50;
+        const rangeDays = PT_RANGES[activeRange];
+        const cutoff = Date.now() - rangeDays * 24 * 60 * 60 * 1000;
+        let points = (balanceHistory || []).filter((p) => new Date(p.t).getTime() >= cutoff);
+        if (points.length < 2) points = balanceHistory || [];
+        if (!points.length) { balanceChartEl.innerHTML = ''; return; }
+        const values = points.map((p) => p.balance);
+        const min = Math.min(...values), max = Math.max(...values);
+        const span = (max - min) || Math.max(1, min * 0.01) || 1;
+        const up = values[values.length - 1] >= values[0];
+        const coords = values.map((v, i) => {
+          const x = points.length > 1 ? (i / (points.length - 1)) * w : 0;
+          const y = h - 4 - ((v - min) / span) * (h - 8);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+        balanceChartEl.innerHTML = `
+          <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+            <polyline points="${coords}" fill="none" stroke="${up ? 'var(--accent)' : 'var(--red)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        `;
+      }
+
       // ---------- Calculadora de tamaño de posición ----------
-      // Matemática pura sobre el saldo real y los precios que introduce el
-      // usuario (riesgo % del saldo, entrada y stop-loss) — nunca una
-      // cifra de beneficio prometido.
       const riskPctInput = ctx.contentEl.querySelector('[data-risk-pct-input]');
       const riskPctLabel = ctx.contentEl.querySelector('[data-risk-pct-label]');
       const riskEntryInput = ctx.contentEl.querySelector('[data-risk-entry-input]');
@@ -269,9 +459,6 @@
       let riskEntryTouched = false;
       let suggestedSize = null;
 
-      // El campo de stop-loss vive en el bloque "Stop-loss / Take-profit"
-      // de arriba, no dentro de la propia calculadora — se abre solo al
-      // abrir la calculadora, para que el usuario no tenga que buscarlo.
       riskCalcDetails.addEventListener('toggle', () => {
         if (riskCalcDetails.open) sltpDetails.open = true;
       });
@@ -335,47 +522,47 @@
         });
       }
 
-      function render(data) {
-        simPriceBanner.hidden = !data.isSimulatedPricing;
-        animateNumber(balanceEl, lastBalance ?? data.balance, data.balance, { format: (n) => fmtUsd(n) });
-        lastBalance = data.balance;
+      function renderPerf(stats) {
+        const pnlClass = stats.totalRealizedPnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+        const pct = (stats.totalRealizedPnl / 100000) * 100;
+        ctx.contentEl.querySelector('[data-perf-pnl]').innerHTML = `<span class="${pnlClass}">${fmtUsd(stats.totalRealizedPnl)} (${fmtSign(pct)}${pct.toFixed(2)}%)</span>`;
+        ctx.contentEl.querySelector('[data-perf-trades]').textContent = stats.totalTrades;
+        ctx.contentEl.querySelector('[data-perf-winrate]').textContent = stats.winRate != null ? `${stats.winRate}%` : '—';
+        ctx.contentEl.querySelector('[data-perf-longest]').textContent = stats.longestTrade ? `${stats.longestTrade.symbol} · ${fmtDuration(stats.longestTrade.ms)}` : '—';
+        ctx.contentEl.querySelector('[data-perf-shortest]').textContent = stats.shortestTrade ? `${stats.shortestTrade.symbol} · ${fmtDuration(stats.shortestTrade.ms)}` : '—';
+      }
 
-        symbolSelect.innerHTML = data.supportedSymbols.map((s) => `<option value="${s}">${s}</option>`).join('');
-        if (firstLoad) {
-          applyPrefillFromAnalysis(data.supportedSymbols);
-          loadSparkline();
+      function renderPositions(data) {
+        let rows = data.positions.filter((p) => activeTab === 'stats' ? false : (activeTab === 'open' ? p.status === 'open' : p.status === 'closed'));
+        if (posSearch) rows = rows.filter((p) => p.symbol.toLowerCase().includes(posSearch));
+        if (posSide !== 'all') rows = rows.filter((p) => p.side === posSide);
+
+        if (activeTab === 'stats') {
+          const s = data.stats;
+          positionsEl.innerHTML = `
+            <div class="result-grid">
+              <div><div class="label">Operaciones cerradas</div><div class="value">${s.totalTrades}</div></div>
+              <div><div class="label">Acierto</div><div class="value">${s.winRate != null ? s.winRate + '%' : '—'}</div></div>
+              <div><div class="label">P&amp;L total realizado</div><div class="value ${s.totalRealizedPnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${fmtUsd(s.totalRealizedPnl)}</div></div>
+              <div><div class="label">Operación más larga</div><div class="value">${s.longestTrade ? `${s.longestTrade.symbol} · ${fmtDuration(s.longestTrade.ms)}` : '—'}</div></div>
+              <div><div class="label">Operación más corta</div><div class="value">${s.shortestTrade ? `${s.shortestTrade.symbol} · ${fmtDuration(s.shortestTrade.ms)}` : '—'}</div></div>
+            </div>
+            <p class="disclaimer">Estadísticas reales de tu propio historial de Paper Trading — nunca una cifra de rendimiento inventada.</p>
+          `;
+          return;
         }
 
-        const open = data.positions.filter((p) => p.status === 'open');
-        const totalOpenPnl = open.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);
-        openPnlEl.className = 'value ' + (totalOpenPnl >= 0 ? 'pnl-pos' : 'pnl-neg');
-        animateNumber(openPnlEl, lastOpenPnl ?? totalOpenPnl, totalOpenPnl, { format: (n) => fmtUsd(n) });
-        lastOpenPnl = totalOpenPnl;
-
-        const currentSymbolPos = open.find((p) => p.symbol === symbolSelect.value);
-        if (currentSymbolPos && currentSymbolPos.currentPrice != null) {
-          livePriceEl.textContent = fmtPrice(currentSymbolPos.currentPrice);
-        }
-
-        // Detecta cierres automáticos (SL/TP) desde la última carga para avisar con un toast.
-        if (!firstLoad) {
-          data.positions
-            .filter((p) => p.status === 'closed' && (p.closeReason === 'sl' || p.closeReason === 'tp') && !seenClosedIds.has(p.id))
-            .forEach((p) => {
-              showToast({ type: p.closeReason === 'tp' ? 'success' : 'info', message: `${p.symbol} se cerró sola por ${p.closeReason === 'tp' ? 'take-profit' : 'stop-loss'}.` });
-            });
-        }
-        data.positions.forEach((p) => { if (p.status === 'closed') seenClosedIds.add(p.id); });
-        firstLoad = false;
-
-        if (!data.positions.length) {
+        if (!rows.length) {
           positionsEl.innerHTML = `
             <div class="empty-state">
               <div class="empty-state__icon">${vantexIcon('chartBar', { size: 26 })}</div>
-              <strong>Todavía no tienes operaciones</strong>
-              <span>Abre tu primera operación con saldo virtual para ver aquí tu rendimiento.</span>
+              <strong>${activeTab === 'open' ? 'Todavía no tienes posiciones abiertas' : 'Todavía no tienes historial'}</strong>
+              <span>${activeTab === 'open' ? 'Abre tu primera operación y empieza a practicar con el mercado real.' : 'Cuando cierres una operación, aparecerá aquí.'}</span>
+              ${activeTab === 'open' ? `<button type="button" class="btn-primary" data-goto-market style="margin-top:14px;">→ Ir al mercado</button>` : ''}
             </div>
           `;
+          const gotoBtn = positionsEl.querySelector('[data-goto-market]');
+          if (gotoBtn) gotoBtn.addEventListener('click', () => { location.href = '/picks'; });
           return;
         }
 
@@ -383,7 +570,7 @@
           <table>
             <thead><tr><th>Símbolo</th><th>Lado</th><th>Tamaño</th><th>Entrada</th><th>Actual/Cierre</th><th>P&amp;L</th><th>%</th><th></th></tr></thead>
             <tbody>
-              ${data.positions.map((p) => {
+              ${rows.map((p) => {
                 const pnl = p.status === 'open' ? p.unrealizedPnl : p.realizedPnl;
                 const pnlClass = pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
                 const lastPrice = p.status === 'open' ? p.currentPrice : p.closePrice;
@@ -439,6 +626,44 @@
             });
           });
         });
+      }
+
+      function render(data) {
+        latestData = data;
+        simPriceBanner.hidden = !data.isSimulatedPricing;
+        animateNumber(balanceEl, lastBalance ?? data.balance, data.balance, { format: (n) => fmtUsd(n) });
+        lastBalance = data.balance;
+
+        symbolSelect.innerHTML = data.supportedSymbols.map((s) => `<option value="${s}">${s}</option>`).join('');
+        if (firstLoad) {
+          applyPrefillFromAnalysis(data.supportedSymbols);
+          loadSparkline();
+        }
+
+        const open = data.positions.filter((p) => p.status === 'open');
+        const totalOpenPnl = open.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0);
+        openPnlEl.className = 'value ' + (totalOpenPnl >= 0 ? 'pnl-pos' : 'pnl-neg');
+        animateNumber(openPnlEl, lastOpenPnl ?? totalOpenPnl, totalOpenPnl, { format: (n) => fmtUsd(n) });
+        lastOpenPnl = totalOpenPnl;
+
+        const currentSymbolPos = open.find((p) => p.symbol === symbolSelect.value);
+        if (currentSymbolPos && currentSymbolPos.currentPrice != null) {
+          livePriceEl.textContent = fmtPrice(currentSymbolPos.currentPrice);
+        }
+
+        if (!firstLoad) {
+          data.positions
+            .filter((p) => p.status === 'closed' && (p.closeReason === 'sl' || p.closeReason === 'tp') && !seenClosedIds.has(p.id))
+            .forEach((p) => {
+              showToast({ type: p.closeReason === 'tp' ? 'success' : 'info', message: `${p.symbol} se cerró sola por ${p.closeReason === 'tp' ? 'take-profit' : 'stop-loss'}.` });
+            });
+        }
+        data.positions.forEach((p) => { if (p.status === 'closed') seenClosedIds.add(p.id); });
+        firstLoad = false;
+
+        renderPerf(data.stats);
+        renderBalanceChart(data.balanceHistory);
+        renderPositions(data);
       }
 
       async function load() {

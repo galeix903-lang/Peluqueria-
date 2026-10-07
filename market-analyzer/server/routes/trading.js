@@ -102,16 +102,39 @@ router.get('/', asyncHandler(async (req, res) => {
   // con un 0% de aciertos en vez de "todavía no hay datos").
   const closedPositions = withPnl.filter((p) => p.status === 'closed');
   const wins = closedPositions.filter((p) => (p.realizedPnl || 0) > 0).length;
+  // Duración real (cierre - apertura) de cada operación cerrada — para
+  // "más larga"/"más corta" nunca se inventa un tiempo, solo las dos
+  // operaciones reales con la mayor y menor duración del propio
+  // historial. null mientras no haya ninguna cerrada todavía.
+  const withDuration = closedPositions
+    .map((p) => ({ symbol: p.symbol, ms: new Date(p.closedAt).getTime() - new Date(p.openedAt).getTime() }))
+    .filter((p) => Number.isFinite(p.ms) && p.ms >= 0);
+  const longest = withDuration.length ? withDuration.reduce((a, b) => (b.ms > a.ms ? b : a)) : null;
+  const shortest = withDuration.length ? withDuration.reduce((a, b) => (b.ms < a.ms ? b : a)) : null;
   const stats = {
     totalTrades: closedPositions.length,
     winRate: closedPositions.length ? Math.round((wins / closedPositions.length) * 100) : null,
     totalRealizedPnl: closedPositions.reduce((sum, p) => sum + (p.realizedPnl || 0), 0),
+    longestTrade: longest ? { symbol: longest.symbol, ms: longest.ms } : null,
+    shortestTrade: shortest ? { symbol: shortest.symbol, ms: shortest.ms } : null,
   };
+
+  // Evolución real del saldo: se reconstruye a partir del propio
+  // historial de cierres (cada cierre suma/resta su P&L real al saldo
+  // inicial de 100.000$), nunca una serie inventada — con 0 operaciones
+  // cerradas es, honestamente, una línea plana en 100.000.
+  const balanceHistory = [{ t: user.createdAt || new Date(0).toISOString(), balance: 100000 }];
+  [...closedPositions].sort((a, b) => new Date(a.closedAt) - new Date(b.closedAt)).forEach((p) => {
+    const prev = balanceHistory[balanceHistory.length - 1].balance;
+    balanceHistory.push({ t: p.closedAt, balance: prev + (p.realizedPnl || 0) });
+  });
+  balanceHistory.push({ t: new Date().toISOString(), balance: user.balance });
 
   res.json({
     balance: user.balance,
     positions: withPnl,
     stats,
+    balanceHistory,
     supportedSymbols: market.SUPPORTED_SYMBOLS,
     // Si CoinGecko no responde, market.fetchPrices() cae a precios
     // simulados con un pequeño paseo aleatorio en vez de romper la
