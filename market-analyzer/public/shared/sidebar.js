@@ -11,14 +11,17 @@
 // `bottom: false` mantiene una herramienta fuera de la bottom nav móvil
 // (que se queda con 5 accesos para no saturarla) sin dejar de mostrarla
 // en el sidebar de escritorio, que sí tiene sitio de sobra.
+// `glow` alimenta --link-glow (ver style.css): el halo de color que
+// rodea cada icono por fuera, a juego con su propio degradado — mismo
+// estilo "glass" de la referencia del usuario.
 const NAV_ITEMS = [
-  { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', bottom: true },
-  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'trendUp', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', bottom: true },
-  { page: 'history', href: '/history', label: 'Historial', shortLabel: 'Historial', icon: 'clock', gradient: 'linear-gradient(135deg, #a5b4fc, #6366f1, #8b5cf6)', bottom: false },
-  { page: 'trading', href: '/trading', label: 'Paper Trading', shortLabel: 'Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)', bottom: true },
-  { page: 'picks', href: '/picks', label: 'Market Scanner', shortLabel: 'Scanner', icon: 'search', gradient: 'linear-gradient(135deg, #fcd34d, #f59e0b, #f97316)', bottom: true },
-  { page: 'wallet', href: '/wallet', label: 'Wallet Tracker', shortLabel: 'Wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)', bottom: false },
-  { page: 'copy', href: '/copy', label: 'Copy Trading', shortLabel: 'Copy', icon: 'refresh', gradient: 'linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed)', bottom: false },
+  { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', glow: 'rgba(79,70,229,.55)', bottom: true },
+  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'trendUp', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', glow: 'rgba(79,70,229,.55)', bottom: true },
+  { page: 'history', href: '/history', label: 'Historial', shortLabel: 'Historial', icon: 'clock', gradient: 'linear-gradient(135deg, #a5b4fc, #6366f1, #8b5cf6)', glow: 'rgba(139,92,246,.55)', bottom: false },
+  { page: 'trading', href: '/trading', label: 'Paper Trading', shortLabel: 'Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)', glow: 'rgba(249,115,22,.55)', bottom: true },
+  { page: 'picks', href: '/picks', label: 'Market Scanner', shortLabel: 'Scanner', icon: 'search', gradient: 'linear-gradient(135deg, #fcd34d, #f59e0b, #f97316)', glow: 'rgba(245,158,11,.55)', bottom: true },
+  { page: 'wallet', href: '/wallet', label: 'Wallet Tracker', shortLabel: 'Wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)', glow: 'rgba(6,182,212,.55)', bottom: false },
+  { page: 'copy', href: '/copy', label: 'Copy Trading', shortLabel: 'Copy', icon: 'refresh', gradient: 'linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed)', glow: 'rgba(124,58,237,.55)', bottom: false },
 ];
 
 // El set de iconos vive en shared/icons.js (vantexIcon) — antes había un
@@ -74,7 +77,7 @@ async function mountShell({ page, title }) {
         <a class="sidebar__logo" href="/dashboard" title="Vantex">${vantexLogo({ size: 66 })}</a>
         <nav class="sidebar__nav">
           ${NAV_ITEMS.map((item) => `
-            <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" style="--link-gradient:${item.gradient};" data-label="${item.label}" aria-label="${item.label}">
+            <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" style="--link-gradient:${item.gradient}; --link-glow:${item.glow};" data-label="${item.label}" aria-label="${item.label}">
               ${icon(item.icon)}
             </a>
           `).join('')}
