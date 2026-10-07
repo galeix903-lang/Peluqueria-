@@ -24,17 +24,66 @@
   .add-wallet-row .field { margin-bottom: 0; }
   .add-wallet-row .field--addr { flex: 1; min-width: 220px; }
 
-  .wallet-card { padding: 18px 20px; }
-  .wallet-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .wallet-card__addr { font-weight: 700; font-size: .9375rem; word-break: break-all; }
-  .wallet-card__label { color: var(--text-dim); font-size: .8125rem; margin-top: 2px; }
-  .wallet-card__value { font-weight: 800; font-size: 1.25rem; margin-top: 10px; }
-  .holdings-mini { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .holdings-mini span { display: inline-flex; align-items: center; gap: 5px; background: var(--field-bg); border-radius: 999px; padding: 4px 10px 4px 4px; font-size: .75rem; font-weight: 700; color: var(--text-dim); }
-
-  .holdings-table td, .holdings-table th { padding: 8px 0; }
   .activity-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: .8125rem; }
   .activity-item:first-child { border-top: none; }
+
+  /* ---------- Selector de wallets seguidas ---------- */
+  .wt-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .wt-pill {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--panel-bg);
+    font-size: .8125rem; font-weight: 700; color: var(--text-dim); max-width: 220px;
+  }
+  .wt-pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wt-pill.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .wt-pill__dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: currentColor; opacity: .5; }
+
+  /* ---------- Layout de dos columnas (detalle de wallet) ---------- */
+  .wt-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+  .wt-layout > div { min-width: 0; }
+  @media (max-width: 1100px) { .wt-layout { grid-template-columns: 1fr; } }
+
+  .wt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .wt-head__addr { font-weight: 800; font-size: 1rem; word-break: break-all; }
+  .wt-head__label { color: var(--text-dim); font-size: .8125rem; margin-top: 2px; word-break: break-all; }
+
+  .wt-stat-row { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 20px; }
+  .wt-stat-row .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); }
+  .wt-stat-row .value { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+
+  /* Donut de distribución: anillos SVG superpuestos vía stroke-dasharray,
+     nunca una librería de gráficos — mismos datos reales (share) que ya
+     se ven en la tabla de holdings. */
+  .wt-donut-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+  .wt-donut { width: 132px; height: 132px; flex-shrink: 0; position: relative; }
+  .wt-donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .wt-donut__center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .wt-donut__center .n { font-size: 1.125rem; font-weight: 800; }
+  .wt-donut__center .l { font-size: .625rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em; }
+  .wt-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 160px; }
+  .wt-legend__row { display: flex; align-items: center; gap: 8px; font-size: .8125rem; }
+  .wt-legend__dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .wt-legend__sym { font-weight: 700; flex-shrink: 0; }
+  .wt-legend__share { margin-left: auto; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  /* html/body llevan overflow-x:hidden global — sin este wrapper con su
+     propio scroll, una tabla más ancha que el panel se recorta en vez de
+     desplazarse (columnas invisibles, no solo sin scrollbar). */
+  .wt-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .wt-holdings-table { width: 100%; }
+  .wt-holdings-table th, .wt-holdings-table td { padding: 10px 8px; white-space: nowrap; }
+  .wt-holdings-table th:first-child, .wt-holdings-table td:first-child { padding-left: 0; }
+  .wt-sparkline { width: 70px; height: 24px; display: block; }
+  .wt-sparkline svg { width: 100%; height: 100%; display: block; }
+  .wt-change-pos { color: var(--green); font-weight: 700; }
+  .wt-change-neg { color: var(--red); font-weight: 700; }
+  .wt-change-muted { color: var(--text-dim); }
+
+  .wt-note { background: linear-gradient(135deg, var(--accent-dim), var(--blue-bg)); border: 1px solid var(--accent-dim); border-radius: 14px; padding: 14px 16px; font-size: .8125rem; color: var(--text-dim); display: flex; gap: 10px; margin-bottom: 16px; }
+  .wt-note svg { flex-shrink: 0; margin-top: 1px; width: 15px; height: 15px; color: var(--accent); }
+  .wt-activity-card { padding: 18px 20px; }
+  .wt-activity-title { font-weight: 700; display: flex; align-items: center; gap: 7px; margin-bottom: 2px; }
+  .wt-activity-sub { font-size: .75rem; color: var(--text-dim); margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -48,12 +97,61 @@
   <script src="/shared/toast.js"></script>
   <script src="/shared/sidebar.js"></script>
   <script>
+    // Paleta estable por símbolo (mismo criterio que shared/cryptoIcon.js)
+    // para que el color de cada activo coincida entre el donut, la
+    // leyenda y el icono de fallback en toda la pantalla.
+    const WT_PALETTE = ['#f7931a', '#627eea', '#8b5cf6', '#14b8a6', '#f43f5e', '#0ea5e9', '#eab308', '#22c55e', '#6366f1', '#ec4899', '#f97316', '#06b6d4'];
+    function wtColor(symbol) {
+      let h = 0;
+      for (let i = 0; i < symbol.length; i++) h = (h * 31 + symbol.charCodeAt(i)) >>> 0;
+      return WT_PALETTE[h % WT_PALETTE.length];
+    }
+
+    function wtSparklineSvg(points, color) {
+      if (!points || points.length < 2) {
+        return `<span class="wt-change-muted">—</span>`;
+      }
+      const w = 70, h = 24;
+      const min = Math.min(...points), max = Math.max(...points);
+      const span = (max - min) || Math.max(1, min * 0.01) || 1;
+      const coords = points.map((v, i) => {
+        const x = (i / (points.length - 1)) * w;
+        const y = h - 3 - ((v - min) / span) * (h - 6);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${coords}" fill="none" stroke="${color}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+    }
+
+    function wtDonutSvg(holdings) {
+      const size = 132, stroke = 16, r = (size - stroke) / 2, cx = size / 2, cy = size / 2;
+      const circumference = 2 * Math.PI * r;
+      let offset = 0;
+      const arcs = holdings.map((h) => {
+        const frac = Math.max(0, h.share) / 100;
+        const len = frac * circumference;
+        const dash = `${len.toFixed(2)} ${(circumference - len).toFixed(2)}`;
+        const arc = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${wtColor(h.symbol)}" stroke-width="${stroke}" stroke-dasharray="${dash}" stroke-dashoffset="${(-offset).toFixed(2)}" />`;
+        offset += len;
+        return arc;
+      }).join('');
+      return `<svg viewBox="0 0 ${size} ${size}">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--field-bg)" stroke-width="${stroke}" />
+        ${arcs}
+      </svg>`;
+    }
+
+    function fmtChange(n) {
+      if (n == null) return `<span class="wt-change-muted">—</span>`;
+      const cls = n >= 0 ? 'wt-change-pos' : 'wt-change-neg';
+      return `<span class="${cls}">${n >= 0 ? '+' : ''}${n.toFixed(2)}%</span>`;
+    }
+
     mountShell({ page: 'wallet', title: 'Wallet Tracker' }).then((ctx) => {
       if (!ctx) return;
       showSectionIntro(ctx.user, 'wallet', {
         icon: 'wallet', iconBg: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)',
         title: 'Wallet Tracker',
-        desc: 'Sigue cualquier dirección de wallet y consulta sus holdings y actividad reciente, directamente desde esta pantalla.',
+        desc: 'Sigue cualquier dirección de wallet y consulta su distribución, variación 24h y actividad reciente, directamente desde esta pantalla.',
         points: [
           'Los datos se generan en modo simulado — ideal para explorar la función sin depender de una red blockchain real.',
           'Puedes seguir varias direcciones a la vez y dejar de seguir cualquiera cuando quieras.',
@@ -65,7 +163,7 @@
             <div class="tool-head__icon">${vantexIcon('wallet', { size: 22 })}</div>
             <div style="flex:1; min-width:200px;">
               <div class="text-h3">Wallet Tracker 👛</div>
-              <div class="text-caption">Sigue direcciones y observa sus holdings y actividad reciente.</div>
+              <div class="text-caption">Sigue direcciones y observa su distribución, variación y actividad.</div>
             </div>
             <span class="badge badge--sim">${vantexIcon('shieldCheck', { size: 12 })} Modo simulado</span>
           </div>
@@ -95,58 +193,103 @@
       const walletsEl = ctx.contentEl.querySelector('[data-wallets]');
       const submitBtn = form.querySelector('button[type=submit]');
       const submitDefaultHtml = submitBtn.innerHTML;
+      let selectedId = null;
 
       function fmtDate(iso) { return new Date(iso).toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 
-      function openWalletDetail(wallet) {
+      function renderDetail(wallets) {
+        const wallet = wallets.find((w) => w.id === selectedId) || wallets[0];
+        selectedId = wallet.id;
         const s = wallet.snapshot;
-        openModal({
-          title: wallet.label || wallet.address,
-          bodyHtml: `
-            <p class="text-caption" style="word-break:break-all; margin-top:-8px;">${escapeHtml(wallet.address)}</p>
-            <p style="font-weight:800; font-size:1.375rem; margin:4px 0 14px;">${fmtUsd(s.totalValue)}</p>
-            <table class="holdings-table">
-              <thead><tr><th class="text-meta">Activo</th><th class="text-meta">Cantidad</th><th class="text-meta">Valor</th><th class="text-meta">%</th></tr></thead>
-              <tbody>
-                ${s.holdings.map((h) => `
-                  <tr>
-                    <td><strong style="display:inline-flex; align-items:center; gap:7px;">${cryptoIconHtml(h.symbol, 20)}${h.symbol}</strong></td>
-                    <td>${h.amount}</td>
-                    <td>${fmtUsd(h.value)}</td>
-                    <td>${h.share}%</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            <p class="text-meta" style="margin:18px 0 4px;">Actividad reciente (simulada)</p>
-            ${s.activity.map((a) => `
-              <div class="activity-item">
-                <span style="display:inline-flex; align-items:center; gap:6px;">${cryptoIconHtml(a.symbol, 16)}${a.verb} ${a.amount} ${a.symbol}</span>
-                <span class="text-caption">${fmtDate(a.at)}</span>
+        const detailEl = ctx.contentEl.querySelector('[data-wt-detail]');
+        if (!detailEl) return;
+
+        detailEl.innerHTML = `
+          <div class="wt-layout">
+            <div>
+              <div class="panel reveal">
+                <div class="wt-head">
+                  <div>
+                    <div class="wt-head__addr">${escapeHtml(wallet.label || wallet.address)}</div>
+                    ${wallet.label ? `<div class="wt-head__label">${escapeHtml(wallet.address)}</div>` : ''}
+                  </div>
+                  <button type="button" class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" data-unfollow="${wallet.id}">${vantexIcon('close', { size: 14 })} Dejar de seguir</button>
+                </div>
+
+                <div class="wt-stat-row">
+                  <div><div class="label">Valor total</div><div class="value">${fmtUsd(s.totalValue)}</div></div>
+                  <div><div class="label">Variación 24h</div><div class="value">${fmtChange(s.change24h)}</div></div>
+                  <div><div class="label">Activos</div><div class="value">${s.holdings.length}</div></div>
+                </div>
+
+                <div class="wt-donut-wrap">
+                  <div class="wt-donut">
+                    ${wtDonutSvg(s.holdings)}
+                    <div class="wt-donut__center"><span class="n">${s.holdings.length}</span><span class="l">activos</span></div>
+                  </div>
+                  <div class="wt-legend">
+                    ${s.holdings.map((h) => `
+                      <div class="wt-legend__row">
+                        <span class="wt-legend__dot" style="background:${wtColor(h.symbol)};"></span>
+                        <span class="wt-legend__sym">${h.symbol}</span>
+                        <span class="wt-legend__share">${h.share}%</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div class="wt-table-scroll">
+                  <table class="wt-holdings-table">
+                    <thead><tr><th class="text-meta">Activo</th><th class="text-meta">Cantidad</th><th class="text-meta">Valor</th><th class="text-meta">24h</th><th class="text-meta">Tendencia</th><th class="text-meta">%</th></tr></thead>
+                    <tbody>
+                      ${s.holdings.map((h) => `
+                        <tr>
+                          <td><strong style="display:inline-flex; align-items:center; gap:7px;">${cryptoIconHtml(h.symbol, 20)}${h.symbol}</strong></td>
+                          <td>${h.amount}</td>
+                          <td>${fmtUsd(h.value)}</td>
+                          <td>${fmtChange(h.change24h)}</td>
+                          <td><span class="wt-sparkline">${wtSparklineSvg(h.sparkline, wtColor(h.symbol))}</span></td>
+                          <td>${h.share}%</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                <p class="disclaimer">Holdings, variación y actividad en modo simulado — no proceden de ninguna red blockchain real.</p>
               </div>
-            `).join('') || '<p class="text-caption">Sin actividad reciente.</p>'}
-            <p class="disclaimer">Datos simulados con fines de demostración — no proceden de ninguna red blockchain real.</p>
-          `,
-          footerHtml: `
-            <button type="button" class="btn-secondary" data-modal-close>Cerrar</button>
-            <button type="button" class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" data-unfollow="${wallet.id}">Dejar de seguir</button>
-          `,
-          onOpen: (root) => {
-            mountCryptoIcons(root);
-            root.querySelector('[data-unfollow]').addEventListener('click', async (e) => {
-              const btn = e.currentTarget;
-              btn.disabled = true;
-              try {
-                await api(`/wallet/${wallet.id}`, { method: 'DELETE' });
-                closeModal();
-                showToast({ type: 'success', message: 'Has dejado de seguir esta wallet.' });
-                await load();
-              } catch (err) {
-                showToast({ type: 'error', message: err.message });
-                btn.disabled = false;
-              }
-            });
-          },
+            </div>
+
+            <div>
+              <div class="wt-note">
+                ${vantexIcon('shieldCheck', { size: 15 })}
+                <span>Wallet Tracker funciona en modo simulado: sigue cualquier dirección sin conectar una wallet real.</span>
+              </div>
+              <div class="panel wt-activity-card reveal" style="animation-delay:.05s;">
+                <div class="wt-activity-title">${vantexIcon('clock', { size: 16 })} Actividad reciente</div>
+                <div class="wt-activity-sub">Últimos movimientos simulados de esta dirección</div>
+                ${s.activity.length ? s.activity.map((a) => `
+                  <div class="activity-item">
+                    <span style="display:inline-flex; align-items:center; gap:6px;">${cryptoIconHtml(a.symbol, 16)}${a.verb} ${a.amount} ${a.symbol}</span>
+                    <span class="text-caption">${fmtDate(a.at)}</span>
+                  </div>
+                `).join('') : '<p class="text-caption">Sin actividad reciente.</p>'}
+              </div>
+            </div>
+          </div>
+        `;
+        mountCryptoIcons(detailEl);
+        detailEl.querySelector('[data-unfollow]').addEventListener('click', async (e) => {
+          const btn = e.currentTarget;
+          btn.disabled = true;
+          try {
+            await api(`/wallet/${wallet.id}`, { method: 'DELETE' });
+            selectedId = null;
+            showToast({ type: 'success', message: 'Has dejado de seguir esta wallet.' });
+            await load();
+          } catch (err) {
+            showToast({ type: 'error', message: err.message });
+            btn.disabled = false;
+          }
         });
       }
 
@@ -156,37 +299,32 @@
             <div class="panel empty-state">
               <div class="empty-state__icon">${vantexIcon('search', { size: 24 })}</div>
               <strong>No sigues ninguna wallet todavía</strong>
-              <span>Añade una dirección arriba para ver sus holdings y actividad (modo simulado).</span>
+              <span>Añade una dirección arriba para ver su distribución, variación y actividad (modo simulado).</span>
             </div>
           `;
           return;
         }
+
+        if (!selectedId || !wallets.some((w) => w.id === selectedId)) selectedId = wallets[0].id;
+
         walletsEl.innerHTML = `
-          <div style="display:flex; flex-direction:column; gap:14px;">
-            ${wallets.map((w, i) => `
-              <button type="button" class="panel data-card wallet-card reveal" style="animation-delay:${i * 0.05}s;" data-wallet="${w.id}">
-                <div class="wallet-card__head">
-                  <div>
-                    <div class="wallet-card__addr">${escapeHtml(w.label || w.address)}</div>
-                    ${w.label ? `<div class="wallet-card__label">${escapeHtml(w.address)}</div>` : ''}
-                  </div>
-                  ${vantexIcon('chevronRight', { size: 18 })}
-                </div>
-                <div class="wallet-card__value">${fmtUsd(w.snapshot.totalValue)}</div>
-                <div class="holdings-mini">
-                  ${w.snapshot.holdings.map((h) => `<span>${cryptoIconHtml(h.symbol, 14)}${h.symbol} · ${h.share}%</span>`).join('')}
-                </div>
-              </button>
-            `).join('')}
-          </div>
+          ${wallets.length > 1 ? `
+            <div class="wt-pills">
+              ${wallets.map((w) => `
+                <button type="button" class="wt-pill ${w.id === selectedId ? 'is-active' : ''}" data-select="${w.id}">
+                  <span class="wt-pill__dot"></span>
+                  <span>${escapeHtml(w.label || w.address)}</span>
+                </button>
+              `).join('')}
+            </div>
+          ` : ''}
+          <div data-wt-detail></div>
         `;
-        mountCryptoIcons(walletsEl);
-        walletsEl.querySelectorAll('[data-wallet]').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const w = wallets.find((x) => x.id === btn.dataset.wallet);
-            if (w) openWalletDetail(w);
-          });
-        });
+        walletsEl.querySelectorAll('[data-select]').forEach((btn) => btn.addEventListener('click', () => {
+          selectedId = btn.dataset.select;
+          render(wallets);
+        }));
+        renderDetail(wallets);
       }
 
       async function load() {
@@ -201,7 +339,8 @@
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner"></span> Buscando…';
         try {
-          await api('/wallet', { method: 'POST', body: JSON.stringify(payload) });
+          const { wallet } = await api('/wallet', { method: 'POST', body: JSON.stringify(payload) });
+          selectedId = wallet.id;
           form.reset();
           showToast({ type: 'success', message: 'Wallet añadida. ✅' });
           await load();
