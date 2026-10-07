@@ -324,12 +324,12 @@
   @keyframes flowRing { 0% { transform: scale(.68); opacity: .55; } 100% { transform: scale(1.5); opacity: 0; } }
   .flow-core__mark {
     position: relative; z-index: 2; width: 64px; height: 64px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
+    overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 16px 30px -12px rgba(37, 99, 235, .55);
     animation: flowCorePulse 3.4s ease-in-out infinite;
   }
-  .flow-core__mark svg { width: 27px; height: 27px; }
+  .flow-core__mark img { width: 100%; height: 100%; object-fit: cover; }
   @keyframes flowCorePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
   .flow-core__status { display: inline-flex; align-items: center; gap: 7px; font-size: .75rem; font-weight: 700; color: var(--text-dim); }
   .flow-core__status-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.18); animation: pulseSoft 1.6s ease-in-out infinite; }
@@ -1835,7 +1835,7 @@
           <div class="flow-core">
             <span class="flow-core__ring"></span>
             <span class="flow-core__ring flow-core__ring--2"></span>
-            <span class="flow-core__mark" data-icon="trend" data-icon-size="27"></span>
+            <span class="flow-core__mark"><img src="/assets/vantex-mark.png" alt="" width="64" height="64" /></span>
           </div>
           <span class="flow-core__status"><span class="flow-core__status-dot"></span>Analizando señales</span>
         </div>
