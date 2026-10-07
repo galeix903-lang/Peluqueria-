@@ -873,13 +873,12 @@
   .faq-intro__dot-accent--2 { bottom: 14px; right: -2px; width: 5px; height: 5px; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .faq-intro__icon {
     position: relative; width: 104px; height: 104px; border-radius: 28px;
-    background: linear-gradient(135deg, var(--accent), var(--blue)); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 30px 56px -18px rgba(37, 99, 235, .55), inset 0 1px 0 rgba(255,255,255,.35);
+    box-shadow: 0 30px 56px -18px rgba(37, 99, 235, .55);
     transform: rotate(-4deg);
     animation: floatSlow 6s ease-in-out infinite;
   }
-  .faq-intro__icon svg { width: 44px; height: 44px; }
+  .faq-intro__icon img { width: 100%; height: 100%; border-radius: inherit; display: block; }
 
   .faq-support {
     background: linear-gradient(165deg, #ffffff, #eef2fe);
@@ -949,10 +948,10 @@
   }
   .site-footer__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .site-footer__brand-mark {
-    width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--blue));
-    color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 30px; height: 30px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .site-footer__brand-mark svg { width: 16px; height: 16px; }
+  .site-footer__brand-mark img { width: 30px; height: 30px; border-radius: 9px; display: block; }
   .site-footer__brand-word { font-size: 1.0625rem; font-weight: 800; }
   .site-footer__desc { font-size: .8125rem; color: var(--text-dim); line-height: 1.6; max-width: 280px; }
   .site-footer h4 { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-dim); margin: 0 0 14px; }
@@ -2048,7 +2047,7 @@
           <p class="plan-duel__lead">Empieza con lo esencial. Desbloquea todo el potencial de Vantex cuando estés preparado.</p>
         </div>
         <div class="plan-duel__cards io-reveal">
-          <div class="plan-duel__card">
+          <div class="plan-duel__card plan-duel__card--featured">
             <div class="plan-duel__head-row">
               <span class="plan-duel__icon" data-icon="trend" data-icon-size="19"></span>
             </div>
@@ -2087,7 +2086,7 @@
                 <span class="plan-duel__row-value plan-duel__row-value--check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7" /></svg></span>
               </li>
             </ul>
-            <button class="btn-secondary" type="button" data-plan-preview="pro">Empezar con Pro →</button>
+            <button class="btn-primary" type="button" data-plan-preview="pro">Empezar con Pro →</button>
           </div>
           <div class="plan-duel__card plan-duel__card--featured">
             <div class="plan-duel__head-row">
@@ -2146,7 +2145,7 @@
             <span class="faq-intro__ring faq-intro__ring--b"></span>
             <span class="faq-intro__dot-accent faq-intro__dot-accent--1"></span>
             <span class="faq-intro__dot-accent faq-intro__dot-accent--2"></span>
-            <div class="faq-intro__icon" data-icon="trend" data-icon-size="44"></div>
+            <div class="faq-intro__icon"><img src="/assets/vantex-mark.png" alt="" width="104" height="104" /></div>
           </div>
           <div class="faq-support">
             <div class="faq-support__head">
@@ -2228,7 +2227,7 @@
     <div class="site-footer__inner">
       <div>
         <div class="site-footer__brand">
-          <span class="site-footer__brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" /></svg></span>
+          <span class="site-footer__brand-mark"><img src="/assets/vantex-mark.png" alt="" width="30" height="30" /></span>
           <span class="site-footer__brand-word">Vantex</span>
         </div>
         <p class="site-footer__desc">Analiza el mercado con IA, practica sin riesgo y sigue a los mejores — todo en un solo sitio.</p>
