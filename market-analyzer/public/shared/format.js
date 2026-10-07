@@ -20,6 +20,23 @@ function fmtUsd(n) {
   return Number(n).toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 }
 
+// Precio POR UNIDAD de un activo — a diferencia de fmtUsd() (pensado para
+// totales: saldo, P&L, valor de una posición, donde 2 decimales siempre
+// tiene sentido), el precio unitario de una memecoin puede ser una
+// fracción de centavo (p.ej. 0,0000129$). Forzar 2 decimales ahí lo
+// redondearía a "0,00", borrando el dato — aquí se amplían los decimales
+// solo cuando de verdad hace falta, dejando el resto de precios exactamente
+// igual que con fmtUsd().
+function fmtPrice(n) {
+  const value = Number(n);
+  if (!Number.isFinite(value)) return '—';
+  if (value !== 0 && Math.abs(value) < 0.005) {
+    const decimals = Math.min(10, Math.max(4, -Math.floor(Math.log10(Math.abs(value))) + 3));
+    return value.toLocaleString('es-ES', { style: 'currency', currency: 'USD', minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+  return value.toLocaleString('es-ES', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+}
+
 function fmtPct(n, { signed = true } = {}) {
   const value = Number(n);
   const sign = signed && value > 0 ? '+' : '';

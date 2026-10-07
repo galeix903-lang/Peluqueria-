@@ -140,7 +140,19 @@ const REASON_TEMPLATES = {
     CONFIRMING: (rel) => `Volumen confirmando el movimiento (${rel.toFixed(1)}x la media reciente).`,
   },
 };
-function fmt(n) { return n >= 100 ? Math.round(n).toLocaleString('es-ES') : n.toFixed(4); }
+// Precios de memecoin pueden ser una fracción de centavo (p.ej.
+// 0,0000129) — con un toFixed(4) fijo se redondearían a "0.0000",
+// borrando el dato. Se amplían los decimales solo cuando hace falta;
+// para cualquier precio "normal" (>= 0,005) el comportamiento es
+// exactamente el de antes.
+function fmt(n) {
+  if (n >= 100) return Math.round(n).toLocaleString('es-ES');
+  if (n > 0 && n < 0.005) {
+    const decimals = Math.min(10, Math.max(4, -Math.floor(Math.log10(n)) + 3));
+    return n.toFixed(decimals);
+  }
+  return n.toFixed(4);
+}
 
 // Escenarios y niveles clave: SIEMPRE derivados de los mismos support/
 // resistance ya calculados con datos reales — nunca una frase genérica
@@ -334,8 +346,8 @@ function computeSignal({ candles, timeframeNote }) {
 // constancia explícita si contradice al principal — nunca voltear la
 // señal él solo (regla explícita: "no permitas que un timeframe pequeño
 // contradiga completamente la tendencia principal sin explicarlo").
-function computeMultiTimeframeSignal({ mainTrend, shortTerm }) {
-  const primary = computeSignal({ candles: mainTrend, timeframeNote: 'Velas de 4h de los últimos 30 días (CoinGecko).' });
+function computeMultiTimeframeSignal({ mainTrend, shortTerm }, mainTrendNote = 'Velas de 4h de los últimos 30 días (CoinGecko).') {
+  const primary = computeSignal({ candles: mainTrend, timeframeNote: mainTrendNote });
   if (!shortTerm || shortTerm.length < MIN_CANDLES || primary.signal === 'WAIT') {
     return primary;
   }

@@ -297,15 +297,23 @@
       // El activo es texto libre (para admitir cualquier ticker: cripto,
       // acción, fondo, forex…); los chips son solo un atajo que rellena el
       // campo, no una lista cerrada de activos admitidos.
-      ctx.contentEl.querySelectorAll('[data-symbol]').forEach((btn) => btn.addEventListener('click', () => {
+      // Delegado sobre el contenedor (no un listener por chip con
+      // [data-symbol]): el icono interno de cada chip también lleva su
+      // propio data-symbol (el que usa cryptoIcon.js para resolver el
+      // logo), así que un listener por cada match disparaba dos veces al
+      // clicar justo sobre el icono. data-asset-category identifica solo
+      // al botón del chip, nunca a su icono interno.
+      ctx.contentEl.querySelector('[data-symbol-chips]').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-asset-category]');
+        if (!btn) return;
         const isSame = symbolInput.value.trim().toUpperCase() === btn.dataset.symbol.toUpperCase();
         symbolInput.value = isSame ? '' : btn.dataset.symbol;
         symbolInput.focus();
         syncSymbolChips();
-      }));
+      });
       function syncSymbolChips() {
         const current = symbolInput.value.trim().toUpperCase();
-        ctx.contentEl.querySelectorAll('[data-symbol]').forEach((b) => {
+        ctx.contentEl.querySelectorAll('[data-symbol-chips] [data-asset-category]').forEach((b) => {
           b.classList.toggle('is-active', b.dataset.symbol.toUpperCase() === current);
         });
       }
@@ -319,7 +327,12 @@
         categoryChipsEl.querySelectorAll('[data-category-filter]').forEach((b) => {
           b.classList.toggle('is-active', b.dataset.categoryFilter === cat);
         });
-        ctx.contentEl.querySelectorAll('[data-symbol-chips] [data-symbol]').forEach((b) => {
+        // Selector por data-asset-category (no por [data-symbol]): el
+        // icono interno de cada chip también lleva su propio
+        // data-symbol (el que usa cryptoIcon.js para resolver el logo),
+        // así que [data-symbol] a secas matchearía dos elementos por
+        // chip en vez de uno.
+        ctx.contentEl.querySelectorAll('[data-symbol-chips] [data-asset-category]').forEach((b) => {
           b.hidden = cat !== 'all' && b.dataset.assetCategory !== cat;
         });
       }

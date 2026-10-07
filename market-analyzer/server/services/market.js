@@ -9,6 +9,16 @@ const SYMBOL_TO_COINGECKO_ID = {
   SOL: 'solana',
   BNB: 'binancecoin',
   XRP: 'ripple',
+  // Memecoins: mismos ids que ya usa el seed de coinIcons.js — CoinGecko
+  // da velas OHLCV reales para ellas igual que para cualquier otra
+  // moneda, así que entran en el mismo camino REAL_DATA del AI Analyzer
+  // (y, de paso, en Paper Trading/Market Scanner, que ya leen esta misma
+  // lista) en vez de quedarse en la lectura visual de la imagen.
+  DOGE: 'dogecoin',
+  SHIB: 'shiba-inu',
+  PEPE: 'pepe',
+  WIF: 'dogwifcoin',
+  BONK: 'bonk',
 };
 
 const CACHE_TTL_MS = 30 * 1000;
@@ -105,13 +115,26 @@ function getHistory(symbol) {
 // Son precios de referencia con un pequeño paseo aleatorio para que no se
 // vean completamente estáticos en una demo — en cuanto la red real esté
 // disponible, fetchPrices() vuelve a usar el dato en vivo automáticamente.
-const FALLBACK_BASE_PRICES = { BTC: 63000, ETH: 3200, SOL: 135, BNB: 570, XRP: 0.58 };
+const FALLBACK_BASE_PRICES = {
+  BTC: 63000, ETH: 3200, SOL: 135, BNB: 570, XRP: 0.58,
+  // Órdenes de magnitud de referencia, no precios exactos — solo
+  // alimentan el paseo aleatorio de fallback cuando CoinGecko no es
+  // alcanzable, nunca se muestran como una cotización real.
+  DOGE: 0.12, SHIB: 0.000018, PEPE: 0.0000091, WIF: 1.8, BONK: 0.000022,
+};
 
 function simulatedFallbackPrices() {
   const prices = {};
   for (const [symbol, base] of Object.entries(FALLBACK_BASE_PRICES)) {
     const jitter = 1 + (Math.random() - 0.5) * 0.01; // ±0.5%
-    prices[symbol] = Math.round(base * jitter * 100) / 100;
+    const raw = base * jitter;
+    // Redondear siempre a 2 decimales (céntimos) tenía sentido mientras
+    // los 5 activos originales valían todos >= $0.58 — con memecoins de
+    // fracción de centavo, eso redondearía el precio entero a 0. Los
+    // decimales se amplían solo para precios por debajo de $1.
+    const decimals = raw >= 1 ? 2 : Math.min(10, Math.max(2, -Math.floor(Math.log10(Math.abs(raw))) + 3));
+    const factor = 10 ** decimals;
+    prices[symbol] = Math.round(raw * factor) / factor;
   }
   return prices;
 }

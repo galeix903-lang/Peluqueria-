@@ -91,7 +91,7 @@
                 <span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${TREND_LABEL[r.trend] || r.trend}</span>
                 <span class="badge" style="background:var(--field-bg); color:var(--text-dim);">Confianza ${r.confidence}%</span>
                 <span class="badge badge--${(r.risk || 'medium').toLowerCase()}">Riesgo ${RISK_LABEL[r.risk] || r.risk}</span>
-                ${r.price ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">$${Number(r.price).toLocaleString('es-ES', { maximumFractionDigits: 2 })}</span>` : ''}
+                ${r.price ? `<span class="badge" style="background:var(--field-bg); color:var(--text-dim);">${fmtPrice(r.price)}</span>` : ''}
               </div>
               <p style="margin:0; line-height:1.5; color:var(--text-dim);">${r.mainReason}</p>
             </a>

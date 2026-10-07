@@ -3,8 +3,8 @@
   ahora retirado), que le pedía a Claude una lectura "genérica pero
   plausible" de BTC/ETH SIN ningún dato de precio real — inventaba una
   lectura técnica de la nada. Esto es lo contrario: escanea en vivo los
-  símbolos que Vantex sigue con datos de mercado reales (los mismos 5 de
-  Paper Trading) usando el mismo motor determinista del AI Analyzer
+  símbolos que Vantex sigue con datos de mercado reales (los mismos que
+  Paper Trading: cripto mayor + memecoins) usando el mismo motor determinista del AI Analyzer
   (server/services/signalEngine.js) — cero invención, cero LLM.
 
   No se persiste nada: cada llamada recalcula en vivo sobre las velas más

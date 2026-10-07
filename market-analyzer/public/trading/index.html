@@ -354,7 +354,7 @@
 
         const currentSymbolPos = open.find((p) => p.symbol === symbolSelect.value);
         if (currentSymbolPos && currentSymbolPos.currentPrice != null) {
-          livePriceEl.textContent = fmtUsd(currentSymbolPos.currentPrice);
+          livePriceEl.textContent = fmtPrice(currentSymbolPos.currentPrice);
         }
 
         // Detecta cierres automáticos (SL/TP) desde la última carga para avisar con un toast.
@@ -398,8 +398,8 @@
                     <td style="display:flex; align-items:center; gap:8px;">${cryptoIconHtml(p.symbol, 20)}${p.symbol}${fromAnalysis}</td>
                     <td><span class="badge badge--${p.side}">${p.side}</span></td>
                     <td>${p.size}</td>
-                    <td>${fmtUsd(p.entryPrice)}</td>
-                    <td>${lastPrice != null ? fmtUsd(lastPrice) : '—'}${reasonBadge}</td>
+                    <td>${fmtPrice(p.entryPrice)}</td>
+                    <td>${lastPrice != null ? fmtPrice(lastPrice) : '—'}${reasonBadge}</td>
                     <td class="${pnlClass}">${pnl != null ? fmtUsd(pnl) : '—'}</td>
                     <td class="${pnlClass}">${p.pnlPercent != null ? fmtSign(p.pnlPercent) + p.pnlPercent.toFixed(1) + '%' : '—'}</td>
                     <td>${p.status === 'open' ? `<button class="btn-secondary" data-close="${p.id}">Cerrar</button>` : ''}</td>
@@ -421,7 +421,7 @@
                 ['Símbolo', pos.symbol],
                 ['Lado', pos.side],
                 ['Tamaño', pos.size],
-                ['Precio actual', pos.currentPrice != null ? fmtUsd(pos.currentPrice) : '—'],
+                ['Precio actual', pos.currentPrice != null ? fmtPrice(pos.currentPrice) : '—'],
                 ['P&L estimado', pos.unrealizedPnl != null ? fmtUsd(pos.unrealizedPnl) : '—'],
               ],
               confirmLabel: 'Cerrar operación',
@@ -463,8 +463,8 @@
             ['Dirección', payload.side === 'long' ? 'Comprar (long)' : 'Vender (short)'],
             ['Cantidad', payload.size],
             ['Precio actual', livePriceEl.textContent],
-            ...(payload.stopLoss ? [['Stop-loss', fmtUsd(payload.stopLoss)]] : []),
-            ...(payload.takeProfit ? [['Take-profit', fmtUsd(payload.takeProfit)]] : []),
+            ...(payload.stopLoss ? [['Stop-loss', fmtPrice(payload.stopLoss)]] : []),
+            ...(payload.takeProfit ? [['Take-profit', fmtPrice(payload.takeProfit)]] : []),
           ],
           confirmLabel: 'Abrir operación',
           onConfirm: async () => {

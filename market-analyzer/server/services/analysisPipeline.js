@@ -7,16 +7,17 @@
   disponibles para el activo indicado:
 
   - CAMINO REAL (source: 'REAL_DATA'): cuando el activo es uno de los que
-    Vantex ya sigue con precios reales (ver server/services/market.js),
-    se piden velas OHLCV reales y la señal sale ÍNTEGRAMENTE de
+    Vantex ya sigue con datos reales — cripto mayor y memecoins vía
+    CoinGecko (server/services/market.js, precio en vivo) o acciones/
+    fondos vía Stooq (server/services/stooq.js, solo cierre diario) — se
+    piden velas OHLCV reales y la señal sale ÍNTEGRAMENTE de
     server/services/signalEngine.js — cálculo determinista, cero
     llamadas a un LLM, y por tanto cero riesgo de que el "análisis" sea
     en realidad una alucinación. Es el camino rápido, preciso y el que
     de verdad puede mostrar RSI/MACD/EMA/soportes reales.
 
-  - CAMINO VISUAL (source: 'VISUAL'): para cualquier otro activo (la
-    mayoría de capturas reales: acciones, forex, alts sin cobertura,
-    o cuando no hay pista de símbolo) no hay datos reales que consultar,
+  - CAMINO VISUAL (source: 'VISUAL'): para cualquier otro activo (forex,
+    alts sin cobertura, o cuando no hay pista de símbolo) no hay datos reales que consultar,
     así que Claude Vision lee la imagen — pero su confianza nunca se usa
     tal cual: se gobierna en este archivo con reglas explícitas, la señal
     se fuerza a ESPERAR si la confianza gobernada es demasiado baja, y el
@@ -27,6 +28,7 @@
   usó — solo lee `source` si quiere mostrarlo.
 */
 const market = require('./market');
+const stooq = require('./stooq');
 const { callClaudeVision, mockAnalysis, resolveMode, DISCLAIMER } = require('./claude');
 const { computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES } = require('./signalEngine');
 
@@ -116,6 +118,24 @@ function governVisualResult(raw, { symbolHint, timeframe, noRealDataNote }) {
   };
 }
 
+// Construye el resultado final cuando SÍ hay velas reales suficientes —
+// compartido entre el camino cripto (CoinGecko, multi-timeframe) y el de
+// acciones/fondos (Stooq, solo timeframe diario), para no duplicar la
+// forma del objeto en dos sitios.
+function buildRealDataResult(candles, { symbol, timeframe, mainTrendNote }) {
+  const signalResult = computeMultiTimeframeSignal(candles, mainTrendNote);
+  const { debug, ...clean } = signalResult;
+  return {
+    ...clean,
+    asset: symbol,
+    source: 'REAL_DATA',
+    timeframe: timeframe || null,
+    summary: clean.mainReason,
+    mock: false,
+    disclaimer: DISCLAIMER,
+  };
+}
+
 async function analyzeChart(imageBuffer, mimeType, context = {}) {
   const { symbolHint, timeframe } = context;
   const symbol = normalizeSymbol(symbolHint);
@@ -124,21 +144,19 @@ async function analyzeChart(imageBuffer, mimeType, context = {}) {
   if (symbol && market.hasRealDataFor(symbol)) {
     const candles = await market.getMultiTimeframeCandles(symbol);
     if (candles.mainTrend && candles.mainTrend.length >= MIN_CANDLES) {
-      const signalResult = computeMultiTimeframeSignal(candles);
-      const { debug, ...clean } = signalResult;
-      return {
-        ...clean,
-        asset: symbol,
-        source: 'REAL_DATA',
-        timeframe: timeframe || null,
-        summary: clean.mainReason,
-        mock: false,
-        disclaimer: DISCLAIMER,
-      };
+      return buildRealDataResult(candles, { symbol, timeframe, mainTrendNote: 'Velas de 4h de los últimos 30 días (CoinGecko).' });
     }
     // Símbolo con cobertura real pero, ahora mismo, sin velas (red no
     // disponible, CoinGecko caído...): nunca se inventan velas — se cae
     // honestamente al camino visual, dejando constancia del motivo.
+    noRealDataNote = `No se pudieron obtener datos de mercado en tiempo real para ${symbol} en este momento; este análisis es una lectura visual de la imagen, no está verificado con datos numéricos.`;
+  } else if (symbol && stooq.hasRealDataFor(symbol)) {
+    const candles = await stooq.getMultiTimeframeCandles(symbol);
+    if (candles.mainTrend && candles.mainTrend.length >= MIN_CANDLES) {
+      return buildRealDataResult(candles, { symbol, timeframe, mainTrendNote: 'Velas diarias de cierre de los últimos ~12 meses (Stooq).' });
+    }
+    // Igual que con cripto: sin velas reales disponibles ahora mismo, se
+    // cae honestamente al camino visual en vez de inventar nada.
     noRealDataNote = `No se pudieron obtener datos de mercado en tiempo real para ${symbol} en este momento; este análisis es una lectura visual de la imagen, no está verificado con datos numéricos.`;
   }
 

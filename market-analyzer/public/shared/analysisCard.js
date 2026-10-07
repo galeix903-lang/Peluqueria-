@@ -8,7 +8,17 @@
 */
 // Lenguaje de sesgo, no de orden de compra/venta: Vantex presenta
 // escenarios y probabilidades, nunca una certeza sobre el futuro.
-const REAL_DATA_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];
+// Activos con datos de mercado reales en el AI Analyzer (motor
+// determinista, no lectura de imagen): cripto vía CoinGecko (precio en
+// vivo) + acciones/fondos vía Stooq (solo cierre diario — ver
+// server/services/stooq.js). Controla el ★ de "datos reales" en los
+// chips del Analyzer.
+const REAL_DATA_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'SHIB', 'PEPE', 'WIF', 'BONK', 'AAPL', 'SPY'];
+// Subconjunto que además tiene precio EN VIVO (no solo cierre diario) y
+// por tanto puede abrirse como posición real en Paper Trading —
+// acciones/fondos quedan fuera: Stooq no da un precio que se mueva
+// mientras la posición sigue abierta.
+const TRADABLE_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'SHIB', 'PEPE', 'WIF', 'BONK'];
 const SIGNAL_META = {
   BUY: { icon: 'arrowUp', label: 'Sesgo alcista', cls: 'buy' },
   SELL: { icon: 'arrowDown', label: 'Sesgo bajista', cls: 'sell' },
@@ -41,7 +51,17 @@ function levelsScale(support, resistance) {
   return `<div class="levels-scale">${marks}<div class="levels-scale__track"></div></div>`;
 }
 
-function fmtLevel(v) { return v == null ? '—' : v.toLocaleString('es-ES', { maximumFractionDigits: v >= 100 ? 0 : 4 }); }
+function fmtLevel(v) {
+  if (v == null) return '—';
+  if (v >= 100) return v.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+  // Precios de memecoin pueden ser una fracción de centavo — con un
+  // máximo de 4 decimales fijo se redondearían a "0", borrando el dato.
+  if (v > 0 && v < 0.005) {
+    const decimals = Math.min(10, Math.max(4, -Math.floor(Math.log10(v)) + 3));
+    return v.toLocaleString('es-ES', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+  return v.toLocaleString('es-ES', { maximumFractionDigits: 4 });
+}
 
 function keySignalLine(a) {
   // Las 3 señales clave de la tarjeta rápida: solo se listan las que de
@@ -59,7 +79,7 @@ function analysisDetailHtml(a) {
   const isReal = a.source === 'REAL_DATA';
   const scenarios = a.scenarios || {};
   const keyLevels = scenarios.keyLevels || {};
-  const canSimulate = isReal && REAL_DATA_SYMBOLS.includes(a.asset);
+  const canSimulate = isReal && TRADABLE_SYMBOLS.includes(a.asset);
 
   return `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
