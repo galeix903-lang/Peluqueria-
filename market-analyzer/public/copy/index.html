@@ -35,6 +35,12 @@
   .trader-card__stat .text-meta { margin-bottom: 2px; }
   .trader-card__stat .val { font-weight: 800; font-size: 1.0625rem; }
   .trader-card__desc { color: var(--text-dim); font-size: .8125rem; line-height: 1.5; margin-bottom: 14px; }
+  .trader-card__symbols { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 14px; }
+  .trader-card__symbol {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--field-bg); border-radius: 999px; padding: 4px 10px 4px 4px;
+    font-size: .75rem; font-weight: 700; color: var(--text-dim);
+  }
 </style>
 </head>
 <body>
@@ -99,7 +105,7 @@
               <div class="trader-card__stat"><div class="text-meta">P&amp;L 30d</div><div class="val pnl-pos">+${t.pnl30d}%</div></div>
             </div>
             <p class="trader-card__desc">${t.strategy}</p>
-            ${t.symbols && t.symbols.length ? `<div style="display:flex; gap:6px; margin:-4px 0 14px;">${t.symbols.map((s) => cryptoIconHtml(s, 20)).join('')}</div>` : ''}
+            ${t.symbols && t.symbols.length ? `<div class="trader-card__symbols">${t.symbols.map((s) => `<span class="trader-card__symbol">${cryptoIconHtml(s, 18)}${s}</span>`).join('')}</div>` : ''}
             <button type="button" class="${t.following ? 'btn-secondary' : 'btn-primary'}" style="width:100%; justify-content:center;" data-follow="${t.id}" data-following="${t.following}">
               ${t.following ? 'Dejar de seguir' : 'Seguir'}
             </button>
