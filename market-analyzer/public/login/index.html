@@ -366,6 +366,48 @@
     .flow-head { margin-bottom: 48px; }
   }
 
+  /* ====== Nueva funcionalidad: "Analiza también memecoins" ======
+     Sección tipo product-showcase, mismo lenguaje visual que el resto
+     (azul/púrpura, bordes redondeados, relieve sutil): a la izquierda el
+     anuncio de la función con su badge "NUEVO"; a la derecha, el mismo
+     componente .analyzer-mock que ya usa el resto de la landing para que
+     se vea como una pantalla real de Vantex, no como una imagen pegada. */
+  .meme-feature { padding: 100px 20px; }
+  .meme-feature__grid {
+    display: grid; grid-template-columns: minmax(300px, 1fr) minmax(340px, 1fr);
+    gap: 60px; align-items: center; max-width: 1180px; margin: 0 auto;
+  }
+  .meme-feature__badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-dim); border-radius: 999px; padding: 7px 16px 7px 12px;
+    font-size: .75rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .04em; margin-bottom: 20px;
+  }
+  .meme-feature__badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: pulseSoft 1.8s ease-in-out infinite; }
+  .meme-feature__title { font-size: clamp(1.875rem, 1.45rem + 1.8vw, 2.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.14; margin: 0 0 16px; }
+  .meme-feature__title em {
+    font-style: normal; background: linear-gradient(90deg, var(--accent), var(--blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .meme-feature__lead { font-size: .9375rem; color: var(--text-dim); line-height: 1.65; margin: 0 0 28px; max-width: 420px; }
+  .meme-feature__points { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+  .meme-feature__point { display: flex; align-items: flex-start; gap: 12px; }
+  .meme-feature__point-icon {
+    width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+    background: var(--accent-dim); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .meme-feature__point-title { margin: 0; font-weight: 700; font-size: .875rem; }
+  .meme-feature__point-desc { margin: 2px 0 0; font-size: .8125rem; color: var(--text-dim); line-height: 1.5; }
+  .meme-feature__visual { position: relative; }
+  .meme-feature__visual .analyzer-mock { opacity: 0; transform: translateY(20px) scale(.98); animation: mockIn .7s var(--ease-out) .1s both; }
+  .meme-feature__disclaimer { text-align: center; font-size: .75rem; color: var(--text-dim); max-width: 380px; margin: 20px auto 0; line-height: 1.5; }
+  @media (max-width: 960px) {
+    .meme-feature { padding: 80px 18px; }
+    .meme-feature__grid { grid-template-columns: 1fr; gap: 44px; }
+    .meme-feature__lead { max-width: 100%; }
+  }
+
   /* ====== Vista previa de la app (sección "La app") ======
      Mockup del propio producto a pantalla completa: barra superior +
      sidebar + gráfico (reutiliza buildChart) + panel de IA + tira de
@@ -1879,6 +1921,66 @@
       </div>
     </section>
 
+    <section class="section meme-feature io-reveal" id="memecoins">
+      <div class="meme-feature__grid">
+        <div class="meme-feature__intro">
+          <span class="meme-feature__badge"><span class="meme-feature__badge-dot"></span>Nuevo · Memecoins</span>
+          <h2 class="meme-feature__title">Ahora también con <em>memecoins</em>.</h2>
+          <p class="meme-feature__lead">Amplía tus análisis con Vantex AI y explora nuevas oportunidades del mercado — mismo motor, mismo rigor técnico, sin tener que esperar a que una moneda nueva "se añada" a mano.</p>
+          <div class="meme-feature__points">
+            <div class="meme-feature__point">
+              <span class="meme-feature__point-icon" data-icon="search" data-icon-size="16"></span>
+              <div>
+                <p class="meme-feature__point-title">Búsqueda real</p>
+                <p class="meme-feature__point-desc">Encuentra DOGE, SHIB, PEPE y cientos más por nombre o símbolo.</p>
+              </div>
+            </div>
+            <div class="meme-feature__point">
+              <span class="meme-feature__point-icon" data-icon="shieldCheck" data-icon-size="16"></span>
+              <div>
+                <p class="meme-feature__point-title">Sin datos inventados</p>
+                <p class="meme-feature__point-desc">Si un dato de mercado no está disponible, Vantex te lo dice — nunca lo simula.</p>
+              </div>
+            </div>
+          </div>
+          <button class="btn-primary" type="button" data-cta-signup data-post-auth-redirect="/analyzer?symbol=PEPE&amp;category=memecoin">Analizar una memecoin →</button>
+        </div>
+
+        <div class="meme-feature__visual">
+          <div class="analyzer-mock">
+            <div class="analyzer-mock__head">
+              <span class="analyzer-mock__chip"><span class="crypto-icon" data-crypto-icon data-symbol="PEPE" data-size="14"></span>PEPE/USDT</span>
+              <span class="analyzer-mock__chip">4H</span>
+              <span class="analyzer-mock__chip">Memecoin</span>
+              <span class="analyzer-mock__status"><span class="analyzer-mock__status-dot"></span>IA analizando</span>
+            </div>
+            <div class="analyzer-mock__body">
+              <div class="analyzer-mock__chart" data-meme-chart-mount>
+                <div class="analyzer-mock__scan"></div>
+              </div>
+              <div class="analyzer-mock__panel">
+                <div>
+                  <div class="analyzer-mock__panel-title">Análisis IA</div>
+                  <div class="analyzer-mock__trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17 10 11 14 15 20 7" /></svg>Momentum alcista</div>
+                </div>
+                <div>
+                  <div class="analyzer-mock__confidence-label"><span>Confianza</span><span>69%</span></div>
+                  <div class="analyzer-mock__confidence-bar"><span style="--confidence:69%;"></span></div>
+                </div>
+                <div class="analyzer-mock__levels">
+                  <div><span>Resistencia</span><strong>0,0000148</strong></div>
+                  <div><span>Precio actual</span><strong>0,0000129</strong></div>
+                  <div><span>Soporte</span><strong>0,0000105</strong></div>
+                </div>
+                <p class="analyzer-mock__note">Vista previa ilustrativa — así se ve un análisis real dentro de la app. No es una recomendación de inversión.</p>
+              </div>
+            </div>
+          </div>
+          <p class="meme-feature__disclaimer">Datos de ejemplo con fines ilustrativos — Vantex nunca inventa precios ni métricas de mercado reales.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section section--tint" id="herramientas">
       <div class="section-inner">
         <div class="section-head io-reveal">
@@ -2516,6 +2618,7 @@
     buildChart('[data-chart-mount]', [44, 47, 45, 49, 52, 50, 54, 58, 56, 60, 57, 53, 55, 59, 63, 61, 66, 64, 68, 72, 70, 75, 78, 82]);
     buildChart('[data-chart-mount-2]', [58, 54, 57, 52, 55, 50, 53, 48, 51, 47, 50, 53, 51, 56, 54, 59, 57, 63, 60, 66, 64, 71, 75, 80]);
     buildChart('[data-flow-chart-mount]', [44, 47, 45, 49, 52, 50, 54, 58, 56, 60, 57, 53, 55, 59, 63, 61, 66, 64, 68, 72, 70, 75, 78, 82]);
+    buildChart('[data-meme-chart-mount]', [30, 34, 31, 42, 38, 55, 48, 72, 60, 95, 80, 120, 100, 150, 125, 170, 140, 200, 165, 230, 190, 260, 220, 290]);
     buildChart('[data-app-chart-mount]', [62, 59, 63, 57, 61, 55, 58, 53, 56, 51, 54, 58, 62, 60, 65, 63, 68, 66, 71, 69, 74, 78, 76, 82]);
     buildChart('[data-app-phone-chart-mount]', [62, 59, 63, 57, 61, 55, 58, 53, 56, 51, 54, 58, 62, 60, 65, 63, 68, 66, 71, 69, 74, 78, 76, 82]);
 
@@ -2683,8 +2786,13 @@
       }
     });
 
+    // Algunos CTA llevan una página concreta para después del registro
+    // (p.ej. la sección de memecoins manda directo al Analyzer con ese
+    // activo preseleccionado) en vez del /dashboard genérico de siempre —
+    // se guarda aquí y handleSubmit() la consume una sola vez al terminar.
     document.querySelectorAll('[data-cta-signup]').forEach((btn) => btn.addEventListener('click', (e) => {
       e.preventDefault();
+      if (btn.dataset.postAuthRedirect) sessionStorage.setItem('vantex_post_auth_redirect', btn.dataset.postAuthRedirect);
       openAuthModal('signup');
     }));
     document.querySelectorAll('[data-cta-login]').forEach((btn) => btn.addEventListener('click', (e) => {
@@ -2877,7 +2985,9 @@
         const payload = Object.fromEntries(new FormData(form).entries());
         try {
           await api(`/auth/${endpoint}`, { method: 'POST', body: JSON.stringify(payload) });
-          window.location.href = '/dashboard';
+          const postAuthRedirect = sessionStorage.getItem('vantex_post_auth_redirect');
+          sessionStorage.removeItem('vantex_post_auth_redirect');
+          window.location.href = postAuthRedirect || '/dashboard';
         } catch (err) {
           errorEl.textContent = err.message;
           submitBtn.disabled = false;

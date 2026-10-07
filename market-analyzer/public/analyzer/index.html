@@ -29,15 +29,36 @@
   .chip.is-active { background: linear-gradient(135deg, var(--accent), var(--blue)); border-color: var(--accent); color: #fff; box-shadow: 0 6px 14px -6px rgba(37, 99, 235, .5); }
   .chip:active { transform: scale(.95); }
   .chip--asset { display: inline-flex; align-items: center; gap: 6px; }
+  .chip--asset[hidden] { display: none; }
   .chip--asset .crypto-icon { margin: -2px 0; }
 
   .symbol-input {
     border: 1px solid var(--border); background: var(--field-bg); color: var(--text);
     padding: 7px 14px; border-radius: 999px; font-size: .8125rem; font-weight: 600;
-    width: 168px; max-width: 100%;
+    width: 220px; max-width: 100%;
   }
   .symbol-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   .symbol-input::placeholder { color: var(--text-dim); font-weight: 500; }
+
+  .symbol-field { position: relative; display: inline-block; max-width: 100%; }
+  .symbol-search-results {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--relief-card-hover); padding: 6px; width: 270px; max-width: 80vw;
+    max-height: 260px; overflow-y: auto;
+  }
+  .symbol-search-result {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+    padding: 8px 9px; border-radius: 9px; font-size: .8125rem; transition: background .12s;
+  }
+  .symbol-search-result:hover, .symbol-search-result:focus-visible { background: var(--field-bg); }
+  .symbol-search-result__logo {
+    width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; object-fit: cover;
+    background: var(--field-bg);
+  }
+  .symbol-search-result__symbol { font-weight: 700; flex-shrink: 0; }
+  .symbol-search-result__name { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .symbol-search-empty { padding: 10px 9px; font-size: .8125rem; color: var(--text-dim); }
 
   .dropzone {
     border: 2px dashed var(--border); border-radius: var(--radius);
@@ -113,7 +134,28 @@
     // la IA "opine" mirando la captura — ver server/services/analysisPipeline.js.
     // REAL_DATA_SYMBOLS, SIGNAL_META y el resto de etiquetas viven ahora en
     // shared/analysisCard.js (se comparten con la página de Historial).
-    const SUPPORTED_SYMBOLS = ['BTC', 'ETH', 'AAPL', 'SPY', 'EUR/USD'];
+    // Cada entrada lleva su categoría para el filtro Todas/Crypto/Memecoins
+    // de abajo — no es una lista cerrada de activos admitidos (el campo de
+    // texto y el buscador aceptan cualquier ticker), solo accesos rápidos
+    // representativos de cada categoría.
+    const SUPPORTED_SYMBOLS = [
+      { symbol: 'BTC', category: 'crypto' },
+      { symbol: 'ETH', category: 'crypto' },
+      { symbol: 'SOL', category: 'crypto' },
+      { symbol: 'DOGE', category: 'memecoin' },
+      { symbol: 'SHIB', category: 'memecoin' },
+      { symbol: 'PEPE', category: 'memecoin' },
+      { symbol: 'WIF', category: 'memecoin' },
+      { symbol: 'BONK', category: 'memecoin' },
+      { symbol: 'AAPL', category: 'other' },
+      { symbol: 'SPY', category: 'other' },
+      { symbol: 'EUR/USD', category: 'other' },
+    ];
+    const ASSET_CATEGORIES = [
+      { key: 'all', label: 'Todas' },
+      { key: 'crypto', label: 'Crypto' },
+      { key: 'memecoin', label: 'Memecoins' },
+    ];
     const TIMEFRAMES = ['15m', '1H', '4H', '1D', '1W'];
     const STEPS = ['Leyendo gráfico…', 'Detectando patrones…', 'Generando análisis…'];
     const HISTORY_PREVIEW_COUNT = 5;
@@ -168,9 +210,15 @@
           <div style="display:flex; flex-wrap:wrap; gap:22px; margin-bottom:18px;">
             <div>
               <div class="text-meta" style="margin-bottom:8px;">Activo (opcional)</div>
-              <input type="text" class="symbol-input" data-symbol-input placeholder="Cripto, acción, fondo, forex…" maxlength="20" />
+              <div class="symbol-field">
+                <input type="text" class="symbol-input" data-symbol-input placeholder="Buscar activo: cripto, memecoin, acción…" maxlength="20" autocomplete="off" />
+                <div class="symbol-search-results" data-symbol-search-results hidden></div>
+              </div>
+              <div class="chip-row" data-category-chips style="margin-top:10px;">
+                ${ASSET_CATEGORIES.map((c, i) => `<button type="button" class="chip ${i === 0 ? 'is-active' : ''}" data-category-filter="${c.key}">${c.label}</button>`).join('')}
+              </div>
               <div class="chip-row" data-symbol-chips style="margin-top:8px;">
-                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip chip--asset" data-symbol="${s}" title="${REAL_DATA_SYMBOLS.includes(s) ? 'Datos de mercado reales' : 'Lectura visual de la imagen'}">${cryptoIconHtml(s, 15)}${s}${REAL_DATA_SYMBOLS.includes(s) ? ' ★' : ''}</button>`).join('')}
+                ${SUPPORTED_SYMBOLS.map((s) => `<button type="button" class="chip chip--asset" data-symbol="${s.symbol}" data-asset-category="${s.category}" title="${REAL_DATA_SYMBOLS.includes(s.symbol) ? 'Datos de mercado reales' : 'Lectura visual de la imagen'}">${cryptoIconHtml(s.symbol, 15)}${s.symbol}${REAL_DATA_SYMBOLS.includes(s.symbol) ? ' ★' : ''}</button>`).join('')}
               </div>
               <div class="text-meta" style="margin-top:6px; color:var(--text-dim);">★ = señal calculada con datos de mercado reales, no solo lectura de la imagen</div>
             </div>
@@ -262,6 +310,74 @@
         });
       }
       symbolInput.addEventListener('input', syncSymbolChips);
+
+      // Filtro Todas/Crypto/Memecoins: solo oculta/muestra los chips de
+      // acceso rápido — el campo de texto y el buscador siguen aceptando
+      // cualquier símbolo sin importar el filtro activo.
+      const categoryChipsEl = ctx.contentEl.querySelector('[data-category-chips]');
+      function applyCategory(cat) {
+        categoryChipsEl.querySelectorAll('[data-category-filter]').forEach((b) => {
+          b.classList.toggle('is-active', b.dataset.categoryFilter === cat);
+        });
+        ctx.contentEl.querySelectorAll('[data-symbol-chips] [data-symbol]').forEach((b) => {
+          b.hidden = cat !== 'all' && b.dataset.assetCategory !== cat;
+        });
+      }
+      categoryChipsEl.querySelectorAll('[data-category-filter]').forEach((btn) => {
+        btn.addEventListener('click', () => applyCategory(btn.dataset.categoryFilter));
+      });
+
+      // Buscador real de activos (incluidas memecoins): reutiliza
+      // /api/market/search, el mismo endpoint que ya resuelve logos en
+      // toda la app — sin inventar ni cachear resultados localmente, cada
+      // tecleo consulta la fuente de datos real con un pequeño debounce.
+      const searchResultsEl = ctx.contentEl.querySelector('[data-symbol-search-results]');
+      let searchDebounceTimer = null;
+      let searchRequestId = 0;
+      function closeSearchResults() { searchResultsEl.hidden = true; searchResultsEl.innerHTML = ''; }
+      async function runSymbolSearch(query) {
+        const requestId = ++searchRequestId;
+        try {
+          const { results } = await api(`/market/search?q=${encodeURIComponent(query)}`);
+          if (requestId !== searchRequestId) return; // respuesta obsoleta, el usuario ya siguió escribiendo
+          if (!results.length) {
+            searchResultsEl.innerHTML = `<div class="symbol-search-empty">Sin resultados para "${escapeHtml(query)}".</div>`;
+            searchResultsEl.hidden = false;
+            return;
+          }
+          searchResultsEl.innerHTML = results.map((r) => `
+            <button type="button" class="symbol-search-result" data-search-pick="${escapeHtml(r.symbol)}">
+              <img class="symbol-search-result__logo" src="${r.logo}" alt="" width="20" height="20" loading="lazy" onerror="this.style.visibility='hidden'" />
+              <span class="symbol-search-result__symbol">${escapeHtml(r.symbol)}</span>
+              <span class="symbol-search-result__name">${escapeHtml(r.name)}</span>
+            </button>
+          `).join('');
+          searchResultsEl.hidden = false;
+        } catch {
+          closeSearchResults();
+        }
+      }
+      symbolInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        const q = symbolInput.value.trim();
+        if (q.length < 2) { closeSearchResults(); return; }
+        searchDebounceTimer = setTimeout(() => runSymbolSearch(q), 300);
+      });
+      symbolInput.addEventListener('focus', () => {
+        if (symbolInput.value.trim().length >= 2) runSymbolSearch(symbolInput.value.trim());
+      });
+      searchResultsEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-search-pick]');
+        if (!btn) return;
+        symbolInput.value = btn.dataset.searchPick;
+        syncSymbolChips();
+        closeSearchResults();
+        symbolInput.focus();
+      });
+      document.addEventListener('click', (e) => {
+        if (e.target !== symbolInput && !e.target.closest('[data-symbol-search-results]')) closeSearchResults();
+      });
+
       ctx.contentEl.querySelectorAll('[data-timeframe]').forEach((btn) => btn.addEventListener('click', () => {
         ctx.contentEl.querySelectorAll('[data-timeframe]').forEach((b) => b.classList.remove('is-active'));
         btn.classList.add('is-active');
@@ -420,6 +536,21 @@
         applyQuota(plan, remainingToday, dailyLimit);
       }
       loadHistory();
+
+      // Si se llega desde un CTA externo con un activo preseleccionado
+      // (p.ej. la sección de memecoins de la landing: /analyzer?symbol=
+      // PEPE&category=memecoin), lo rellena y activa su categoría — nunca
+      // dispara el análisis solo, siempre espera a que el usuario suba su
+      // propia captura.
+      const presetParams = new URLSearchParams(location.search);
+      const presetSymbol = presetParams.get('symbol');
+      const presetCategory = presetParams.get('category');
+      if (presetCategory && ASSET_CATEGORIES.some((c) => c.key === presetCategory)) applyCategory(presetCategory);
+      if (presetSymbol) {
+        symbolInput.value = presetSymbol.toUpperCase().slice(0, 20);
+        syncSymbolChips();
+        showToast({ type: 'info', message: `Activo "${symbolInput.value}" listo — sube una captura de su gráfico para analizarlo.` });
+      }
     });
   </script>
 </body>
