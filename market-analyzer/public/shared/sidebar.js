@@ -16,10 +16,10 @@
 // estilo "glass" de la referencia del usuario.
 const NAV_ITEMS = [
   { page: 'dashboard', href: '/dashboard', label: 'Inicio', shortLabel: 'Inicio', icon: 'home', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', glow: 'rgba(79,70,229,.55)', bottom: true },
-  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'trendUp', gradient: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))', glow: 'rgba(79,70,229,.55)', bottom: true },
-  { page: 'history', href: '/history', label: 'Historial', shortLabel: 'Historial', icon: 'clock', gradient: 'linear-gradient(135deg, #a5b4fc, #6366f1, #8b5cf6)', glow: 'rgba(139,92,246,.55)', bottom: false },
+  { page: 'analyzer', href: '/analyzer', label: 'AI Analyzer', shortLabel: 'Analyzer', icon: 'trendUp', gradient: 'linear-gradient(135deg, #34d399, #10b981, #059669)', glow: 'rgba(16,185,129,.55)', bottom: true },
+  { page: 'history', href: '/history', label: 'Historial', shortLabel: 'Historial', icon: 'clock', gradient: 'linear-gradient(135deg, #f9a8d4, #ec4899, #db2777)', glow: 'rgba(236,72,153,.55)', bottom: false },
   { page: 'trading', href: '/trading', label: 'Paper Trading', shortLabel: 'Trading', icon: 'chartBar', gradient: 'linear-gradient(135deg, #fb923c, #f97316, #ef4444)', glow: 'rgba(249,115,22,.55)', bottom: true },
-  { page: 'picks', href: '/picks', label: 'Market Scanner', shortLabel: 'Scanner', icon: 'search', gradient: 'linear-gradient(135deg, #fcd34d, #f59e0b, #f97316)', glow: 'rgba(245,158,11,.55)', bottom: true },
+  { page: 'picks', href: '/picks', label: 'Market Scanner', shortLabel: 'Scanner', icon: 'search', gradient: 'linear-gradient(135deg, #fde047, #eab308, #ca8a04)', glow: 'rgba(234,179,8,.55)', bottom: true },
   { page: 'wallet', href: '/wallet', label: 'Wallet Tracker', shortLabel: 'Wallet', icon: 'wallet', gradient: 'linear-gradient(135deg, #7dd3fc, #0ea5e9, #06b6d4)', glow: 'rgba(6,182,212,.55)', bottom: false },
   { page: 'copy', href: '/copy', label: 'Copy Trading', shortLabel: 'Copy', icon: 'refresh', gradient: 'linear-gradient(135deg, #c4b5fd, #8b5cf6, #7c3aed)', glow: 'rgba(124,58,237,.55)', bottom: false },
 ];
