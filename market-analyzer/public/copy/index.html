@@ -41,6 +41,10 @@
     background: var(--field-bg); border-radius: 999px; padding: 4px 10px 4px 4px;
     font-size: .75rem; font-weight: 700; color: var(--text-dim);
   }
+
+  .copy-stat-row { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 18px; }
+  .copy-stat-row .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); }
+  .copy-stat-row .value { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -132,7 +136,7 @@
         });
       }
 
-      function renderPositions(positions) {
+      function renderPositions(positions, stats) {
         if (!positions.length) {
           positionsEl.innerHTML = `
             <div class="panel empty-state">
@@ -143,10 +147,17 @@
           `;
           return;
         }
+        const pnlClass = stats.totalPnl >= 0 ? 'pnl-pos' : 'pnl-neg';
         positionsEl.innerHTML = `
           <div class="panel">
+            <div class="copy-stat-row">
+              <div><div class="label">P&amp;L total copiado</div><div class="value ${pnlClass}">${fmtUsd(stats.totalPnl)}</div></div>
+              <div><div class="label">Acierto</div><div class="value">${stats.winRate != null ? stats.winRate + '%' : '—'}</div></div>
+              <div><div class="label">Abiertas</div><div class="value">${stats.openCount}</div></div>
+              <div><div class="label">Cerradas</div><div class="value">${stats.closedCount}</div></div>
+            </div>
             <table>
-              <thead><tr><th>Símbolo</th><th>Lado</th><th>Tamaño</th><th>Entrada</th><th>Estado</th><th>P&amp;L</th></tr></thead>
+              <thead><tr><th>Símbolo</th><th>Trader</th><th>Lado</th><th>Tamaño</th><th>Entrada</th><th>Estado</th><th>P&amp;L</th></tr></thead>
               <tbody>
                 ${positions.map((p) => {
                   const pnl = p.status === 'open' ? p.unrealizedPnl : p.realizedPnl;
@@ -154,6 +165,7 @@
                   return `
                     <tr>
                       <td style="display:flex; align-items:center; gap:8px;">${cryptoIconHtml(p.symbol, 20)}${p.symbol}</td>
+                      <td class="text-caption">${p.traderName || '—'}</td>
                       <td><span class="badge badge--${p.side}">${p.side}</span></td>
                       <td>${p.size}</td>
                       <td>${fmtUsd(p.entryPrice)}</td>
@@ -171,9 +183,9 @@
       }
 
       async function load() {
-        const { traders, copiedPositions } = await api('/copy');
+        const { traders, copiedPositions, stats } = await api('/copy');
         renderTraders(traders);
-        renderPositions(copiedPositions);
+        renderPositions(copiedPositions, stats);
       }
 
       load().catch((err) => {

@@ -1,10 +1,16 @@
 const express = require('express');
 const store = require('../store');
+const market = require('../services/market');
 const { TRADERS } = require('../services/copyTraders');
 const { runCopyTradingTick } = require('../services/copyTradingJob');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const router = express.Router();
+
+function computePnl(position, currentPrice) {
+  const direction = position.side === 'long' ? 1 : -1;
+  return (currentPrice - position.entryPrice) * position.size * direction;
+}
 
 router.get('/', asyncHandler(async (req, res) => {
   const follows = await store.listCopyFollows(req.userId);
@@ -15,9 +21,32 @@ router.get('/', asyncHandler(async (req, res) => {
     following: followedIds.has(t.id),
   }));
 
+  const prices = await market.fetchPrices().catch(() => ({}));
   const positions = await store.listPositions(req.userId);
-  const copiedPositions = positions.filter((p) => p.source === 'copy');
-  res.json({ traders, copiedPositions });
+  const traderById = new Map(TRADERS.map((t) => [t.id, t]));
+  const copiedPositions = positions
+    .filter((p) => p.source === 'copy')
+    .map((p) => {
+      const traderName = traderById.get(p.copiedFrom)?.name || null;
+      if (p.status === 'closed') return { ...p, traderName };
+      const currentPrice = prices[p.symbol];
+      return { ...p, traderName, currentPrice: currentPrice ?? null, unrealizedPnl: currentPrice != null ? computePnl(p, currentPrice) : null };
+    });
+
+  // Estadísticas reales sobre las propias operaciones copiadas de este
+  // usuario — nunca una cifra de rendimiento de los traders modelo
+  // disfrazada de resultado personal.
+  const closed = copiedPositions.filter((p) => p.status === 'closed');
+  const open = copiedPositions.filter((p) => p.status === 'open');
+  const wins = closed.filter((p) => (p.realizedPnl || 0) > 0).length;
+  const stats = {
+    openCount: open.length,
+    closedCount: closed.length,
+    winRate: closed.length ? Math.round((wins / closed.length) * 100) : null,
+    totalPnl: closed.reduce((sum, p) => sum + (p.realizedPnl || 0), 0) + open.reduce((sum, p) => sum + (p.unrealizedPnl || 0), 0),
+  };
+
+  res.json({ traders, copiedPositions, stats });
 }));
 
 router.post('/:traderId/follow', asyncHandler(async (req, res) => {
