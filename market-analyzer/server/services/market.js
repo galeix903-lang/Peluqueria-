@@ -308,7 +308,7 @@ function hasRealDataFor(symbol) {
 // A diferencia de fetchPrices() (solo precio puntual), /coins/markets trae
 // de una sola vez precio, variación 24h, volumen 24h y capitalización —
 // todo real, mismo proveedor (CoinGecko), una sola llamada para los
-// símbolos que ya sigue Vantex. Nunca se inventa un campo: si la llamada
+// símbolos que ya sigue Cryptolyzer. Nunca se inventa un campo: si la llamada
 // falla, se devuelve la caché previa (aunque esté vencida) o, si no hay
 // nada, un objeto vacío — quien llama debe tratar un símbolo ausente como
 // "no disponible", nunca rellenarlo con un valor aproximado.

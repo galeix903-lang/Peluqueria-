@@ -100,7 +100,7 @@ function openModal({ title, bodyHtml = '', footerHtml = '', onOpen, onClose } = 
 // aparezca para una cuenta distinta en el mismo dispositivo).
 function showSectionIntro(user, page, { icon, iconBg, title, desc, points = [] } = {}) {
   if (!user) return;
-  const key = `vantex_intro_${page}_${user.id}`;
+  const key = `cryptolyzer_intro_${page}_${user.id}`;
   if (localStorage.getItem(key)) return;
   openModal({
     title,

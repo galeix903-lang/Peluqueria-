@@ -3,7 +3,7 @@
 // nueva ni una base de datos aparte. No sobrevive a un reinicio del
 // proceso, y no se comparte entre instancias si algún día hay más de una
 // — para eso haría falta un store compartido (Redis), pero para el
-// tamaño actual de Vantex esto ya corta el caso real.
+// tamaño actual de Cryptolyzer esto ya corta el caso real.
 function rateLimit({ windowMs, max, message }) {
   const hits = new Map(); // ip -> [timestamps]
 

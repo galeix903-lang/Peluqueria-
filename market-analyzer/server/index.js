@@ -147,7 +147,7 @@ app.get('/', (req, res) => res.redirect('/dashboard'));
 // Frontend estático (CSS/JS compartidos, etc.).
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// 404 con la identidad de Vantex en vez del texto plano por defecto de
+// 404 con la identidad de Cryptolyzer en vez del texto plano por defecto de
 // Express — para APIs, JSON; para todo lo demás, una página mínima con
 // el logomark, coherente con el resto de la app en vez del "Cannot GET".
 app.use((req, res) => {
@@ -159,7 +159,7 @@ app.use((req, res) => {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Página no encontrada — Vantex</title>
+<title>Página no encontrada — Cryptolyzer</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <style>
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px; background:#0a0a12; color:#f7f7fa; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif; text-align:center; padding:24px; box-sizing:border-box; }
@@ -175,7 +175,7 @@ app.use((req, res) => {
   <div class="mark"><svg viewBox="0 0 100 100" fill="#f7f7fa"><polygon points="10,24 24,10 38,10 47,80" /><polygon points="92,16 82,2 64,8 53,80" /><rect x="44.5" y="70" width="11" height="11" transform="rotate(45 50 75.5)" /></svg></div>
   <h1>Página no encontrada</h1>
   <p>La página que buscas no existe o se ha movido.</p>
-  <a href="/dashboard">Volver a Vantex →</a>
+  <a href="/dashboard">Volver a Cryptolyzer →</a>
 </body>
 </html>`);
 });

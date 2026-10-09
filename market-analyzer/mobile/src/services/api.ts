@@ -1,7 +1,7 @@
 import { getTokens, saveTokens, clearTokens } from './authStorage';
 
 /*
-  URL del backend real de Vantex (mismo servidor Express que la web,
+  URL del backend real de Cryptolyzer (mismo servidor Express que la web,
   endpoints /api/auth/mobile/*). Configurable por variable de entorno
   EXPO_PUBLIC_* (Expo la inlinea en el bundle del cliente) para poder
   apuntar a un backend local durante el desarrollo; por defecto apunta

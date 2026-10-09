@@ -1,4 +1,4 @@
-# Vantex — dashboard de análisis de mercado con IA
+# Cryptolyzer — dashboard de análisis de mercado con IA
 
 Dashboard de trading/cripto inspirado en la idea de "sube una captura de un
 gráfico y recibe un análisis": AI Analyzer (visión + IA), Paper Trading
@@ -28,12 +28,12 @@ un fichero JSON plano. Para desarrollo local, la forma más simple es
 tener un Postgres instalado en tu máquina y crear una base vacía:
 
 ```bash
-createuser vantex --pwprompt   # te pide la contraseña
-createdb vantex --owner vantex
+createuser cryptolyzer --pwprompt   # te pide la contraseña
+createdb cryptolyzer --owner cryptolyzer
 ```
 
-y poner esa cadena en `.env` como `DATABASE_URL=postgres://vantex:<tu
-contraseña>@localhost:5432/vantex`. En Render, `render.yaml` ya
+y poner esa cadena en `.env` como `DATABASE_URL=postgres://cryptolyzer:<tu
+contraseña>@localhost:5432/cryptolyzer`. En Render, `render.yaml` ya
 provisiona una base de datos gestionada y rellena `DATABASE_URL` solo
 (ver "Ponerlo online" más abajo).
 
@@ -57,7 +57,7 @@ sin gastar nada. Para activar el análisis real con Claude:
 desarrollo para no gastar créditos) o `live` (forzar real; falla si no hay
 key configurada).
 
-## Cobrar con Stripe (Vantex Pro / Business)
+## Cobrar con Stripe (Cryptolyzer Pro / Business)
 
 Dos planes de pago, además del gratuito:
 
@@ -84,8 +84,8 @@ probar todo el paywall (límite, bloqueo, aviso de upgrade, badge,
    abrirla; Stripe se queda una comisión solo sobre lo que cobres).
 2. Con el interruptor **Test mode** activado (arriba a la derecha del
    panel de Stripe), ve a **Product catalog** → crea **dos** productos
-   recurrentes: uno a 1€/mes (ej. "Vantex Pro") y otro a 4,99€/mes (ej.
-   "Vantex Business"). Copia el `price_id` de cada uno (empiezan por
+   recurrentes: uno a 1€/mes (ej. "Cryptolyzer Pro") y otro a 4,99€/mes (ej.
+   "Cryptolyzer Business"). Copia el `price_id` de cada uno (empiezan por
    `price_...`) — son dos IDs distintos, uno por plan.
 3. En **Developers → API keys**, copia la **Secret key** de test
    (`sk_test_...`).
@@ -191,7 +191,7 @@ alta en Google:
 Aviso realista: que Google la indexe no significa que aparezca arriba en
 búsquedas genéricas como "análisis de mercado" — para eso compites con
 sitios ya establecidos. Sí aparecerá con bastante fiabilidad para
-búsquedas de tu marca (`Vantex`) o con `site:vantex.onrender.com`.
+búsquedas de tu marca (`Cryptolyzer`) o con `site:vantex.onrender.com`.
 
 ## Estructura
 
@@ -213,7 +213,7 @@ server/
     picks.js                 lista de picks diarios
     wallet.js                 Wallet Tracker (simulado)
     copy.js                    Copy Trading (simulado)
-    billing.js                checkout / portal / webhook de Stripe (Vantex Pro)
+    billing.js                checkout / portal / webhook de Stripe (Cryptolyzer Pro)
   services/
     tokens.js               emite el access token (JWT) y el refresh token (opaco) de la app móvil
     claude.js               llamada a Claude con visión (tool use) + modo mock

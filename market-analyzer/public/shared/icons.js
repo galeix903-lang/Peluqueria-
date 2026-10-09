@@ -1,7 +1,7 @@
 /* Set de iconos propios (trazo redondeado, coherente con el sidebar) para
    sustituir los emojis en tarjetas y estados vacíos — se ven igual en
    cualquier sistema operativo y dan un aire más cuidado. */
-const VANTEX_ICON_PATHS = {
+const CRYPTOLYZER_ICON_PATHS = {
   brain: '<path d="M9 4.5a2.5 2.5 0 0 0-2.5 2.5v.2A2.5 2.5 0 0 0 5 9.5v1A2.5 2.5 0 0 0 6.5 13v1.5A3.5 3.5 0 0 0 10 18h.5" /><path d="M15 4.5a2.5 2.5 0 0 1 2.5 2.5v.2a2.5 2.5 0 0 1 1.5 2.3v1a2.5 2.5 0 0 1-1.5 2.3v1.5a3.5 3.5 0 0 1-3.5 3.5h-.5" /><path d="M9 4.5V18" /><path d="M15 4.5V18" /><circle cx="12" cy="11" r="1" />',
   chartBar: '<path d="M4 20V11" /><path d="M11 20V4" /><path d="M18 20v-6" />',
   star: '<path d="M12 3.5l2.4 5.1 5.6.6-4.2 3.8 1.2 5.5L12 15.7l-4.9 2.8 1.1-5.5-4.1-3.8 5.6-.6L12 3.5z" />',
@@ -15,7 +15,7 @@ const VANTEX_ICON_PATHS = {
   // aquí el set que antes vivía duplicado en shared/sidebar.js.
   home: '<path d="M4 11.5 12 4l8 7.5" /><path d="M6 10v9h12v-9" />',
   wand: '<path d="M15 4l5 5" /><path d="M4 20l9.5-9.5" /><path d="M14 3l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z" />',
-  // Logomark propio de Vantex: una "V" cuyo trazo derecho remata en un
+  // Logomark propio de Cryptolyzer: una "V" cuyo trazo derecho remata en un
   // pequeño ángulo hacia arriba (mismo lenguaje visual que antes, ahora
   // formando de verdad la inicial de la marca en vez de un zigzag genérico).
   trend: '<path d="M4 7 10.5 19 20 4" /><path d="M14.5 4h5.5v5.5" />',
@@ -58,15 +58,15 @@ const VANTEX_ICON_PATHS = {
 };
 
 function vantexIcon(name, { size = 22 } = {}) {
-  const path = VANTEX_ICON_PATHS[name] || '';
+  const path = CRYPTOLYZER_ICON_PATHS[name] || '';
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
 }
 
-// Logomark de marca: el icono oficial de Vantex (imagen fija con su
+// Logomark de marca: el icono oficial de Cryptolyzer (imagen fija con su
 // propio fondo en degradado azul-violeta, la "V" y la flecha de
 // tendencia). Se usa solo en los puntos de marca reales (sidebar,
 // favicon, cabecera, tarjeta de acceso), nunca como icono genérico de
 // interfaz.
 function vantexLogo({ size = 24 } = {}) {
-  return `<img src="/assets/vantex-mark.png" width="${size}" height="${size}" alt="Vantex" style="display:block; width:${size}px; height:${size}px;" />`;
+  return `<img src="/assets/cryptolyzer-mark.png" width="${size}" height="${size}" alt="Cryptolyzer" style="display:block; width:${size}px; height:${size}px;" />`;
 }

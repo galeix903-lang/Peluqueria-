@@ -2,10 +2,10 @@ import { Image } from 'react-native';
 
 /*
   Icono de marca: la misma imagen que usa la web (public/assets/
-  vantex-mark.png, elegida por el usuario) — nunca una recreación en
+  cryptolyzer-mark.png, elegida por el usuario) — nunca una recreación en
   SVG, para que no haya divergencia visual entre plataformas.
 */
-export function VantexMark({ size = 40 }: { size?: number }) {
+export function CryptolyzerMark({ size = 40 }: { size?: number }) {
   return (
     <Image
       source={require('../../assets/icon.png')}

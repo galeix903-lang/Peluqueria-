@@ -74,7 +74,7 @@ async function mountShell({ page, title }) {
   root.innerHTML = `
     <div class="app">
       <aside class="sidebar">
-        <a class="sidebar__logo" href="/dashboard" title="Vantex">${vantexLogo({ size: 66 })}</a>
+        <a class="sidebar__logo" href="/dashboard" title="Cryptolyzer">${vantexLogo({ size: 66 })}</a>
         <nav class="sidebar__nav">
           ${NAV_ITEMS.map((item) => `
             <a class="sidebar__link ${item.page === page ? 'is-active' : ''}" href="${item.href}" style="--link-gradient:${item.gradient}; --link-glow:${item.glow};" data-label="${item.label}" aria-label="${item.label}">
@@ -210,7 +210,7 @@ function openProfileCard(user, root) {
         <h3 class="profile-card__name">${escapeHtml(user.name)}</h3>
         <p class="profile-card__email text-caption">${escapeHtml(user.email)}</p>
         <p class="profile-card__bio ${user.bio ? '' : 'profile-card__bio--empty'}">${user.bio ? escapeHtml(user.bio) : 'Todavía no has añadido una biografía.'}</p>
-        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : user.plan === 'plus' ? 'background:#eef2ff; color:var(--accent);' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Vantex Business' : user.plan === 'plus' ? 'Vantex Pro' : 'Plan gratuito'}</span>
+        <span class="badge" style="${user.plan === 'pro' ? 'background:#fef3e0; color:#b45309;' : user.plan === 'plus' ? 'background:#eef2ff; color:var(--accent);' : 'background:var(--field-bg); color:var(--text-dim);'}">${user.plan === 'pro' ? '★ Cryptolyzer Business' : user.plan === 'plus' ? 'Cryptolyzer Pro' : 'Plan gratuito'}</span>
       </div>
     `,
     footerHtml: `
@@ -256,7 +256,7 @@ function openUpgradeModal() {
     bodyHtml: `
       <div class="upgrade-plans">
         <div class="upgrade-plan">
-          <div class="upgrade-plan__head"><strong>Vantex Pro</strong><span class="upgrade-plan__price">1€<span>/mes</span></span></div>
+          <div class="upgrade-plan__head"><strong>Cryptolyzer Pro</strong><span class="upgrade-plan__price">1€<span>/mes</span></span></div>
           <ul class="upgrade-plan__list">
             <li>${vantexIcon('check', { size: 16 })} 15 análisis con IA al día</li>
             <li>${vantexIcon('check', { size: 16 })} Copy Trading simulado</li>
@@ -265,7 +265,7 @@ function openUpgradeModal() {
           <button type="button" class="btn-secondary" style="width:100%; justify-content:center;" data-upgrade-plan="plus">Elegir Pro</button>
         </div>
         <div class="upgrade-plan upgrade-plan--pro">
-          <div class="upgrade-plan__head"><strong>Vantex Business</strong><span class="upgrade-plan__price">4,99€<span>/mes</span></span></div>
+          <div class="upgrade-plan__head"><strong>Cryptolyzer Business</strong><span class="upgrade-plan__price">4,99€<span>/mes</span></span></div>
           <ul class="upgrade-plan__list">
             <li>${vantexIcon('check', { size: 16 })} Análisis con IA ilimitados</li>
             <li>${vantexIcon('check', { size: 16 })} Copy Trading simulado</li>
@@ -330,7 +330,7 @@ function openSettingsModal(user, root) {
         <div class="profile-edit__bio-count" data-bio-count>0 / 160</div>
       </div>
       <p class="text-caption" style="margin:0 0 14px;">
-        Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Business ★' : user.plan === 'plus' ? 'Vantex Pro' : 'Gratuito'}</strong>
+        Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Cryptolyzer Business ★' : user.plan === 'plus' ? 'Cryptolyzer Pro' : 'Gratuito'}</strong>
       </p>
       <button type="button" class="btn-secondary" data-settings-billing style="width:100%; justify-content:center;">
         ${user.plan === 'free' ? 'Mejorar plan' : 'Suscripción y facturación'}

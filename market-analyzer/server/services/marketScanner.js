@@ -1,5 +1,5 @@
 /*
-  Market Scanner: escanea en vivo los símbolos que Vantex sigue con datos
+  Market Scanner: escanea en vivo los símbolos que Cryptolyzer sigue con datos
   de mercado reales (cripto mayor + memecoins — misma lista que Paper
   Trading, ver market.SUPPORTED_SYMBOLS) combinando dos fuentes, ambas
   reales y ambas ya usadas en el resto de la app:
@@ -83,7 +83,7 @@ async function scanMarket() {
   // Percentil de volumen DENTRO del propio escaneo (no un umbral fijo
   // global, que no tendría sentido comparando el volumen de BTC con el
   // de una memecoin — aquí solo importa quién destaca hoy, entre los
-  // activos que Vantex sigue).
+  // activos que Cryptolyzer sigue).
   const volumes = rows.map((r) => r.volume24h).filter((v) => v != null);
   const maxVolume = volumes.length ? Math.max(...volumes) : null;
 

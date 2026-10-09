@@ -1,5 +1,5 @@
 /*
-  Orquestador de la introducción de Vantex.
+  Orquestador de la introducción de Cryptolyzer.
 
   Misma arquitectura que la intro 3D de peluqueria-premium/ (adaptada,
   sin reutilizar ningún contenido de esa marca): gate por localStorage,
@@ -21,7 +21,7 @@
      descarga cuando de verdad se va a mostrar.
 */
 
-const STORAGE_KEY = 'vantex_intro_seen';
+const STORAGE_KEY = 'cryptolyzer_intro_seen';
 const MAX_WAIT_MS = 9000; // nunca esperar más que esto sin interacción
 const THREE_LOAD_TIMEOUT_MS = 2500; // si la escena 3D tarda, cae a la versión ligera
 const SCENE_DURATION_MS = 3000; // duración objetivo de la secuencia (antes del fade de salida)

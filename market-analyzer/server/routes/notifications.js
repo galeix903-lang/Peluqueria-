@@ -26,7 +26,7 @@ router.delete('/register-token', asyncHandler(async (req, res) => {
 // comprobar que le llegan de verdad a su dispositivo.
 router.post('/test', asyncHandler(async (req, res) => {
   const result = await sendPushToUser(req.userId, {
-    title: 'Vantex.AI',
+    title: 'Cryptolyzer.AI',
     body: 'Esto es una notificación de prueba. Si la ves, las notificaciones funcionan.',
     data: { type: 'test' },
   });

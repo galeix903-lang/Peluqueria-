@@ -3,7 +3,7 @@
   una lectura "genérica pero plausible" de BTC/ETH sin ningún dato de
   precio real detrás — inventaba una recomendación de la nada, justo lo
   que una auditoría de producto marcó como el problema más grave de
-  Vantex. Ahora es un Market Scanner real: escanea en vivo los símbolos
+  Cryptolyzer. Ahora es un Market Scanner real: escanea en vivo los símbolos
   con datos de mercado reales usando el mismo motor determinista del AI
   Analyzer. Se mantiene la ruta /api/picks (no rompe nada que ya apunte
   aquí); el nombre de producto es "Market Scanner".

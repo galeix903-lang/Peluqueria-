@@ -8,7 +8,7 @@
 
 El usuario pidió actuar como un equipo completo (PM, full-stack, UX,
 AI product, CRO, QA, performance, security) y hacer una auditoría real
-de todo Vantex — no un informe, sino auditar → decidir → implementar →
+de todo Cryptolyzer — no un informe, sino auditar → decidir → implementar →
 probar. Prioridad explícita: functionality > data quality > UX > clarity
 > performance > design polish, con el AI Analyzer como "prioridad
 absoluta". Es un encargo de 36 secciones — un proyecto de varias
@@ -29,7 +29,7 @@ encargo — audit, arquitectura/funcionalidad, AI Analyzer, dashboard):
    (`server/services/signalEngine.js`, `analysisPipeline.js`,
    `public/analyzer/index.html`, `mobile/app/(tabs)/analyzer.tsx`):
    - Se sustituye COMPRAR/VENDER/ESPERAR (con emoji de semáforo) por
-     "Sesgo alcista/Sesgo bajista/Neutral" — Vantex presenta escenarios
+     "Sesgo alcista/Sesgo bajista/Neutral" — Cryptolyzer presenta escenarios
      y probabilidades, nunca una orden ni una certeza. El enum interno
      `BUY/SELL/WAIT` no cambia (evita tocar las 18 pruebas ya validadas
      del motor); solo cambia la capa de presentación.
@@ -99,7 +99,7 @@ razonablemente buenos en la auditoría, pendiente de un pase de copy
 para el nuevo lenguaje de sesgo); onboarding de primer uso; estructura
 de monetización (Free/Pro/Premium ya existe vía Stripe, sin cambios
 todavios); repaso de mobile/performance/seguridad más profundo; QA
-final como "usuario que descubre Vantex por primera vez".
+final como "usuario que descubre Cryptolyzer por primera vez".
 
 ## Motor de análisis v2 — señal determinista BUY/SELL/WAIT — COMPLETO
 
@@ -110,7 +110,7 @@ inventar información, con una señal principal inequívoca (🟢 COMPRAR /
 🔴 VENDER / ⚪ ESPERAR) como primera conclusión visible, con motivo y
 confianza calibrada de verdad.
 
-**Diagnóstico (antes de tocar código)**: el AI Analyzer de Vantex era
+**Diagnóstico (antes de tocar código)**: el AI Analyzer de Cryptolyzer era
 100% "visión de captura" — el usuario sube una foto de un gráfico y
 Claude la interpreta a ojo. No existía ningún pipeline de datos
 OHLCV/indicadores en toda la aplicación; lo único parecido eran precios
@@ -127,7 +127,7 @@ el mismo contrato unificado (`signal`/`confidence`/`risk`/`trend`/
 `mainReason`/`source`), implementado en
 `server/services/analysisPipeline.js`:
 
-- **Camino REAL_DATA** (los 5 símbolos con datos reales que Vantex ya
+- **Camino REAL_DATA** (los 5 símbolos con datos reales que Cryptolyzer ya
   sigue — BTC/ETH/SOL/BNB/XRP): `market.js` gana `getCandles`/
   `getMultiTimeframeCandles` (velas OHLC reales de CoinGecko, 4h/30d
   para tendencia+estructura y 30min/2d para momentum de corto plazo, con
@@ -223,7 +223,7 @@ proveedor que ya usa Paper Trading con éxito) debería funcionar igual.
 
 ## App móvil nativa (Expo + Router) — COMPLETA (Fases 0-6)
 
-El usuario pidió convertir Vantex en una app nativa real para iOS/
+El usuario pidió convertir Cryptolyzer en una app nativa real para iOS/
 Android (App Store/Google Play), no una web empaquetada. Auditoría
 completa hecha primero (framework real: Node/Express + HTML/JS plano
 sin build step, ninguna parte de la web reutilizable como componente).
@@ -717,7 +717,7 @@ debajo de 640px (si no, desbordaba en móvil). Verificado con Playwright en
 1366/768/390px sin overflow horizontal, y regresión funcional completa
 (auth, analyzer, trading, picks, billing) sin errores nuevos.
 
-## Fase 2 — Suscripción de pago (Vantex Pro) COMPLETA y verificada
+## Fase 2 — Suscripción de pago (Cryptolyzer Pro) COMPLETA y verificada
 
 AI Analyzer limitado a 3 análisis/día en el plan gratuito; botón "Hazte
 Pro" (4,99€/mes) lo quita. Stripe integrado con el mismo patrón mock/live
@@ -748,7 +748,7 @@ de proxy, pero funcionará normal en un hosting real), cae a un pequeño
 generador de precios simulados para que el paper trading siga siendo
 usable sin depender de esa API externa.
 
-Marca elegida para no clonar la identidad de Polifly: **"Vantex"** (logo
+Marca elegida para no clonar la identidad de Polifly: **"Cryptolyzer"** (logo
 "V" en índigo). Cámbialo libremente en `public/shared/sidebar.js` (logo)
 y en los `<title>`/textos de cada página si quieres otro nombre.
 

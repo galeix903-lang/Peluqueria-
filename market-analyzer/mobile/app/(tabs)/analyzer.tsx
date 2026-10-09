@@ -17,7 +17,7 @@ const REAL_DATA_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];
 const SYMBOL_CHIPS = ['BTC', 'ETH', 'AAPL', 'SPY', 'EUR/USD'];
 const TIMEFRAMES = ['15m', '1H', '4H', '1D', '1W'];
 
-// Lenguaje de sesgo, no de orden de compra/venta: Vantex presenta
+// Lenguaje de sesgo, no de orden de compra/venta: Cryptolyzer presenta
 // escenarios y probabilidades, nunca una certeza sobre el futuro.
 const SIGNAL_META: Record<string, { icon: any; label: string; color: string }> = {
   BUY: { icon: 'arrow-up-right', label: 'Sesgo alcista', color: colors.green },

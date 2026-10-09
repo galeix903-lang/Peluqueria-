@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vantex — Inicio</title>
+<title>Cryptolyzer — Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -30,7 +30,7 @@
       showSectionIntro(ctx.user, 'dashboard', {
         icon: 'home', iconBg: 'linear-gradient(135deg, #818cf8, var(--accent), var(--blue))',
         title: 'Tu panel principal',
-        desc: 'Aquí tienes un resumen de tu cuenta — saldo, P&amp;L abierto y posiciones abiertas — además de accesos directos a todas las herramientas de Vantex.',
+        desc: 'Aquí tienes un resumen de tu cuenta — saldo, P&amp;L abierto y posiciones abiertas — además de accesos directos a todas las herramientas de Cryptolyzer.',
         points: [
           'Las dos tarjetas grandes son tus herramientas principales: AI Analyzer y Paper Trading.',
           'Más abajo encontrarás Market Scanner, Wallet Tracker y Copy Trading.',
@@ -41,9 +41,9 @@
       const params = new URLSearchParams(location.search);
       let banner = '';
       if (params.get('upgraded') === 'plus') {
-        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Pro!</strong> Ya tienes 15 análisis al día y Copy Trading simulado.</div>';
+        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Cryptolyzer Pro!</strong> Ya tienes 15 análisis al día y Copy Trading simulado.</div>';
       } else if (params.get('upgraded')) {
-        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Vantex Business!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
+        banner = '<div class="panel reveal-pop" style="margin-bottom:24px; background:var(--green-bg); border-color:var(--green);">🎉 <strong>¡Bienvenido a Cryptolyzer Business!</strong> Ya tienes análisis ilimitados en el AI Analyzer.</div>';
       } else if (params.get('downgraded')) {
         banner = '<div class="panel reveal-pop" style="margin-bottom:24px;">Has vuelto al plan gratuito (3 análisis al día).</div>';
       }

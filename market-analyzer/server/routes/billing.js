@@ -211,7 +211,7 @@ async function webhookHandler(req, res) {
     const charge = event.data.object;
     const user = await store.findUserByStripeCustomerId(charge.customer);
     // Reconciliación: si el reembolso se originó desde el propio panel
-    // de Stripe (no desde una solicitud de Vantex), no habrá una
+    // de Stripe (no desde una solicitud de Cryptolyzer), no habrá una
     // refund_request previa — se registra igual para que quede
     // constancia, nunca se descarta silenciosamente.
     const requests = user ? await store.listRefundRequestsForUser(user.id) : [];

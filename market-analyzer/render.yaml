@@ -1,4 +1,4 @@
-# Blueprint de Render (https://render.com) para desplegar Vantex desde
+# Blueprint de Render (https://render.com) para desplegar Cryptolyzer desde
 # este monorepo. En Render: "New +" -> "Blueprint" -> conecta este
 # repositorio de GitHub -> Render detecta este fichero solo.
 #
@@ -6,6 +6,17 @@
 # DATABASE_URL se rellena solo (fromDatabase). El plan "free" de Postgres
 # en Render caduca a los 30 días si no se pasa a uno de pago — para un
 # uso real conviene revisarlo en el dashboard antes de esa fecha.
+#
+# OJO al renombrar de Vantex a Cryptolyzer: el servicio y la base de datos
+# de abajo YA EXISTEN en Render con el nombre "vantex"/"vantex-db".
+# Render identifica los recursos de un Blueprint por este campo `name`,
+# así que cambiarlo aquí y hacer push NO renombra el servicio real — crea
+# uno nuevo vacío (sin las claves de Stripe ni los secretos ya
+# configurados) y deja el antiguo huérfano. Para renombrar el servicio
+# que ya está desplegado, hazlo desde el dashboard de Render (el propio
+# servicio -> Settings -> Name) — eso sí cambia también la URL
+# *.onrender.com. Solo después de hacerlo ahí, actualiza estos `name:`
+# para que vuelvan a coincidir con la realidad.
 databases:
   - name: vantex-db
     plan: free

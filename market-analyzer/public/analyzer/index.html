@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vantex — AI Analyzer</title>
+<title>Cryptolyzer — AI Analyzer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -166,7 +166,7 @@
     // Se guarda por cuenta (no solo por navegador) para no repetirse en
     // sesiones siguientes del mismo usuario.
     function showOnboardingIfFirstVisit(user) {
-      const key = `vantex_onboarding_seen_${user.id}`;
+      const key = `cryptolyzer_onboarding_seen_${user.id}`;
       if (localStorage.getItem(key)) return;
       const steps = [
         { icon: 'brain', title: 'Analiza cualquier gráfico', desc: 'Sube una captura aquí mismo y en segundos tendrás un sesgo claro (alcista/bajista/neutral), con sus escenarios y niveles clave.' },
@@ -175,7 +175,7 @@
         { icon: 'windowLayout', title: 'De la idea a la práctica', desc: 'En cualquier análisis con datos reales, pulsa "Simular este escenario" para abrir esa idea directamente en tu ticket de Paper Trading.' },
       ];
       openModal({
-        title: `Hola, ${user.name} — así funciona Vantex`,
+        title: `Hola, ${user.name} — así funciona Cryptolyzer`,
         bodyHtml: `
           <div style="display:flex; flex-direction:column; gap:16px;">
             ${steps.map((s) => `

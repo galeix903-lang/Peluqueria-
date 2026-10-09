@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vantex — Suscripción y facturación</title>
+<title>Cryptolyzer — Suscripción y facturación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -50,7 +50,7 @@
     const REASON_LABELS = {
       duplicate_charge: 'Cargo duplicado',
       unauthorized_charge: 'Cargo no autorizado',
-      technical_failure: 'Fallo técnico de Vantex',
+      technical_failure: 'Fallo técnico de Cryptolyzer',
       not_as_described: 'El servicio no coincide con lo descrito',
       cancelled_before_renewal: 'Cancelé antes de la renovación',
       other: 'Otro motivo',
@@ -107,7 +107,7 @@
         const card = contentEl.querySelector('[data-state-card]');
         try {
           const sub = await api('/billing/subscription');
-          const planLabel = sub.plan === 'pro' ? 'Vantex Business ★' : sub.plan === 'plus' ? 'Vantex Pro' : 'Plan gratuito';
+          const planLabel = sub.plan === 'pro' ? 'Cryptolyzer Business ★' : sub.plan === 'plus' ? 'Cryptolyzer Pro' : 'Plan gratuito';
           const statusBadge = sub.subscriptionStatus
             ? `<span class="badge badge--${sub.subscriptionStatus === 'active' ? 'low' : sub.subscriptionStatus === 'past_due' ? 'high' : 'mixed'}">${escapeHtml(sub.subscriptionStatus)}</span>`
             : '';

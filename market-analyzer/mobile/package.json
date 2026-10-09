@@ -1,5 +1,5 @@
 {
-  "name": "vantex-mobile",
+  "name": "cryptolyzer-mobile",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {

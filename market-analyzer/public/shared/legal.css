@@ -2,7 +2,7 @@
   Estilos compartidos por las tres páginas legales (Términos, Privacidad,
   Cookies). Texto largo y legible, no un dashboard — por eso no reutiliza
   el shell de app (sidebar.js) y vive como página suelta, igual que
-  /login. Las zonas marcadas con .legal-placeholder son datos que Vantex
+  /login. Las zonas marcadas con .legal-placeholder son datos que Cryptolyzer
   todavía no ha rellenado con información real de empresa (nunca
   inventados) — se resaltan a propósito para que sean imposibles de
   confundir con información real ya verificada.

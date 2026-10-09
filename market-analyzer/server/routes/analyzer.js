@@ -193,7 +193,7 @@ router.get('/backtest/:symbol', asyncHandler(async (req, res) => {
     sourceNote = 'Velas diarias de cierre de los últimos ~12 meses (Stooq).';
   } else {
     return res.status(404).json({
-      error: `${symbol} no tiene cobertura de datos de mercado reales en Vantex — no hay histórico verificable sobre el que backtestear (nunca se simula uno).`,
+      error: `${symbol} no tiene cobertura de datos de mercado reales en Cryptolyzer — no hay histórico verificable sobre el que backtestear (nunca se simula uno).`,
       hasRealData: false,
     });
   }

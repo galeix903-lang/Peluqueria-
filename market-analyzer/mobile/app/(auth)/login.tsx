@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/state/AuthContext';
 import { ApiError } from '../../src/services/api';
-import { VantexMark } from '../../src/components/VantexMark';
+import { CryptolyzerMark } from '../../src/components/CryptolyzerMark';
 import { colors, radius } from '../../src/theme';
 
 type Mode = 'login' | 'signup';
@@ -45,9 +45,9 @@ export default function LoginScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.brandRow}>
-            <VantexMark size={40} />
+            <CryptolyzerMark size={40} />
             <Text style={styles.brandName}>
-              Vantex<Text style={{ opacity: 0.55 }}>.Ai</Text>
+              Cryptolyzer<Text style={{ opacity: 0.55 }}>.Ai</Text>
             </Text>
           </View>
           <Text style={styles.tagline}>Analiza. Practica. Sigue.</Text>

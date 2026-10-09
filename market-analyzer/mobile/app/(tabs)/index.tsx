@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Screen } from '../../src/components/Screen';
 import { PendingCard } from '../../src/components/PendingCard';
-import { VantexMark } from '../../src/components/VantexMark';
+import { CryptolyzerMark } from '../../src/components/CryptolyzerMark';
 import { useAuth } from '../../src/state/AuthContext';
 import { colors, gradients, radius } from '../../src/theme';
 
@@ -13,10 +13,10 @@ export default function HomeScreen() {
   const router = useRouter();
 
   return (
-    <Screen title="Vantex.AI" subtitle="Analiza. Practica. Sigue.">
+    <Screen title="Cryptolyzer.AI" subtitle="Analiza. Practica. Sigue.">
       <LinearGradient colors={gradients.brand} style={styles.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-        <VantexMark size={44} />
-        <Text style={styles.heroTitle}>{user ? `Hola, ${user.name}` : 'Bienvenido a Vantex'}</Text>
+        <CryptolyzerMark size={44} />
+        <Text style={styles.heroTitle}>{user ? `Hola, ${user.name}` : 'Bienvenido a Cryptolyzer'}</Text>
         <Text style={styles.heroBody}>
           El saldo y el P&L en vivo se ven en la pestaña Trading — aquí solo el acceso rápido a cada herramienta.
         </Text>

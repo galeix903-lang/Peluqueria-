@@ -1,5 +1,5 @@
 /*
-  Suscripción de pago ("Vantex Pro"). Mismo patrón que
+  Suscripción de pago ("Cryptolyzer Pro"). Mismo patrón que
   services/claude.js: un modo "live" (Stripe de verdad) y un modo "mock"
   que simula el pago al instante, para poder construir y probar todo el
   paywall sin tener todavía una cuenta de Stripe. En cuanto se añadan

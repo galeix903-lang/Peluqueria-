@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "Vantex.AI",
-    "slug": "vantex-ai",
+    "name": "Cryptolyzer.AI",
+    "slug": "cryptolyzer",
     "version": "1.0.0",
-    "scheme": "vantexai",
+    "scheme": "cryptolyzer",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "bundleIdentifier": "com.vantexai.app",
+      "bundleIdentifier": "com.cryptolyzer.app",
       "supportsTablet": true
     },
     "android": {
-      "package": "com.vantexai.app",
+      "package": "com.cryptolyzer.app",
       "adaptiveIcon": {
         "backgroundColor": "#4f46e5",
         "foregroundImage": "./assets/adaptive-icon-foreground.png"
@@ -43,8 +43,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Vantex necesita acceso a tus fotos para subir la captura de un gráfico.",
-          "cameraPermission": "Vantex necesita la cámara para fotografiar un gráfico y analizarlo."
+          "photosPermission": "Cryptolyzer necesita acceso a tus fotos para subir la captura de un gráfico.",
+          "cameraPermission": "Cryptolyzer necesita la cámara para fotografiar un gráfico y analizarlo."
         }
       ],
       [

@@ -10,8 +10,8 @@ import * as SecureStore from 'expo-secure-store';
   navegador durante el desarrollo — un build real para App Store/Play
   Store siempre usa SecureStore.
 */
-const ACCESS_KEY = 'vantex_access_token';
-const REFRESH_KEY = 'vantex_refresh_token';
+const ACCESS_KEY = 'cryptolyzer_access_token';
+const REFRESH_KEY = 'cryptolyzer_refresh_token';
 
 const isWeb = Platform.OS === 'web';
 

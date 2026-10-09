@@ -1,6 +1,6 @@
 /*
   Paleta portada 1:1 desde public/shared/style.css (:root) — misma fuente
-  de verdad que la web, para que la identidad de Vantex no diverja entre
+  de verdad que la web, para que la identidad de Cryptolyzer no diverja entre
   plataformas. Si cambias un color aquí, cámbialo también allí (y
   viceversa) hasta que exista un paquete de design tokens compartido.
 */

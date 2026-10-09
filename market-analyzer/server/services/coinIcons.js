@@ -1,7 +1,7 @@
 /*
   Resolución de logos de criptomonedas — sistema escalable, no una lista
   manual de "si es BTC pon este PNG". Reutiliza la misma fuente que ya usa
-  Vantex para precios/velas (CoinGecko, sin API key) en vez de añadir un
+  Cryptolyzer para precios/velas (CoinGecko, sin API key) en vez de añadir un
   segundo proveedor:
 
   1. SEED_SYMBOL_TO_ID: símbolo -> id de CoinGecko, para ~90 monedas muy
@@ -120,7 +120,7 @@ function loadSeedIcons() {
 // con la coincidencia de símbolo exacto con menor market_cap_rank (la
 // moneda "real"/más grande de ese ticker) en vez de la primera que
 // devuelva la búsqueda — así, si existen varios tokens con el mismo
-// ticker, Vantex no enseña el logo de una copia/scam por delante del
+// ticker, Cryptolyzer no enseña el logo de una copia/scam por delante del
 // activo legítimo.
 async function searchIcon(symbol) {
   try {

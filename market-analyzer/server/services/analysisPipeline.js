@@ -7,7 +7,7 @@
   disponibles para el activo indicado:
 
   - CAMINO REAL (source: 'REAL_DATA'): cuando el activo es uno de los que
-    Vantex ya sigue con datos reales — cripto mayor y memecoins vía
+    Cryptolyzer ya sigue con datos reales — cripto mayor y memecoins vía
     CoinGecko (server/services/market.js, precio en vivo) o acciones/
     fondos vía Stooq (server/services/stooq.js, solo cierre diario) — se
     piden velas OHLCV reales y la señal sale ÍNTEGRAMENTE de

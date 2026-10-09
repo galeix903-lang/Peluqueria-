@@ -48,7 +48,7 @@ async function fetchDailyCandlesRaw(ticker) {
       // Sin esta cabecera, Stooq a veces devuelve una página de error en
       // vez del CSV — con un user-agent de navegador normal responde
       // igual que por el navegador.
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VantexBot/1.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CryptolyzerBot/1.0)' },
     });
     if (!res.ok) throw new Error(`Stooq respondió ${res.status}`);
     text = await res.text();

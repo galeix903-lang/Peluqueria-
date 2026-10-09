@@ -1,8 +1,8 @@
-# Vantex.AI — app móvil (Expo + EAS)
+# Cryptolyzer.AI — app móvil (Expo + EAS)
 
 App nativa real para iOS/Android (no web empaquetada en un WebView),
 construida con Expo Router sobre la misma identidad de marca que
-`market-analyzer/public/` (la web de Vantex).
+`market-analyzer/public/` (la web de Cryptolyzer).
 
 ## Estado actual: Fase 6 — editar perfil real
 
@@ -85,10 +85,10 @@ fallarán ahí hasta que se despliegue — no es un fallo de la app.
 
 ## Identificadores (cambiables antes de la primera publicación)
 
-- Nombre visible: **Vantex.AI**
-- `slug` / scheme interno: `vantex-ai` / `vantex://`
-- iOS `bundleIdentifier`: `com.vantexai.app`
-- Android `package`: `com.vantexai.app`
+- Nombre visible: **Cryptolyzer.AI**
+- `slug` / scheme interno: `cryptolyzer` / `cryptolyzer://`
+- iOS `bundleIdentifier`: `com.cryptolyzer.app`
+- Android `package`: `com.cryptolyzer.app`
 
 Estos son valores de partida razonables, no inventados al azar — pero
 confírmalos (o cámbialos) antes de crear el registro de la app en App
@@ -116,7 +116,7 @@ mobile/
   src/
     theme/                Paleta y radios — copia 1:1 de public/shared/style.css
     utils/format.ts         fmtUsd/fmtPct compartidos
-    components/           Screen, PendingCard, VantexMark, ConfirmModal, Sparkline,
+    components/           Screen, PendingCard, CryptolyzerMark, ConfirmModal, Sparkline,
                           BackHeader (reutilizables)
     services/
       api.ts                fetch con Authorization: Bearer + refresco automático del access token
@@ -135,7 +135,7 @@ mobile/
 ## Limitaciones conocidas de este icono
 
 El icono/splash se generó ampliando (LANCZOS) el recorte del icono que
-ya usa la web (`public/assets/vantex-mark.png`), porque no existe una
+ya usa la web (`public/assets/cryptolyzer-mark.png`), porque no existe una
 fuente vectorial del glifo por separado del fondo. Se ve nítido en los
 tamaños probados, pero si en algún momento hay una versión vectorial
 (SVG/AI/Figma) del logo, conviene regenerar los assets desde ahí para
@@ -179,7 +179,7 @@ eas submit --platform ios                        # sube el build a App Store Con
 
 Antes del primer `eas build --profile production` hay que confirmar (no
 se puede cambiar después en iOS): el `bundleIdentifier`/`package`
-(`com.vantexai.app`, ver sección de identificadores más arriba), y tener
+(`com.cryptolyzer.app`, ver sección de identificadores más arriba), y tener
 ya creadas las cuentas de Apple Developer Program y Google Play Console.
 `eas init` añade automáticamente un `extra.eas.projectId` a `app.json`
 — sin él, `expo-notifications` no puede obtener un token de push real

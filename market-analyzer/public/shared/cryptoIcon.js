@@ -10,14 +10,14 @@
   hace con populateIcons()/[data-icon] para el set de iconos de marca).
   Se encarga de: resolver el logo real contra /api/market/icons (que a
   su vez cachea en el servidor y reutiliza la misma fuente de datos que
-  ya usa Vantex, CoinGecko), cachear en el cliente para no repetir la
+  ya usa Cryptolyzer, CoinGecko), cachear en el cliente para no repetir la
   petición al cambiar de pantalla, mostrar un estado de carga mientras
   tanto, y caer a un fallback elegante (iniciales sobre un círculo de
   color estable) si el logo no existe o la imagen falla al cargar —
   nunca un icono roto.
 */
 (function () {
-  const CLIENT_CACHE_KEY = 'vantex_crypto_icon_cache_v1';
+  const CLIENT_CACHE_KEY = 'cryptolyzer_crypto_icon_cache_v1';
   const CLIENT_CACHE_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 días
 
   // Paleta estable (no aleatoria): el mismo símbolo siempre cae en el

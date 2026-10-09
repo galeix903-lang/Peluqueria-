@@ -8,8 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
   críticos.
 */
 const KEYS = {
-  lastSymbol: 'vantex:prefs:lastSymbol',
-  notificationsEnabled: 'vantex:prefs:notificationsEnabled',
+  lastSymbol: 'cryptolyzer:prefs:lastSymbol',
+  notificationsEnabled: 'cryptolyzer:prefs:notificationsEnabled',
 };
 
 async function getLastSymbol(): Promise<string | null> {

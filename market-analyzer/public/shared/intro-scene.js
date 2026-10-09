@@ -1,9 +1,9 @@
 /*
-  Escena 3D de la intro de Vantex — importado de forma perezosa desde
+  Escena 3D de la intro de Cryptolyzer — importado de forma perezosa desde
   shared/intro.js, solo cuando de verdad se va a mostrar.
 
   Concepto: un puñado de partículas dispersas convergen para "ensamblar"
-  una versión estilizada en 3D del icono real de Vantex —una "V" que
+  una versión estilizada en 3D del icono real de Cryptolyzer —una "V" que
   remata en una punta de flecha, con tres barras de gráfico asomando
   dentro del hueco de la "V"—, extruida como tubos del mismo grosor
   siguiendo su contorno (la punta como un triángulo cerrado, no como una
@@ -17,7 +17,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 
 // Puntos de la "V" + flecha, en un espacio 0-32 comparable al icono real
-// (public/assets/vantex-mark.png), convertidos a coordenadas 3D
+// (public/assets/cryptolyzer-mark.png), convertidos a coordenadas 3D
 // centradas en el origen (y hacia arriba).
 const K = 0.16;
 function toVec3([svgX, svgY]) {
