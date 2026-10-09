@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Panel admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .admin-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .admin-row:last-child { border-bottom: none; }
+  .admin-row__meta { color: var(--text-dim); font-size: .8125rem; }
+  .admin-row__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .admin-section { margin-bottom: 26px; }
+</style>
+</head>
+<body>
+  <div data-app-shell data-page="admin"></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
+  <script src="/shared/format.js"></script>
+  <script src="/shared/toast.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    const STATUS_META = {
+      pending: { label: 'Pendiente', cls: 'mock' },
+      under_review: { label: 'En revisión', cls: 'mixed' },
+      approved: { label: 'Aprobada', cls: 'medium' },
+      processed: { label: 'Reembolsada', cls: 'low' },
+      rejected: { label: 'Rechazada', cls: 'high' },
+      failed: { label: 'Error al procesar', cls: 'high' },
+    };
+
+    (async () => {
+      const shell = await mountShell({ page: 'admin', title: 'Panel admin — Pagos' });
+      if (!shell) return;
+      const { contentEl } = shell;
+
+      contentEl.innerHTML = `
+        <div class="admin-section">
+          <h2 style="font-size:1.05rem;">Solicitudes de reembolso</h2>
+          <div class="card" data-refunds-card><div class="skeleton skeleton-text" style="width:100%; height:60px;"></div></div>
+        </div>
+        <div class="admin-section">
+          <h2 style="font-size:1.05rem;">Disputas (chargebacks)</h2>
+          <div class="card" data-disputes-card><div class="skeleton skeleton-text" style="width:100%; height:40px;"></div></div>
+        </div>
+      `;
+
+      await Promise.all([loadRefunds(), loadDisputes()]);
+
+      async function loadRefunds() {
+        const card = contentEl.querySelector('[data-refunds-card]');
+        try {
+          const { requests } = await api('/admin/refund-requests');
+          renderRefunds(card, requests);
+        } catch (err) {
+          card.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${vantexIcon('alertTriangle', { size: 26 })}</div><p>${err.status === 403 ? 'No tienes permisos de administrador para ver este panel.' : escapeHtml(err.message)}</p></div>`;
+          contentEl.querySelector('[data-disputes-card]').innerHTML = '';
+        }
+      }
+
+      function renderRefunds(card, requests) {
+        if (!requests.length) {
+          card.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${vantexIcon('inbox', { size: 26 })}</div><p>No hay solicitudes de reembolso.</p></div>`;
+          return;
+        }
+        card.innerHTML = requests.map((r) => {
+          const meta = STATUS_META[r.status] || { label: r.status, cls: 'mixed' };
+          const actionable = ['pending', 'under_review'].includes(r.status);
+          return `
+            <div class="admin-row" data-row="${r.id}">
+              <div>
+                <strong>${r.amount != null ? fmtUsd(r.amount) : '—'}</strong> <span class="admin-row__meta">· ${r.reasonCode} · ${new Date(r.createdAt).toLocaleDateString('es-ES')} · cargo ${escapeHtml(r.stripeChargeId || '—')}</span>
+                ${r.detail ? `<div class="admin-row__meta">"${escapeHtml(r.detail)}"</div>` : ''}
+                <span class="badge badge--${meta.cls}" style="margin-top:4px;">${meta.label}</span>
+              </div>
+              ${actionable ? `
+                <div class="admin-row__actions">
+                  ${r.status === 'pending' ? `<button type="button" class="btn-secondary" data-mark-review="${r.id}">Marcar en revisión</button>` : ''}
+                  <button type="button" class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" data-reject="${r.id}">Rechazar</button>
+                  <button type="button" class="btn-primary" data-approve="${r.id}">Aprobar y reembolsar</button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        card.querySelectorAll('[data-mark-review]').forEach((btn) => btn.addEventListener('click', () => transition(btn.dataset.markReview, 'under_review')));
+        card.querySelectorAll('[data-reject]').forEach((btn) => btn.addEventListener('click', () => promptAndTransition(btn.dataset.reject, 'rejected')));
+        card.querySelectorAll('[data-approve]').forEach((btn) => btn.addEventListener('click', () => approve(btn.dataset.approve, btn)));
+      }
+
+      async function transition(id, status, adminNote) {
+        try {
+          await api(`/admin/refund-requests/${id}/status`, { method: 'POST', body: JSON.stringify({ status, adminNote }) });
+          showToast({ type: 'success', message: 'Actualizado.' });
+          await loadRefunds();
+        } catch (err) {
+          showToast({ type: 'error', message: err.message });
+        }
+      }
+
+      function promptAndTransition(id, status) {
+        const adminNote = window.prompt('Motivo para el usuario (se le mostrará):') || undefined;
+        transition(id, status, adminNote);
+      }
+
+      async function approve(id, btn) {
+        if (!window.confirm('Esto ejecuta un reembolso REAL en Stripe sobre este cargo. ¿Continuar?')) return;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" style="border-color:rgba(255,255,255,.4); border-top-color:#fff;"></span>';
+        try {
+          await api(`/admin/refund-requests/${id}/approve`, { method: 'POST', body: JSON.stringify({}) });
+          showToast({ type: 'success', message: 'Reembolso ejecutado en Stripe.' });
+          await loadRefunds();
+        } catch (err) {
+          showToast({ type: 'error', message: err.message });
+          await loadRefunds();
+        }
+      }
+
+      async function loadDisputes() {
+        const card = contentEl.querySelector('[data-disputes-card]');
+        try {
+          const { disputes } = await api('/admin/disputes');
+          if (!disputes.length) {
+            card.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${vantexIcon('shieldCheck', { size: 26 })}</div><p>No hay disputas registradas.</p></div>`;
+            return;
+          }
+          card.innerHTML = disputes.map((d) => `
+            <div class="admin-row">
+              <div>
+                <strong>${d.amount != null ? fmtUsd(d.amount) : '—'}</strong> <span class="admin-row__meta">· ${escapeHtml(d.reason || 'sin motivo')} · ${new Date(d.createdAt).toLocaleDateString('es-ES')} · cargo ${escapeHtml(d.stripeChargeId || '—')}</span>
+              </div>
+              <span class="badge badge--mixed">${escapeHtml(d.status || 'desconocido')}</span>
+            </div>
+          `).join('');
+        } catch {
+          card.innerHTML = '';
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

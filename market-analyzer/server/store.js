@@ -32,6 +32,47 @@ function rowToUser(row) {
     plan: row.plan,
     stripeCustomerId: row.stripe_customer_id,
     stripeSubscriptionId: row.stripe_subscription_id,
+    subscriptionStatus: row.subscription_status,
+    currentPeriodEnd: iso(row.current_period_end),
+    cancelAtPeriodEnd: !!row.cancel_at_period_end,
+    billingLastEventAt: iso(row.billing_last_event_at),
+    isAdmin: !!row.is_admin,
+    createdAt: iso(row.created_at),
+  };
+}
+
+function rowToRefundRequest(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    stripeChargeId: row.stripe_charge_id,
+    stripePaymentIntentId: row.stripe_payment_intent_id,
+    amount: num(row.amount),
+    currency: row.currency,
+    reasonCode: row.reason_code,
+    detail: row.detail,
+    status: row.status,
+    adminNote: row.admin_note,
+    resolvedBy: row.resolved_by,
+    stripeRefundId: row.stripe_refund_id,
+    createdAt: iso(row.created_at),
+    updatedAt: iso(row.updated_at),
+    resolvedAt: iso(row.resolved_at),
+  };
+}
+
+function rowToDispute(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    stripeDisputeId: row.stripe_dispute_id,
+    stripeChargeId: row.stripe_charge_id,
+    amount: num(row.amount),
+    currency: row.currency,
+    reason: row.reason,
+    status: row.status,
     createdAt: iso(row.created_at),
   };
 }
@@ -163,6 +204,120 @@ async function setUserPlan(userId, plan, extra = {}) {
     [userId, plan, extra.stripeCustomerId ?? null, extra.stripeSubscriptionId ?? null]
   );
   return rowToUser(rows[0]);
+}
+
+// Aplica el estado real de la suscripción que manda un evento de Stripe,
+// pero solo si ese evento es más nuevo que el último que ya se aplicó
+// (billing_last_event_at) — así un reenvío fuera de orden (Stripe no
+// garantiza el orden de entrega) nunca pisa un estado más reciente con
+// uno más viejo. La condición va en el propio WHERE, igual que
+// adjustUserBalance: todo-o-nada en una sola sentencia, sin hueco de
+// tiempo entre leer y decidir. Devuelve null (sin tocar nada) si el
+// evento era más viejo que el ya aplicado — quien llama debe tratarlo
+// como "descartado por orden", nunca como un fallo.
+async function applyBillingEvent(userId, { plan, subscriptionStatus, currentPeriodEnd, cancelAtPeriodEnd, stripeCustomerId, stripeSubscriptionId, eventCreatedAt }) {
+  const { rows } = await query(
+    `UPDATE users SET
+       plan = COALESCE($2, plan),
+       subscription_status = COALESCE($3, subscription_status),
+       current_period_end = COALESCE($4, current_period_end),
+       cancel_at_period_end = COALESCE($5, cancel_at_period_end),
+       stripe_customer_id = COALESCE($6, stripe_customer_id),
+       stripe_subscription_id = COALESCE($7, stripe_subscription_id),
+       billing_last_event_at = $8
+     WHERE id = $1 AND (billing_last_event_at IS NULL OR billing_last_event_at < $8)
+     RETURNING *`,
+    [
+      userId, plan ?? null, subscriptionStatus ?? null, currentPeriodEnd ?? null,
+      cancelAtPeriodEnd ?? null, stripeCustomerId ?? null, stripeSubscriptionId ?? null,
+      eventCreatedAt,
+    ]
+  );
+  return rowToUser(rows[0]);
+}
+
+// ---------- Idempotencia de webhooks de Stripe ----------
+// true si ya se procesó este id de evento (reintento/reenvío exacto del
+// mismo evento) — quien llama debe devolver 200 sin repetir ningún efecto.
+async function hasProcessedWebhookEvent(eventId) {
+  const { rows } = await query('SELECT 1 FROM webhook_events WHERE id = $1', [eventId]);
+  return rows.length > 0;
+}
+
+async function markWebhookEventProcessed(eventId, type) {
+  // ON CONFLICT DO NOTHING: si dos procesos reciben el mismo evento casi
+  // a la vez, solo uno "gana" la inserción — no hace falta más para la
+  // idempotencia, el efecto ya debería haberse decidido antes de llamar
+  // a esto (ver nota en el propio webhook handler).
+  await query('INSERT INTO webhook_events (id, type) VALUES ($1,$2) ON CONFLICT DO NOTHING', [eventId, type]);
+}
+
+// ---------- Solicitudes de reembolso ----------
+async function createRefundRequest({ userId, stripeChargeId, stripePaymentIntentId, amount, currency, reasonCode, detail }) {
+  const { rows } = await query(
+    `INSERT INTO refund_requests (user_id, stripe_charge_id, stripe_payment_intent_id, amount, currency, reason_code, detail)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+    [userId, stripeChargeId ?? null, stripePaymentIntentId ?? null, amount ?? null, currency ?? null, reasonCode, detail ?? null]
+  );
+  return rowToRefundRequest(rows[0]);
+}
+
+async function listRefundRequestsForUser(userId) {
+  const { rows } = await query('SELECT * FROM refund_requests WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+  return rows.map(rowToRefundRequest);
+}
+
+// Comprueba propiedad en la propia consulta (user_id = $2) — nunca se
+// confía en un id de solicitud venido del cliente sin verificar de quién es.
+async function findRefundRequestForUser(id, userId) {
+  const { rows } = await query('SELECT * FROM refund_requests WHERE id = $1 AND user_id = $2', [id, userId]);
+  return rowToRefundRequest(rows[0]);
+}
+
+async function findRefundRequestById(id) {
+  const { rows } = await query('SELECT * FROM refund_requests WHERE id = $1', [id]);
+  return rowToRefundRequest(rows[0]);
+}
+
+async function listAllRefundRequests({ status } = {}) {
+  const { rows } = status
+    ? await query('SELECT * FROM refund_requests WHERE status = $1 ORDER BY created_at DESC', [status])
+    : await query('SELECT * FROM refund_requests ORDER BY created_at DESC', []);
+  return rows.map(rowToRefundRequest);
+}
+
+// Transición de estado con guarda: solo se aplica si el estado actual es
+// uno de `fromStatuses` — evita doble-resolución/condiciones de carrera
+// si dos peticiones de admin intentan resolver la misma solicitud casi a
+// la vez (la segunda, al no encontrar fila que cumpla la condición,
+// recibe null y debe tratarlo como "ya resuelta por otra petición").
+async function resolveRefundRequest(id, fromStatuses, { status, adminNote, resolvedBy, stripeRefundId }) {
+  const { rows } = await query(
+    `UPDATE refund_requests SET
+       status = $2, admin_note = COALESCE($3, admin_note), resolved_by = $4,
+       stripe_refund_id = COALESCE($5, stripe_refund_id), updated_at = now(), resolved_at = now()
+     WHERE id = $1 AND status = ANY($6::text[])
+     RETURNING *`,
+    [id, status, adminNote ?? null, resolvedBy ?? null, stripeRefundId ?? null, fromStatuses]
+  );
+  return rowToRefundRequest(rows[0]);
+}
+
+// ---------- Disputas (chargebacks) ----------
+async function recordDispute({ userId, stripeDisputeId, stripeChargeId, amount, currency, reason, status }) {
+  const { rows } = await query(
+    `INSERT INTO payment_disputes (user_id, stripe_dispute_id, stripe_charge_id, amount, currency, reason, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)
+     ON CONFLICT (stripe_dispute_id) DO UPDATE SET status = $7
+     RETURNING *`,
+    [userId ?? null, stripeDisputeId, stripeChargeId ?? null, amount ?? null, currency ?? null, reason ?? null, status ?? null]
+  );
+  return rowToDispute(rows[0]);
+}
+
+async function listAllDisputes() {
+  const { rows } = await query('SELECT * FROM payment_disputes ORDER BY created_at DESC', []);
+  return rows.map(rowToDispute);
 }
 
 // ---------- Posiciones (paper trading) ----------
@@ -406,6 +561,17 @@ module.exports = {
   updateUserBalance,
   adjustUserBalance,
   setUserPlan,
+  applyBillingEvent,
+  hasProcessedWebhookEvent,
+  markWebhookEventProcessed,
+  createRefundRequest,
+  listRefundRequestsForUser,
+  findRefundRequestForUser,
+  findRefundRequestById,
+  listAllRefundRequests,
+  resolveRefundRequest,
+  recordDispute,
+  listAllDisputes,
   listPositions,
   createPosition,
   closePosition,

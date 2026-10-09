@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantex — Suscripción y facturación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="stylesheet" href="/shared/style.css" />
+<style>
+  .billing-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .billing-head__icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #818cf8, var(--accent), var(--blue)); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 22px -8px rgba(79, 70, 229, .45);
+  }
+  .billing-head__icon svg { width: 22px; height: 22px; }
+
+  .billing-section { margin-bottom: 26px; }
+  .billing-section h2 { font-size: 1.05rem; margin: 0 0 12px; }
+
+  .billing-state-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+  .billing-state-card__left { display: flex; flex-direction: column; gap: 6px; }
+  .billing-state-card__plan { font-size: 1.3rem; font-weight: 800; }
+  .billing-state-note { color: var(--text-dim); font-size: .8125rem; max-width: 520px; }
+  .billing-state-card__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .payment-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .payment-row:last-child { border-bottom: none; }
+  .payment-row__meta { color: var(--text-dim); font-size: .8125rem; }
+
+  .refund-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .refund-row:last-child { border-bottom: none; }
+  .refund-row__meta { color: var(--text-dim); font-size: .8125rem; }
+</style>
+</head>
+<body>
+  <div data-app-shell data-page="billing"></div>
+
+  <script src="/shared/api.js"></script>
+  <script src="/shared/icons.js"></script>
+  <script src="/shared/format.js"></script>
+  <script src="/shared/toast.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/sidebar.js"></script>
+  <script>
+    const REASON_LABELS = {
+      duplicate_charge: 'Cargo duplicado',
+      unauthorized_charge: 'Cargo no autorizado',
+      technical_failure: 'Fallo técnico de Vantex',
+      not_as_described: 'El servicio no coincide con lo descrito',
+      cancelled_before_renewal: 'Cancelé antes de la renovación',
+      other: 'Otro motivo',
+    };
+    const STATUS_META = {
+      pending: { label: 'Pendiente de revisión', cls: 'mock' },
+      under_review: { label: 'En revisión', cls: 'mixed' },
+      approved: { label: 'Aprobada — procesando', cls: 'medium' },
+      processed: { label: 'Reembolsada', cls: 'low' },
+      rejected: { label: 'Rechazada', cls: 'high' },
+      failed: { label: 'Error al procesar', cls: 'high' },
+    };
+
+    (async () => {
+      const shell = await mountShell({ page: 'billing', title: 'Suscripción y facturación' });
+      if (!shell) return;
+      const { contentEl } = shell;
+
+      contentEl.innerHTML = `
+        <div class="billing-head">
+          <div class="billing-head__icon">${vantexIcon('shieldCheck', { size: 22 })}</div>
+          <div>
+            <h1 style="margin:0; font-size:1.3rem;">Suscripción y facturación</h1>
+            <p class="text-caption" style="margin:2px 0 0;">El estado real de tu plan, tus pagos y tus solicitudes de reembolso.</p>
+          </div>
+        </div>
+
+        <div class="billing-section">
+          <div class="card billing-state-card" data-state-card>
+            <div class="skeleton skeleton-text" style="width:220px; height:24px;"></div>
+          </div>
+        </div>
+
+        <div class="billing-section">
+          <h2>Historial de pagos</h2>
+          <div class="card" data-payments-card>
+            <div class="skeleton skeleton-text" style="width:100%; height:60px;"></div>
+          </div>
+        </div>
+
+        <div class="billing-section">
+          <h2>Tus solicitudes de reembolso</h2>
+          <div class="card" data-requests-card>
+            <div class="skeleton skeleton-text" style="width:100%; height:40px;"></div>
+          </div>
+        </div>
+      `;
+
+      let paymentsCache = [];
+
+      await Promise.all([loadSubscription(), loadPaymentsAndRequests()]);
+
+      async function loadSubscription() {
+        const card = contentEl.querySelector('[data-state-card]');
+        try {
+          const sub = await api('/billing/subscription');
+          const planLabel = sub.plan === 'pro' ? 'Vantex Business ★' : sub.plan === 'plus' ? 'Vantex Pro' : 'Plan gratuito';
+          const statusBadge = sub.subscriptionStatus
+            ? `<span class="badge badge--${sub.subscriptionStatus === 'active' ? 'low' : sub.subscriptionStatus === 'past_due' ? 'high' : 'mixed'}">${escapeHtml(sub.subscriptionStatus)}</span>`
+            : '';
+          let noteLines = [];
+          if (sub.note) noteLines.push(sub.note);
+          if (sub.liveCheckError) noteLines.push(sub.liveCheckError);
+          if (sub.subscriptionStatus === 'past_due') noteLines.push('Tu último cobro de renovación falló — Stripe seguirá reintentando; actualiza tu método de pago desde el portal para no perder el acceso.');
+          if (sub.cancelAtPeriodEnd) {
+            noteLines.push(`Ya has cancelado la renovación. Mantienes el acceso${sub.currentPeriodEnd ? ` hasta el ${new Date(sub.currentPeriodEnd).toLocaleDateString('es-ES')}` : ' hasta el final del periodo ya pagado'}, y después pasarás al plan gratuito automáticamente.`);
+          } else if (sub.currentPeriodEnd) {
+            noteLines.push(`Próxima renovación: ${new Date(sub.currentPeriodEnd).toLocaleDateString('es-ES')}.`);
+          }
+          card.innerHTML = `
+            <div class="billing-state-card__left">
+              <div class="billing-state-card__plan">${planLabel} ${statusBadge}</div>
+              ${noteLines.map((n) => `<p class="billing-state-note">${escapeHtml(n)}</p>`).join('')}
+            </div>
+            <div class="billing-state-card__actions">
+              ${sub.plan === 'free'
+                ? '<button type="button" class="btn-primary" data-open-upgrade>Mejorar plan</button>'
+                : '<button type="button" class="btn-secondary" data-open-portal>Gestionar en el portal de Stripe</button>'}
+              <a href="/reembolsos" class="btn-secondary" style="text-decoration:none;">Política de cancelación y reembolsos</a>
+            </div>
+          `;
+          const upgradeBtn = card.querySelector('[data-open-upgrade]');
+          if (upgradeBtn) upgradeBtn.addEventListener('click', () => openUpgradeModal());
+          const portalBtn = card.querySelector('[data-open-portal]');
+          if (portalBtn) portalBtn.addEventListener('click', async () => {
+            portalBtn.disabled = true;
+            portalBtn.innerHTML = '<span class="spinner"></span>';
+            try {
+              const { url } = await api('/billing/portal', { method: 'POST' });
+              window.location.href = url;
+            } catch (err) {
+              portalBtn.disabled = false;
+              portalBtn.textContent = 'Gestionar en el portal de Stripe';
+              showToast({ type: 'error', message: err.message });
+            }
+          });
+        } catch (err) {
+          card.innerHTML = `<p class="error-msg">${escapeHtml(err.message)}</p>`;
+        }
+      }
+
+      async function loadPaymentsAndRequests() {
+        const paymentsCard = contentEl.querySelector('[data-payments-card]');
+        const requestsCard = contentEl.querySelector('[data-requests-card]');
+        try {
+          const [{ payments, note }, { requests }] = await Promise.all([
+            api('/billing/payments'),
+            api('/billing/refund-requests'),
+          ]);
+          paymentsCache = payments;
+          renderPayments(paymentsCard, payments, note, requests);
+          renderRequests(requestsCard, requests);
+        } catch (err) {
+          paymentsCard.innerHTML = `<p class="error-msg">${escapeHtml(err.message)}</p>`;
+          requestsCard.innerHTML = '';
+        }
+      }
+
+      function renderPayments(card, payments, note, requests) {
+        if (!payments.length) {
+          card.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${vantexIcon('inbox', { size: 26 })}</div><p>${escapeHtml(note || 'Todavía no hay pagos que mostrar.')}</p></div>`;
+          return;
+        }
+        card.innerHTML = payments.map((p) => {
+          const hasOpenRequest = requests.some((r) => r.stripeChargeId === p.chargeId && ['pending', 'under_review', 'approved'].includes(r.status));
+          const canRequest = !p.refunded && !hasOpenRequest;
+          return `
+            <div class="payment-row">
+              <div>
+                <strong>${fmtUsd(p.amount)}</strong> <span class="payment-row__meta">${p.currency.toUpperCase()} · ${new Date(p.createdAt).toLocaleDateString('es-ES')}</span>
+                <div class="payment-row__meta">${p.description ? escapeHtml(p.description) : p.chargeId} ${p.refunded ? '· <span class="badge badge--low">Reembolsado</span>' : ''}</div>
+              </div>
+              ${canRequest ? `<button type="button" class="btn-secondary" data-request-refund="${p.chargeId}">Solicitar reembolso</button>` : hasOpenRequest ? '<span class="badge badge--mixed">Solicitud en curso</span>' : ''}
+            </div>
+          `;
+        }).join('');
+        card.querySelectorAll('[data-request-refund]').forEach((btn) => {
+          btn.addEventListener('click', () => openRefundModal(btn.dataset.requestRefund));
+        });
+      }
+
+      function renderRequests(card, requests) {
+        if (!requests.length) {
+          card.innerHTML = `<div class="empty-state"><div class="empty-state__icon">${vantexIcon('inbox', { size: 26 })}</div><p>No has abierto ninguna solicitud de reembolso.</p></div>`;
+          return;
+        }
+        card.innerHTML = requests.map((r) => {
+          const meta = STATUS_META[r.status] || { label: r.status, cls: 'mixed' };
+          return `
+            <div class="refund-row">
+              <div>
+                <strong>${r.amount != null ? fmtUsd(r.amount) : '—'}</strong> <span class="refund-row__meta">${REASON_LABELS[r.reasonCode] || r.reasonCode} · ${new Date(r.createdAt).toLocaleDateString('es-ES')}</span>
+                ${r.adminNote ? `<div class="refund-row__meta">Respuesta: ${escapeHtml(r.adminNote)}</div>` : ''}
+              </div>
+              <span class="badge badge--${meta.cls}">${meta.label}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function openRefundModal(chargeId) {
+        const payment = paymentsCache.find((p) => p.chargeId === chargeId);
+        openModal({
+          title: 'Solicitar reembolso',
+          bodyHtml: `
+            <p class="text-caption" style="margin-bottom:14px;">Pago de ${payment ? fmtUsd(payment.amount) : ''} del ${payment ? new Date(payment.createdAt).toLocaleDateString('es-ES') : ''}. Abrir esta solicitud no garantiza que se apruebe — cada caso se revisa individualmente.</p>
+            <div class="field">
+              <label for="refund-reason">Motivo</label>
+              <select id="refund-reason">
+                ${Object.entries(REASON_LABELS).map(([code, label]) => `<option value="${code}">${label}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label for="refund-detail">Cuéntanos más (opcional)</label>
+              <textarea id="refund-detail" maxlength="1000" placeholder="Detalles que nos ayuden a revisar tu solicitud"></textarea>
+            </div>
+            <p class="error-msg" data-refund-error></p>
+          `,
+          footerHtml: `
+            <button type="button" class="btn-secondary" data-modal-close>Cancelar</button>
+            <button type="button" class="btn-primary" data-refund-submit>Enviar solicitud</button>
+          `,
+          onOpen: (modalRoot) => {
+            modalRoot.querySelector('[data-refund-submit]').addEventListener('click', async () => {
+              const reasonCode = modalRoot.querySelector('#refund-reason').value;
+              const detail = modalRoot.querySelector('#refund-detail').value;
+              const errorEl = modalRoot.querySelector('[data-refund-error]');
+              const btn = modalRoot.querySelector('[data-refund-submit]');
+              errorEl.textContent = '';
+              btn.disabled = true;
+              btn.innerHTML = '<span class="spinner"></span> Enviando…';
+              try {
+                await api('/billing/refund-requests', { method: 'POST', body: JSON.stringify({ chargeId, reasonCode, detail }) });
+                closeModal();
+                showToast({ type: 'success', message: 'Solicitud enviada. Puedes seguir su estado aquí mismo.' });
+                await loadPaymentsAndRequests();
+              } catch (err) {
+                errorEl.textContent = err.message;
+                btn.disabled = false;
+                btn.textContent = 'Enviar solicitud';
+              }
+            });
+          },
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

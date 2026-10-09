@@ -96,4 +96,67 @@ function verifyWebhookEvent(rawBody, signature) {
   return stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET);
 }
 
-module.exports = { resolveBillingMode, createCheckoutSession, createPortalSession, verifyWebhookEvent, priceIdForPlan };
+// Estado real de la suscripción directamente desde Stripe (no desde la
+// copia local) — para la pantalla "Suscripción y facturación": si la
+// copia local y Stripe alguna vez discreparan, esto es la fuente de
+// verdad. En modo mock no hay nada real que consultar, se dice así.
+async function getLiveSubscriptionDetails(user) {
+  if (resolveBillingMode() !== 'live' || !user.stripeSubscriptionId) return null;
+  const stripe = stripeClient();
+  const sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+  return {
+    status: sub.status,
+    currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
+    cancelAtPeriodEnd: !!sub.cancel_at_period_end,
+  };
+}
+
+// Pagos reales del cliente (para el flujo de solicitud de reembolso) —
+// nunca una lista inventada: en modo mock no existe ningún cargo real,
+// así que se devuelve vacía con el motivo explícito.
+async function listPaymentsForUser(user) {
+  if (resolveBillingMode() !== 'live') {
+    return { payments: [], note: 'Modo simulado: no hay pagos reales que listar.' };
+  }
+  if (!user.stripeCustomerId) {
+    return { payments: [], note: 'Todavía no tienes ningún pago registrado.' };
+  }
+  const stripe = stripeClient();
+  const charges = await stripe.charges.list({ customer: user.stripeCustomerId, limit: 20 });
+  return {
+    payments: charges.data.map((c) => ({
+      chargeId: c.id,
+      paymentIntentId: c.payment_intent || null,
+      amount: c.amount / 100,
+      currency: c.currency,
+      status: c.status,
+      refunded: c.refunded,
+      amountRefunded: c.amount_refunded / 100,
+      createdAt: new Date(c.created * 1000).toISOString(),
+      description: c.description || null,
+    })),
+    note: null,
+  };
+}
+
+// Ejecuta un reembolso REAL en Stripe — nunca se marca una solicitud como
+// "reembolsada" sin pasar por aquí y sin comprobar la respuesta real.
+async function createStripeRefund({ chargeId, paymentIntentId, amount }) {
+  const stripe = stripeClient();
+  const params = {};
+  if (chargeId) params.charge = chargeId;
+  else if (paymentIntentId) params.payment_intent = paymentIntentId;
+  else throw new Error('Falta el id del cargo o del payment_intent a reembolsar.');
+  if (amount != null) params.amount = Math.round(amount * 100);
+  return stripe.refunds.create(params);
+}
+
+async function retrieveCharge(chargeId) {
+  const stripe = stripeClient();
+  return stripe.charges.retrieve(chargeId);
+}
+
+module.exports = {
+  resolveBillingMode, createCheckoutSession, createPortalSession, verifyWebhookEvent, priceIdForPlan,
+  getLiveSubscriptionDetails, listPaymentsForUser, createStripeRefund, retrieveCharge,
+};

@@ -132,10 +132,7 @@ async function mountShell({ page, title }) {
   const planBadge = root.querySelector('[data-plan-badge]');
   if (planBadge) {
     planBadge.style.cursor = 'pointer';
-    planBadge.addEventListener('click', async () => {
-      const { url } = await api('/billing/portal', { method: 'POST' });
-      window.location.href = url;
-    });
+    planBadge.addEventListener('click', () => { window.location.href = '/billing'; });
   }
 
   setupConnectionIndicator(root);
@@ -277,6 +274,13 @@ function openUpgradeModal() {
           <button type="button" class="btn-primary" style="width:100%; justify-content:center;" data-upgrade-plan="pro">Elegir Business</button>
         </div>
       </div>
+      <p class="text-caption" style="margin-top:14px;">
+        Suscripción con renovación automática mensual hasta que la canceles.
+        Se te cobrará el importe mostrado hoy y el mismo importe en cada
+        renovación. Puedes cancelar la renovación en cualquier momento desde
+        "Suscripción y facturación" — seguirás teniendo acceso hasta el final
+        del periodo ya pagado. Ver <a href="/reembolsos" target="_blank" rel="noopener" style="color:var(--accent); font-weight:600;">cancelación y reembolsos</a>.
+      </p>
       <p class="error-msg" data-upgrade-error></p>
     `,
     onOpen: (modalRoot) => {
@@ -329,7 +333,7 @@ function openSettingsModal(user, root) {
         Plan actual: <strong style="color:var(--text);">${user.plan === 'pro' ? 'Vantex Business ★' : user.plan === 'plus' ? 'Vantex Pro' : 'Gratuito'}</strong>
       </p>
       <button type="button" class="btn-secondary" data-settings-billing style="width:100%; justify-content:center;">
-        ${user.plan === 'free' ? 'Mejorar plan' : 'Gestionar suscripción'}
+        ${user.plan === 'free' ? 'Mejorar plan' : 'Suscripción y facturación'}
       </button>
       <p class="error-msg" data-settings-error></p>
     `,
@@ -396,22 +400,13 @@ function openSettingsModal(user, root) {
         }
       });
 
-      modalRoot.querySelector('[data-settings-billing]').addEventListener('click', async (e) => {
+      modalRoot.querySelector('[data-settings-billing]').addEventListener('click', () => {
         if (user.plan === 'free') {
           closeModal();
           openUpgradeModal();
           return;
         }
-        const btn = e.currentTarget;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,.15); border-top-color:var(--text-dim);"></span>';
-        try {
-          const { url } = await api('/billing/portal', { method: 'POST' });
-          window.location.href = url;
-        } catch (err) {
-          btn.disabled = false;
-          showToast({ type: 'error', message: err.message });
-        }
+        window.location.href = '/billing';
       });
     },
   });

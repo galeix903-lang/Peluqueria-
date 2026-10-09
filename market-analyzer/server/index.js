@@ -4,6 +4,7 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 
 const requireAuth = require('./middleware/requireAuth');
+const requireAdmin = require('./middleware/requireAdmin');
 const rateLimit = require('./middleware/rateLimit');
 const asyncHandler = require('./middleware/asyncHandler');
 const db = require('./db');
@@ -17,6 +18,7 @@ const notificationsRoutes = require('./routes/notifications');
 const activityRoutes = require('./routes/activity');
 const marketRoutes = require('./routes/market');
 const billing = require('./routes/billing');
+const adminRoutes = require('./routes/admin');
 const { scheduleCopyTradingJob } = require('./services/copyTradingJob');
 
 // Red de seguridad de última instancia: con los handlers async envueltos
@@ -129,11 +131,12 @@ app.use('/api/wallet', requireAuth, walletRoutes);
 app.use('/api/copy', requireAuth, copyRoutes);
 app.use('/api/notifications', requireAuth, notificationsRoutes);
 app.use('/api/billing', requireAuth, billing.router);
+app.use('/api/admin', requireAuth, requireAdmin, adminRoutes);
 
 // Rutas "bonitas" sin .html para cada pantalla — van antes de
 // express.static para que no las intercepte con una redirección a la
 // carpeta (ej. /dashboard -> /dashboard/) antes de llegar aquí.
-const pages = ['login', 'dashboard', 'analyzer', 'history', 'trading', 'picks', 'wallet', 'copy', 'terminos', 'privacidad', 'cookies'];
+const pages = ['login', 'dashboard', 'analyzer', 'history', 'trading', 'picks', 'wallet', 'copy', 'terminos', 'privacidad', 'cookies', 'billing', 'admin', 'reembolsos'];
 pages.forEach((page) => {
   app.get(`/${page}`, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', page, 'index.html'));
