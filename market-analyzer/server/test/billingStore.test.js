@@ -56,6 +56,42 @@ describe('store.applyBillingEvent — guarda de orden (anti look-behind de webho
     assert.equal(final.plan, 'free');
     assert.equal(final.subscriptionStatus, 'canceled');
   });
+
+  // Regresión del bug real encontrado en la segunda auditoría: el campo
+  // `created` de Stripe solo tiene resolución de un segundo, y eventos
+  // relacionados (checkout.session.completed + customer.subscription.
+  // created de la misma alta) suelen compartir el mismo segundo. Con una
+  // comparación estricta (<) el segundo evento se descartaba siempre,
+  // aunque trajera datos nuevos y genuinos (current_period_end) que el
+  // primero nunca trae — quedaban en null indefinidamente. La guarda
+  // debe usar <=, no <.
+  test('dos eventos con la MISMA marca de tiempo se aplican los dos (no se descarta el segundo)', async () => {
+    const user = await makeUser();
+    const sameInstant = new Date('2026-04-01T10:00:00.000Z').toISOString();
+    const first = await store.applyBillingEvent(user.id, {
+      plan: 'pro', subscriptionStatus: 'active', eventCreatedAt: sameInstant,
+    });
+    assert.ok(first, 'el primer evento del segundo debe aplicarse');
+    // Segundo evento del MISMO segundo, con un dato que el primero nunca
+    // trae (current_period_end) — si la guarda fuera estricta, esto se
+    // perdería para siempre.
+    const second = await store.applyBillingEvent(user.id, {
+      currentPeriodEnd: new Date('2026-05-01T10:00:00.000Z').toISOString(),
+      cancelAtPeriodEnd: false,
+      eventCreatedAt: sameInstant,
+    });
+    assert.ok(second, 'un segundo evento del MISMO segundo no debe descartarse (resolución de Stripe es de 1s)');
+    const current = await store.findUserById(user.id);
+    assert.equal(current.plan, 'pro', 'el plan del primer evento se conserva (el segundo no lo toca)');
+    assert.ok(current.currentPeriodEnd, 'current_period_end del segundo evento debe haberse guardado');
+  });
+
+  test('un evento de un segundo real anterior (no solo un empate) se sigue descartando con <=', async () => {
+    const user = await makeUser();
+    await store.applyBillingEvent(user.id, { plan: 'pro', eventCreatedAt: new Date('2026-06-10T00:00:00.000Z').toISOString() });
+    const stale = await store.applyBillingEvent(user.id, { plan: 'free', eventCreatedAt: new Date('2026-06-09T23:59:59.000Z').toISOString() });
+    assert.equal(stale, null, 'un evento de un segundo estrictamente anterior sigue descartándose con <=');
+  });
 });
 
 describe('store — idempotencia de webhooks', () => {
@@ -97,6 +133,43 @@ describe('store — solicitudes de reembolso: propiedad y transiciones atómicas
     // debe poder re-procesar (y así re-reembolsar) la misma solicitud.
     const second = await store.resolveRefundRequest(request.id, ['pending', 'under_review'], { status: 'approved', resolvedBy: user.id });
     assert.equal(second, null, 'una solicitud ya aprobada no debe poder re-aprobarse de nuevo');
+  });
+
+  // Regresión del bug real encontrado en la segunda auditoría: si el
+  // proceso se reinicia justo después de bloquear una solicitud en
+  // 'approved' pero antes de llamar a Stripe (o si Stripe la rechaza y
+  // queda en 'failed'), la ruta /approve debe poder reclamarla de nuevo
+  // en vez de dejarla bloqueada para siempre sin ningún endpoint capaz
+  // de tocarla.
+  test('una solicitud atascada en "approved" o "failed" puede reclamarse de nuevo (rescate tras un fallo a medias)', async () => {
+    const user = await makeUser();
+    const request = await store.createRefundRequest({ userId: user.id, stripeChargeId: 'ch_test_stuck', amount: 7, currency: 'eur', reasonCode: 'other' });
+    // Simula un intento anterior que bloqueó la solicitud y luego se
+    // interrumpió (p.ej. el proceso murió antes de llamar a Stripe).
+    const stuckApproved = await store.resolveRefundRequest(request.id, ['pending'], { status: 'approved', resolvedBy: user.id });
+    assert.ok(stuckApproved);
+    const reclaimedFromApproved = await store.resolveRefundRequest(request.id, ['pending', 'under_review', 'approved', 'failed'], { status: 'approved', resolvedBy: user.id });
+    assert.ok(reclaimedFromApproved, 'debe poder reclamarse de nuevo desde "approved" para reintentar');
+
+    // Simula ahora que Stripe rechazó el intento y quedó en 'failed'.
+    const failed = await store.resolveRefundRequest(request.id, ['approved'], { status: 'failed', resolvedBy: user.id });
+    assert.ok(failed);
+    const reclaimedFromFailed = await store.resolveRefundRequest(request.id, ['pending', 'under_review', 'approved', 'failed'], { status: 'approved', resolvedBy: user.id });
+    assert.ok(reclaimedFromFailed, 'debe poder reclamarse de nuevo desde "failed" para reintentar');
+
+    // Un admin también debe poder rechazarla manualmente desde ese estado
+    // atascado en vez de reintentar (vía el endpoint /status).
+    const rejectedFromApproved = await store.resolveRefundRequest(reclaimedFromFailed.id, ['pending', 'under_review', 'approved', 'failed'], { status: 'rejected', resolvedBy: user.id });
+    assert.ok(rejectedFromApproved);
+    assert.equal(rejectedFromApproved.status, 'rejected');
+  });
+
+  test('una solicitud ya "processed" o "rejected" nunca puede reclamarse de nuevo', async () => {
+    const user = await makeUser();
+    const request = await store.createRefundRequest({ userId: user.id, stripeChargeId: 'ch_test_final', amount: 3, currency: 'eur', reasonCode: 'other' });
+    await store.resolveRefundRequest(request.id, ['pending'], { status: 'processed', resolvedBy: user.id });
+    const attempt = await store.resolveRefundRequest(request.id, ['pending', 'under_review', 'approved', 'failed'], { status: 'approved', resolvedBy: user.id });
+    assert.equal(attempt, null, 'un estado terminal (processed) nunca debe poder reabrirse');
   });
 });
 

@@ -207,14 +207,28 @@ async function setUserPlan(userId, plan, extra = {}) {
 }
 
 // Aplica el estado real de la suscripción que manda un evento de Stripe,
-// pero solo si ese evento es más nuevo que el último que ya se aplicó
-// (billing_last_event_at) — así un reenvío fuera de orden (Stripe no
-// garantiza el orden de entrega) nunca pisa un estado más reciente con
-// uno más viejo. La condición va en el propio WHERE, igual que
-// adjustUserBalance: todo-o-nada en una sola sentencia, sin hueco de
-// tiempo entre leer y decidir. Devuelve null (sin tocar nada) si el
-// evento era más viejo que el ya aplicado — quien llama debe tratarlo
-// como "descartado por orden", nunca como un fallo.
+// pero solo si ese evento es más nuevo (o de la misma marca de tiempo)
+// que el último que ya se aplicó (billing_last_event_at) — así un
+// reenvío fuera de orden (Stripe no garantiza el orden de entrega) nunca
+// pisa un estado más reciente con uno más viejo. La condición va en el
+// propio WHERE, igual que adjustUserBalance: todo-o-nada en una sola
+// sentencia, sin hueco de tiempo entre leer y decidir. Devuelve null (sin
+// tocar nada) solo si el evento es ESTRICTAMENTE más viejo que el ya
+// aplicado — quien llama debe tratarlo como "descartado por orden",
+// nunca como un fallo.
+//
+// Se usa <= (no <) a propósito: el campo `created` de Stripe solo tiene
+// resolución de un segundo, y es habitual que dos eventos relacionados
+// (p.ej. checkout.session.completed y customer.subscription.created de
+// la misma alta) compartan el mismo segundo. Con una comparación
+// estricta, el segundo evento de ese mismo segundo quedaría descartado
+// aunque llevara información nueva y genuina (como current_period_end,
+// que checkout.session.completed nunca trae) — <= acepta ambos y dentro
+// del mismo segundo aplica el que llegue después, que es la mejor
+// aproximación posible al orden real sin más precisión en el timestamp.
+// Un reenvío EXACTO del mismo evento ya se filtra aparte, antes de
+// llegar aquí, por el id en webhook_events — esto no depende de esa
+// idempotencia para ser seguro.
 async function applyBillingEvent(userId, { plan, subscriptionStatus, currentPeriodEnd, cancelAtPeriodEnd, stripeCustomerId, stripeSubscriptionId, eventCreatedAt }) {
   const { rows } = await query(
     `UPDATE users SET
@@ -225,7 +239,7 @@ async function applyBillingEvent(userId, { plan, subscriptionStatus, currentPeri
        stripe_customer_id = COALESCE($6, stripe_customer_id),
        stripe_subscription_id = COALESCE($7, stripe_subscription_id),
        billing_last_event_at = $8
-     WHERE id = $1 AND (billing_last_event_at IS NULL OR billing_last_event_at < $8)
+     WHERE id = $1 AND (billing_last_event_at IS NULL OR billing_last_event_at <= $8)
      RETURNING *`,
     [
       userId, plan ?? null, subscriptionStatus ?? null, currentPeriodEnd ?? null,

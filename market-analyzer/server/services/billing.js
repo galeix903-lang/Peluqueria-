@@ -141,14 +141,21 @@ async function listPaymentsForUser(user) {
 
 // Ejecuta un reembolso REAL en Stripe — nunca se marca una solicitud como
 // "reembolsada" sin pasar por aquí y sin comprobar la respuesta real.
-async function createStripeRefund({ chargeId, paymentIntentId, amount }) {
+// `idempotencyKey` (normalmente el id de la propia refund_request, que es
+// estable) hace que un reintento del mismo reembolso — por un fallo de
+// red justo después de que Stripe ya lo ejecutara, o porque el proceso se
+// reinició entre "aprobado" y "guardado como procesado" — nunca cree un
+// segundo reembolso real: Stripe devuelve el mismo resultado de la
+// primera llamada en vez de repetir la operación.
+async function createStripeRefund({ chargeId, paymentIntentId, amount, idempotencyKey }) {
   const stripe = stripeClient();
   const params = {};
   if (chargeId) params.charge = chargeId;
   else if (paymentIntentId) params.payment_intent = paymentIntentId;
   else throw new Error('Falta el id del cargo o del payment_intent a reembolsar.');
   if (amount != null) params.amount = Math.round(amount * 100);
-  return stripe.refunds.create(params);
+  const options = idempotencyKey ? { idempotencyKey } : undefined;
+  return stripe.refunds.create(params, options);
 }
 
 async function retrieveCharge(chargeId) {

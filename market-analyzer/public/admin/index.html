@@ -77,7 +77,7 @@
           return `
             <div class="admin-row" data-row="${r.id}">
               <div>
-                <strong>${r.amount != null ? fmtUsd(r.amount) : '—'}</strong> <span class="admin-row__meta">· ${r.reasonCode} · ${new Date(r.createdAt).toLocaleDateString('es-ES')} · cargo ${escapeHtml(r.stripeChargeId || '—')}</span>
+                <strong>${r.amount != null ? fmtUsd(r.amount) : '—'}</strong> <span class="admin-row__meta">· ${escapeHtml(r.reasonCode)} · ${new Date(r.createdAt).toLocaleDateString('es-ES')} · cargo ${escapeHtml(r.stripeChargeId || '—')}</span>
                 ${r.detail ? `<div class="admin-row__meta">"${escapeHtml(r.detail)}"</div>` : ''}
                 <span class="badge badge--${meta.cls}" style="margin-top:4px;">${meta.label}</span>
               </div>

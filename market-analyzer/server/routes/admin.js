@@ -18,10 +18,15 @@ router.get('/disputes', asyncHandler(async (req, res) => {
   res.json({ disputes: await store.listAllDisputes() });
 }));
 
+// 'approved' y 'failed' se incluyen como origen de 'rejected'/'under_review'
+// a propósito: son los dos estados en los que una solicitud puede quedar
+// "atascada" si un intento de aprobación se interrumpe (el proceso se
+// reinicia justo tras bloquearla, o Stripe la rechaza) — sin esto, un
+// admin no tendría ninguna forma de rescatarla manualmente, porque
+// /approve solo vuelve a intentar desde esos mismos estados (ver abajo).
 const VALID_TRANSITIONS = {
-  under_review: ['pending'],
-  rejected: ['pending', 'under_review'],
-  approved: ['pending', 'under_review'],
+  under_review: ['pending', 'failed'],
+  rejected: ['pending', 'under_review', 'approved', 'failed'],
 };
 
 // Mueve la solicitud a "en revisión" o la rechaza — ninguna de las dos
@@ -47,18 +52,21 @@ router.post('/refund-requests/:id/status', asyncHandler(async (req, res) => {
 router.post('/refund-requests/:id/approve', asyncHandler(async (req, res) => {
   const request = await store.findRefundRequestById(req.params.id);
   if (!request) return res.status(404).json({ error: 'Solicitud no encontrada.' });
-  if (!['pending', 'under_review'].includes(request.status)) {
+  if (['processed', 'rejected'].includes(request.status)) {
     return res.status(409).json({ error: `Esta solicitud ya está en estado "${request.status}", no se puede volver a aprobar.` });
   }
   if (billing.resolveBillingMode() !== 'live') {
     return res.status(409).json({ error: 'Modo simulado: no hay ninguna pasarela real con la que ejecutar un reembolso.' });
   }
 
-  // Se bloquea aquí mismo (pending/under_review -> approved) ANTES de
-  // llamar a Stripe, para que dos aprobaciones casi simultáneas no
-  // puedan las dos intentar reembolsar el mismo cargo — solo una gana la
-  // transición atómica, la otra recibe null y debe parar ahí.
-  const locked = await store.resolveRefundRequest(request.id, ['pending', 'under_review'], {
+  // Se bloquea aquí mismo (-> approved) ANTES de llamar a Stripe, para
+  // que dos aprobaciones casi simultáneas no puedan las dos intentar
+  // reembolsar el mismo cargo — solo una gana la transición atómica, la
+  // otra recibe null y debe parar ahí. 'approved'/'failed' como origen
+  // válido permite reclamar y reintentar una solicitud que quedó a
+  // medias en un intento anterior (proceso reiniciado o Stripe la
+  // rechazó) sin dejarla bloqueada para siempre.
+  const locked = await store.resolveRefundRequest(request.id, ['pending', 'under_review', 'approved', 'failed'], {
     status: 'approved', resolvedBy: req.adminUser.id,
   });
   if (!locked) {
@@ -66,10 +74,15 @@ router.post('/refund-requests/:id/approve', asyncHandler(async (req, res) => {
   }
 
   try {
+    // idempotencyKey = el id de la propia solicitud: estable entre
+    // reintentos de ESTA solicitud concreta, así que si este es un
+    // reintento tras un fallo a medias, Stripe no vuelve a mover dinero
+    // una segunda vez — devuelve el resultado del intento anterior.
     const refund = await billing.createStripeRefund({
       chargeId: request.stripeChargeId,
       paymentIntentId: request.stripePaymentIntentId,
       amount: request.amount,
+      idempotencyKey: request.id,
     });
     const final = await store.resolveRefundRequest(request.id, ['approved'], {
       status: 'processed', resolvedBy: req.adminUser.id, stripeRefundId: refund.id,

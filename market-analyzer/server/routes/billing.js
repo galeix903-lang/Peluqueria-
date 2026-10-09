@@ -144,102 +144,115 @@ async function webhookHandler(req, res) {
 
   const eventCreatedAt = new Date(event.created * 1000).toISOString();
 
-  try {
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const plan = session.metadata && session.metadata.plan === 'plus' ? 'plus' : 'pro';
-      if (session.client_reference_id) {
-        await store.applyBillingEvent(session.client_reference_id, {
-          plan,
-          subscriptionStatus: 'active',
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-          eventCreatedAt,
-        });
-      }
-    } else if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
-      const subscription = event.data.object;
-      const user = await store.findUserByStripeCustomerId(subscription.customer);
-      if (user) {
-        const stillActive = subscription.status === 'active' || subscription.status === 'trialing';
-        const item = subscription.items && subscription.items.data && subscription.items.data[0];
-        const priceId = item && item.price && item.price.id;
-        const plan = stillActive
-          ? (priceId && priceId === billing.priceIdForPlan('plus') ? 'plus' : 'pro')
-          : 'free';
-        await store.applyBillingEvent(user.id, {
-          plan,
-          subscriptionStatus: subscription.status,
-          currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
-          cancelAtPeriodEnd: !!subscription.cancel_at_period_end,
-          eventCreatedAt,
-        });
-      }
-    } else if (event.type === 'invoice.payment_failed') {
-      const invoice = event.data.object;
-      const user = await store.findUserByStripeCustomerId(invoice.customer);
-      if (user) {
-        // No se revoca el acceso aquí: Stripe sigue reintentando el cobro
-        // durante su propio periodo de gracia y mandará
-        // customer.subscription.updated con el estado final (past_due ->
-        // active si se recupera, o canceled si no). Aquí solo se deja
-        // constancia del estado para que la cuenta pueda avisarle al
-        // usuario de que tiene un cobro pendiente que resolver.
-        await store.applyBillingEvent(user.id, {
-          subscriptionStatus: 'past_due',
-          eventCreatedAt,
-        });
-      }
-    } else if (event.type === 'charge.refunded') {
-      const charge = event.data.object;
-      const user = await store.findUserByStripeCustomerId(charge.customer);
-      // Reconciliación: si el reembolso se originó desde el propio panel
-      // de Stripe (no desde una solicitud de Vantex), no habrá una
-      // refund_request previa — se registra igual para que quede
-      // constancia, nunca se descarta silenciosamente.
-      const requests = user ? await store.listRefundRequestsForUser(user.id) : [];
-      const matching = requests.find((r) => r.stripeChargeId === charge.id && r.status !== 'processed');
-      if (matching) {
-        await store.resolveRefundRequest(matching.id, ['pending', 'under_review', 'approved'], {
-          status: 'processed',
-          adminNote: 'Confirmado por webhook de Stripe (charge.refunded).',
-          stripeRefundId: charge.refunds && charge.refunds.data && charge.refunds.data[0] ? charge.refunds.data[0].id : null,
-        });
-      }
-    } else if (event.type === 'charge.dispute.created') {
-      const dispute = event.data.object;
-      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge && dispute.charge.id);
-      // El propio objeto Dispute no trae el cliente — hay que ir a buscar
-      // el cargo original para saber de quién es, solo para poder
-      // enlazarlo en el panel admin; si Stripe no respondiera por
-      // cualquier motivo, se registra igual con userId null en vez de
-      // perder constancia de la disputa.
-      let userId = null;
-      try {
-        const charge = chargeId ? await billing.retrieveCharge(chargeId) : null;
-        if (charge && charge.customer) {
-          const user = await store.findUserByStripeCustomerId(charge.customer);
-          if (user) userId = user.id;
-        }
-      } catch { /* se registra igual sin usuario asociado */ }
-      await store.recordDispute({
-        userId,
-        stripeDisputeId: dispute.id,
-        stripeChargeId: chargeId,
-        amount: dispute.amount != null ? dispute.amount / 100 : null,
-        currency: dispute.currency,
-        reason: dispute.reason,
-        status: dispute.status,
+  // Importante: `markWebhookEventProcessed` solo se llama al final, tras
+  // completar el bloque sin excepciones (nunca en un finally). Si algo
+  // falla a mitad (p.ej. un error transitorio de la base de datos), el
+  // evento NO se marca procesado, la petición responde con error (vía
+  // asyncHandler) y Stripe lo reintentará más tarde con normalidad — si
+  // se marcara procesado pase lo que pase, un fallo transitorio
+  // "consumiría" el evento para siempre sin haber aplicado su efecto.
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const plan = session.metadata && session.metadata.plan === 'plus' ? 'plus' : 'pro';
+    if (session.client_reference_id) {
+      await store.applyBillingEvent(session.client_reference_id, {
+        plan,
+        subscriptionStatus: 'active',
+        stripeCustomerId: session.customer,
+        stripeSubscriptionId: session.subscription,
+        eventCreatedAt,
       });
     }
-  } finally {
-    // Se marca procesado tanto si hubo efecto como si el evento no
-    // aplicaba a ningún usuario conocido — reintentarlo no cambiaría el
-    // resultado, y así no se reprocesa indefinidamente un evento sin
-    // match (p.ej. de un cliente de Stripe de otra app en el mismo modo
-    // de prueba).
-    await store.markWebhookEventProcessed(event.id, event.type);
+  } else if (
+    event.type === 'customer.subscription.created'
+    || event.type === 'customer.subscription.updated'
+    || event.type === 'customer.subscription.deleted'
+  ) {
+    // Se escuchan los tres: .created llega al dar de alta la suscripción
+    // (a veces en el mismo segundo que checkout.session.completed, de ahí
+    // el <= en applyBillingEvent) y es la única fuente de
+    // current_period_end/cancel_at_period_end justo tras el alta —
+    // checkout.session.completed no los trae. Sin escuchar .created,
+    // esos dos campos podían quedarse en null hasta la primera
+    // renovación o cambio de la suscripción.
+    const subscription = event.data.object;
+    const user = await store.findUserByStripeCustomerId(subscription.customer);
+    if (user) {
+      const stillActive = subscription.status === 'active' || subscription.status === 'trialing';
+      const item = subscription.items && subscription.items.data && subscription.items.data[0];
+      const priceId = item && item.price && item.price.id;
+      const plan = stillActive
+        ? (priceId && priceId === billing.priceIdForPlan('plus') ? 'plus' : 'pro')
+        : 'free';
+      await store.applyBillingEvent(user.id, {
+        plan,
+        subscriptionStatus: subscription.status,
+        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+        cancelAtPeriodEnd: !!subscription.cancel_at_period_end,
+        eventCreatedAt,
+      });
+    }
+  } else if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object;
+    const user = await store.findUserByStripeCustomerId(invoice.customer);
+    if (user) {
+      // No se revoca el acceso aquí: Stripe sigue reintentando el cobro
+      // durante su propio periodo de gracia y mandará
+      // customer.subscription.updated con el estado final (past_due ->
+      // active si se recupera, o canceled si no). Aquí solo se deja
+      // constancia del estado para que la cuenta pueda avisarle al
+      // usuario de que tiene un cobro pendiente que resolver.
+      await store.applyBillingEvent(user.id, {
+        subscriptionStatus: 'past_due',
+        eventCreatedAt,
+      });
+    }
+  } else if (event.type === 'charge.refunded') {
+    const charge = event.data.object;
+    const user = await store.findUserByStripeCustomerId(charge.customer);
+    // Reconciliación: si el reembolso se originó desde el propio panel
+    // de Stripe (no desde una solicitud de Vantex), no habrá una
+    // refund_request previa — se registra igual para que quede
+    // constancia, nunca se descarta silenciosamente.
+    const requests = user ? await store.listRefundRequestsForUser(user.id) : [];
+    const matching = requests.find((r) => r.stripeChargeId === charge.id && r.status !== 'processed');
+    if (matching) {
+      await store.resolveRefundRequest(matching.id, ['pending', 'under_review', 'approved'], {
+        status: 'processed',
+        adminNote: 'Confirmado por webhook de Stripe (charge.refunded).',
+        stripeRefundId: charge.refunds && charge.refunds.data && charge.refunds.data[0] ? charge.refunds.data[0].id : null,
+      });
+    }
+  } else if (event.type === 'charge.dispute.created') {
+    const dispute = event.data.object;
+    const chargeId = typeof dispute.charge === 'string' ? dispute.charge : (dispute.charge && dispute.charge.id);
+    // El propio objeto Dispute no trae el cliente — hay que ir a buscar
+    // el cargo original para saber de quién es, solo para poder
+    // enlazarlo en el panel admin; si Stripe no respondiera por
+    // cualquier motivo, se registra igual con userId null en vez de
+    // perder constancia de la disputa.
+    let userId = null;
+    try {
+      const charge = chargeId ? await billing.retrieveCharge(chargeId) : null;
+      if (charge && charge.customer) {
+        const user = await store.findUserByStripeCustomerId(charge.customer);
+        if (user) userId = user.id;
+      }
+    } catch { /* se registra igual sin usuario asociado */ }
+    await store.recordDispute({
+      userId,
+      stripeDisputeId: dispute.id,
+      stripeChargeId: chargeId,
+      amount: dispute.amount != null ? dispute.amount / 100 : null,
+      currency: dispute.currency,
+      reason: dispute.reason,
+      status: dispute.status,
+    });
   }
+
+  // Se marca procesado solo tras llegar aquí sin ninguna excepción — ver
+  // la nota de más arriba sobre por qué esto nunca va en un finally.
+  await store.markWebhookEventProcessed(event.id, event.type);
 
   res.status(200).end();
 }

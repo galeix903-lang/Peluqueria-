@@ -93,9 +93,9 @@ async function mountShell({ page, title }) {
             </span>
             <span class="topbar__clock" data-clock></span>
             ${user.plan === 'pro'
-              ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Gestionar suscripción">★ BUSINESS</span>'
+              ? '<span class="badge" style="background:#fef3e0; color:#b45309;" data-plan-badge title="Suscripción y facturación">★ BUSINESS</span>'
               : user.plan === 'plus'
-              ? '<span class="badge" style="background:#eef2ff; color:var(--accent);" data-plan-badge title="Gestionar suscripción">PRO</span>'
+              ? '<span class="badge" style="background:#eef2ff; color:var(--accent);" data-plan-badge title="Suscripción y facturación">PRO</span>'
               : '<button class="btn-primary" data-upgrade-btn>Upgrade!</button>'}
             <span class="topbar__name">${escapeHtml(user.name)}</span>
             <button type="button" class="avatar-btn" data-avatar-btn aria-label="Ver perfil de ${escapeHtml(user.name)}">
