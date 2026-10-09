@@ -2,7 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const store = require('../store');
 const market = require('../services/market');
+const stooq = require('../services/stooq');
 const { analyzeChart } = require('../services/analysisPipeline');
+const { runBacktest } = require('../services/backtestEngine');
 const asyncHandler = require('../middleware/asyncHandler');
 
 // Techo de historial que se trae para el Historial completo y el Track
@@ -163,6 +165,48 @@ router.get('/track-record', asyncHandler(async (req, res) => {
   };
 
   res.json({ results, summary, isSimulatedPricing: pricingIsSimulated });
+}));
+
+// Backtest REAL del motor determinista (server/services/backtestEngine.js)
+// sobre el mismo histórico real que ya usa el camino REAL_DATA del
+// propio analizador — nunca datos simulados. Solo tiene sentido para
+// símbolos con cobertura de datos reales (los mismos que llevan ★ en el
+// selector del frontend); para cualquier otro, se dice explícitamente
+// que no hay histórico real sobre el que backtestear, en vez de
+// intentarlo con lo que haya.
+router.get('/backtest/:symbol', asyncHandler(async (req, res) => {
+  const symbol = String(req.params.symbol || '').trim().toUpperCase();
+  if (!symbol) return res.status(400).json({ error: 'Falta el símbolo.' });
+
+  let candles = null;
+  let timeframeKind = 'daily';
+  let sourceNote = null;
+  if (market.hasRealDataFor(symbol)) {
+    const data = await market.getMultiTimeframeCandles(symbol);
+    candles = data.mainTrend;
+    timeframeKind = '4h';
+    sourceNote = 'Velas de 4h de los últimos 30 días (CoinGecko) — la ventana más amplia que da el endpoint gratuito sin API key.';
+  } else if (stooq.hasRealDataFor(symbol)) {
+    const data = await stooq.getMultiTimeframeCandles(symbol);
+    candles = data.mainTrend;
+    timeframeKind = 'daily';
+    sourceNote = 'Velas diarias de cierre de los últimos ~12 meses (Stooq).';
+  } else {
+    return res.status(404).json({
+      error: `${symbol} no tiene cobertura de datos de mercado reales en Vantex — no hay histórico verificable sobre el que backtestear (nunca se simula uno).`,
+      hasRealData: false,
+    });
+  }
+
+  if (!candles) {
+    return res.status(502).json({
+      error: `No se pudo obtener histórico real para ${symbol} en este momento (proveedor de datos no disponible). Inténtalo de nuevo en unos minutos.`,
+      hasRealData: true, temporarilyUnavailable: true,
+    });
+  }
+
+  const result = runBacktest(candles, { timeframeKind });
+  res.json({ symbol, sourceNote, ...result });
 }));
 
 module.exports = router;

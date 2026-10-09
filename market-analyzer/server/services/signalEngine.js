@@ -14,8 +14,33 @@
 */
 const { ema, rsi, macd, atr, relativeVolume, last } = require('./indicators');
 const { findSwings, trendStructure, clusterLevels, supportResistance, detectBreakout, isConsolidating } = require('./structure');
+const { MIN_CANDLES } = require('./signalEngineConstants');
 
-const MIN_CANDLES = 30; // por debajo de esto, no hay base suficiente para nada
+// Clasificación de 5 niveles expuesta junto a la señal final (BUY/WAIT/
+// SELL): el usuario ve el BUY/WAIT/SELL en la UI, pero `bias` deja
+// constancia explícita de CUÁNTA evidencia direccional hay detrás,
+// incluso en los casos WAIT donde sí hay sesgo (p.ej. BULLISH pero sin
+// confluencia suficiente para convertirse en BUY) — así "WAIT" nunca
+// significa "no sé nada", sino "esto es lo que hay, no es suficiente
+// para operar".
+function classifyBias(totalScore) {
+  if (totalScore >= 0.6) return 'STRONG_BULLISH';
+  if (totalScore >= 0.25) return 'BULLISH';
+  if (totalScore <= -0.6) return 'STRONG_BEARISH';
+  if (totalScore <= -0.25) return 'BEARISH';
+  return 'NEUTRAL';
+}
+
+// Categórico, no solo decorativo: el número de `confidence` (5-95) mide
+// coherencia interna de la evidencia, NUNCA una probabilidad estadística
+// de acierto (eso solo lo puede dar un backtest real, ver
+// backtestEngine.js) — LOW/MEDIUM/HIGH es la forma honesta de mostrarlo
+// sin que un "73%" se lea como "73% de probabilidad de ganar".
+function classifyConfidence(confidence) {
+  if (confidence < 40) return 'LOW';
+  if (confidence <= 70) return 'MEDIUM';
+  return 'HIGH';
+}
 
 function classifyTrend(closes, structureLabel) {
   const price = last(closes.map((c) => c));
@@ -246,6 +271,9 @@ function computeSignal({ candles, timeframeNote }) {
   if (!candles || candles.length < MIN_CANDLES) {
     return {
       signal: 'WAIT', confidence: 15, risk: 'MEDIUM',
+      bias: 'NEUTRAL', confidenceLabel: 'LOW',
+      confidenceNote: 'Mide cuánta evidencia clara y coherente hay detrás de la señal, no una probabilidad estadística de acierto.',
+      dangerFlags: { extremeVolatility: false, thinVolume: false, contradiction: false, consolidating: false, extremeRsi: false, insufficientData: true },
       trend: 'SIDEWAYS', momentum: 'NEUTRAL', volume: 'UNAVAILABLE', structure: 'MIXED',
       support: [], resistance: [],
       reasons: ['No hay suficientes velas históricas para calcular indicadores fiables.'],
@@ -288,6 +316,18 @@ function computeSignal({ candles, timeframeNote }) {
     else if (totalScore <= -0.35 && bearishCount >= 2) signal = 'SELL';
   }
 
+  // Condiciones peligrosas: ninguna cantidad de confluencia direccional
+  // justifica una señal operable si el propio contexto hace que esa
+  // señal sea poco fiable por construcción. Estos dos overrides corren
+  // DESPUÉS de decidir signal por score/confluencia y pueden forzarla a
+  // WAIT, pero nunca al revés (nunca convierten un WAIT en BUY/SELL).
+  const EXTREME_VOLATILITY_ATR_PCT = 0.08; // 8% de ATR sobre el precio en una sola vela media
+  const extremeVolatility = risk.atrPct != null && risk.atrPct > EXTREME_VOLATILITY_ATR_PCT;
+  const THIN_VOLUME_RATIO = 0.3; // menos del 30% del volumen medio reciente
+  const thinVolume = volume.relative != null && volume.relative < THIN_VOLUME_RATIO;
+  if (signal !== 'WAIT' && extremeVolatility) signal = 'WAIT';
+  if (signal !== 'WAIT' && thinVolume) signal = 'WAIT';
+
   // Confianza: parte de la magnitud del score (tope 75, nunca "porque sí"
   // cerca de 100), y se ajusta con calidad de datos, confluencia real,
   // y señales de alerta (RSI extremo, consolidación, volumen débil).
@@ -300,6 +340,8 @@ function computeSignal({ candles, timeframeNote }) {
   if (consolidating) confidence -= 10;
   if (signal !== 'WAIT' && volume.label === 'WEAK') confidence -= 8;
   if (volume.label === 'UNAVAILABLE') confidence -= 5;
+  if (extremeVolatility) confidence -= 25;
+  if (thinVolume) confidence -= 20;
   if (signal === 'WAIT' && !contradiction && candles.length >= MIN_CANDLES) confidence = Math.max(confidence, 30);
   confidence = Math.max(5, Math.min(95, Math.round(confidence)));
 
@@ -320,6 +362,8 @@ function computeSignal({ candles, timeframeNote }) {
     }
     if (volume.label === 'CONFIRMING' && volume.relative) reasons.push(REASON_TEMPLATES.volume.CONFIRMING(volume.relative));
   } else {
+    if (extremeVolatility) reasons.push(`Volatilidad extrema (ATR ≈ ${(risk.atrPct * 100).toFixed(1)}% del precio): el riesgo de una señal falsa es demasiado alto para operar, aunque hubiera dirección clara.`);
+    if (thinVolume) reasons.push(`Volumen extremadamente bajo (${(volume.relative * 100).toFixed(0)}% de la media reciente): no hay suficiente participación real para confiar en el movimiento.`);
     if (contradiction) reasons.push('Las señales de tendencia, momentum y estructura son contradictorias entre sí.');
     if (consolidating) reasons.push('El precio está en consolidación, sin una ruptura confirmada todavía.');
     if (momentum.extremeRsi) reasons.push('RSI en zona extrema: mayor riesgo de un giro o una señal falsa a corto plazo.');
@@ -331,6 +375,9 @@ function computeSignal({ candles, timeframeNote }) {
 
   return {
     signal, confidence, risk: risk.label,
+    bias: classifyBias(totalScore), confidenceLabel: classifyConfidence(confidence),
+    confidenceNote: 'Mide cuánta evidencia clara y coherente hay detrás de la señal, no una probabilidad estadística de acierto.',
+    dangerFlags: { extremeVolatility, thinVolume, contradiction, consolidating, extremeRsi: momentum.extremeRsi },
     // Volatilidad real (ATR/precio, %) — no una puntuación inventada; el
     // Market Scanner la usa para el orden "Volatilidad", nunca se muestra
     // como riesgo si no hay suficientes velas para calcularla (null).
@@ -363,6 +410,7 @@ function computeMultiTimeframeSignal({ mainTrend, shortTerm }, mainTrendNote = '
 
   if (shortDir !== 0 && shortDir !== primaryDir) {
     primary.confidence = Math.max(5, primary.confidence - 15);
+    primary.confidenceLabel = classifyConfidence(primary.confidence); // recalcular: el ajuste de arriba pudo cruzar de categoría (p.ej. HIGH -> MEDIUM)
     primary.reasons = [
       ...primary.reasons.slice(0, 4),
       `El corto plazo (30min) muestra momentum ${shortDir > 0 ? 'alcista' : 'bajista'}, en contra de la tendencia principal — se mantiene la señal de fondo pero con menor confianza.`,
@@ -371,4 +419,7 @@ function computeMultiTimeframeSignal({ mainTrend, shortTerm }, mainTrendNote = '
   return primary;
 }
 
-module.exports = { computeSignal, computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES };
+module.exports = {
+  computeSignal, computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES,
+  classifyBias, classifyConfidence,
+};

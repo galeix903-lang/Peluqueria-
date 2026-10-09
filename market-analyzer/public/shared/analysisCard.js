@@ -6,8 +6,15 @@
   pueda mostrar exactamente el mismo detalle al reabrir un análisis
   pasado, sin duplicar el HTML/lógica.
 */
-// Lenguaje de sesgo, no de orden de compra/venta: Vantex presenta
-// escenarios y probabilidades, nunca una certeza sobre el futuro.
+// Lenguaje literal (COMPRAR/VENDER/ESPERAR), no eufemismos de "sesgo" —
+// la señal interna (signal: BUY/SELL/WAIT) ya es inequívoca por diseño
+// del motor (server/services/signalEngine.js: solo llega a BUY/SELL con
+// confluencia real entre varias dimensiones independientes; en caso
+// contrario es WAIT) y el texto tiene que serlo igual, sin diluirla en
+// un "podría" o un "sesgo". El disclaimer legal (DISCLAIMER en
+// server/services/claude.js, mostrado debajo de cada análisis) es lo
+// que deja claro que esto es información, no una orden — no la propia
+// etiqueta de la señal.
 // Activos con datos de mercado reales en el AI Analyzer (motor
 // determinista, no lectura de imagen): cripto vía CoinGecko (precio en
 // vivo) + acciones/fondos vía Stooq (solo cierre diario — ver
@@ -20,10 +27,11 @@ const REAL_DATA_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'SHIB', 'P
 // mientras la posición sigue abierta.
 const TRADABLE_SYMBOLS = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'SHIB', 'PEPE', 'WIF', 'BONK'];
 const SIGNAL_META = {
-  BUY: { icon: 'arrowUp', label: 'Sesgo alcista', cls: 'buy' },
-  SELL: { icon: 'arrowDown', label: 'Sesgo bajista', cls: 'sell' },
-  WAIT: { icon: 'arrowRight', label: 'Neutral', cls: 'wait' },
+  BUY: { icon: 'arrowUp', label: 'COMPRAR', cls: 'buy' },
+  SELL: { icon: 'arrowDown', label: 'VENDER', cls: 'sell' },
+  WAIT: { icon: 'arrowRight', label: 'ESPERAR', cls: 'wait' },
 };
+const CONFIDENCE_LABEL_ES = { LOW: 'Confianza baja', MEDIUM: 'Confianza media', HIGH: 'Confianza alta' };
 const TREND_LABEL = { BULLISH: 'Alcista', BEARISH: 'Bajista', SIDEWAYS: 'Lateral' };
 const MOMENTUM_LABEL = { POSITIVE: 'Positivo', NEGATIVE: 'Negativo', NEUTRAL: 'Neutral', UNAVAILABLE: 'No disponible' };
 const VOLUME_LABEL = { CONFIRMING: 'Confirmando', WEAK: 'Débil', UNAVAILABLE: 'No disponible' };
@@ -95,8 +103,8 @@ function analysisDetailHtml(a) {
     <!-- QUICK SUMMARY: se entiende en 5 segundos -->
     <div class="signal-hero signal-hero--${sig.cls}">
       <div class="signal-hero__label">${vantexIcon(sig.icon, { size: 26 })} ${sig.label}</div>
-      <div class="signal-hero__confidence">${a.confidence}% de confianza</div>
-      <div class="signal-hero__reason" style="margin-top:2px;">Mide cuánta evidencia clara y coherente hay detrás, no una probabilidad de acierto.</div>
+      <div class="signal-hero__confidence">${a.confidenceLabel ? `${CONFIDENCE_LABEL_ES[a.confidenceLabel] || a.confidenceLabel} · ` : ''}${a.confidence}%</div>
+      <div class="signal-hero__reason" style="margin-top:2px;">${a.confidenceNote || 'Mide cuánta evidencia clara y coherente hay detrás, no una probabilidad de acierto.'}</div>
       ${keySignalLine(a).length ? `
         <div class="signal-hero__keysignals">
           ${keySignalLine(a).map((l) => `<span>${vantexIcon('check', { size: 12 })}${l}</span>`).join('')}

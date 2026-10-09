@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "migrate:json": "node server/scripts/migrate-json-to-pg.js"
+    "migrate:json": "node server/scripts/migrate-json-to-pg.js",
+    "test": "node --test server/test/*.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

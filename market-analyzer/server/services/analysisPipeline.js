@@ -30,7 +30,8 @@
 const market = require('./market');
 const stooq = require('./stooq');
 const { callClaudeVision, mockAnalysis, resolveMode, DISCLAIMER } = require('./claude');
-const { computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES } = require('./signalEngine');
+const { computeMultiTimeframeSignal, buildScenarios, MIN_CANDLES, classifyConfidence } = require('./signalEngine');
+const { validateCandles } = require('./dataValidation');
 
 // Normaliza lo que el usuario escriba ("btc", "BTC/USDT", "BTC-USD"...) a
 // la forma que usa market.js, para poder saber si tenemos datos reales.
@@ -50,6 +51,9 @@ function governVisualResult(raw, { symbolHint, timeframe, noRealDataNote }) {
   if (raw.isChart === false) {
     return {
       signal: 'WAIT', confidence: 8, risk: 'MEDIUM',
+      bias: 'NEUTRAL', confidenceLabel: 'LOW',
+      confidenceNote: 'Mide cuánta evidencia clara y coherente hay detrás de la señal, no una probabilidad estadística de acierto.',
+      analysisStatus: 'INSUFFICIENT_DATA',
       asset: raw.asset || symbolHint || 'Desconocido',
       trend: 'SIDEWAYS', momentum: 'UNAVAILABLE', volume: 'UNAVAILABLE', structure: 'UNAVAILABLE',
       support: [], resistance: [],
@@ -106,8 +110,15 @@ function governVisualResult(raw, { symbolHint, timeframe, noRealDataNote }) {
     ? buildScenarios({ signal, price: null, support: raw.support || [], resistance: raw.resistance || [] })
     : { primary: 'El eje de precios de la imagen no es lo bastante legible para plantear un escenario con niveles concretos.', alternative: null, invalidation: null, keyLevels: { entryArea: null, invalidation: null, targets: [], riskContext: null } };
 
+  // Bias sin variantes STRONG_: el camino visual tiene el techo de
+  // confianza (60) precisamente porque es una lectura de imagen, no un
+  // cálculo sobre datos — nunca puede justificar "fuerte" convicción.
+  const bias = signal === 'BUY' ? 'BULLISH' : signal === 'SELL' ? 'BEARISH' : 'NEUTRAL';
   return {
     signal, confidence, risk: 'MEDIUM',
+    bias, confidenceLabel: classifyConfidence(confidence),
+    confidenceNote: 'Mide cuánta evidencia clara y coherente hay detrás de la señal, no una probabilidad estadística de acierto.',
+    analysisStatus: 'OK',
     asset: raw.asset || symbolHint || 'Desconocido',
     trend: trendMap[raw.trend] || 'SIDEWAYS',
     momentum: 'UNAVAILABLE', volume: 'UNAVAILABLE', structure: 'UNAVAILABLE',
@@ -122,11 +133,21 @@ function governVisualResult(raw, { symbolHint, timeframe, noRealDataNote }) {
 // compartido entre el camino cripto (CoinGecko, multi-timeframe) y el de
 // acciones/fondos (Stooq, solo timeframe diario), para no duplicar la
 // forma del objeto en dos sitios.
-function buildRealDataResult(candles, { symbol, timeframe, mainTrendNote }) {
+function buildRealDataResult(candles, { symbol, timeframe, mainTrendNote, dataQualityNote }) {
   const signalResult = computeMultiTimeframeSignal(candles, mainTrendNote);
   const { debug, ...clean } = signalResult;
+  // Un movimiento extremo en una sola vela (detectado por
+  // validateCandles, nunca un motivo para descartar el histórico) se dice
+  // explícitamente en vez de dejar que el usuario confíe en el resultado
+  // igual que si el histórico hubiera sido perfectamente normal.
+  if (dataQualityNote) {
+    clean.reasons = [...clean.reasons.slice(0, 4), dataQualityNote];
+    clean.confidence = Math.max(5, clean.confidence - 10);
+    clean.confidenceLabel = classifyConfidence(clean.confidence);
+  }
   return {
     ...clean,
+    analysisStatus: 'OK',
     asset: symbol,
     source: 'REAL_DATA',
     timeframe: timeframe || null,
@@ -143,21 +164,28 @@ async function analyzeChart(imageBuffer, mimeType, context = {}) {
 
   if (symbol && market.hasRealDataFor(symbol)) {
     const candles = await market.getMultiTimeframeCandles(symbol);
-    if (candles.mainTrend && candles.mainTrend.length >= MIN_CANDLES) {
-      return buildRealDataResult(candles, { symbol, timeframe, mainTrendNote: 'Velas de 4h de los últimos 30 días (CoinGecko).' });
+    // Validación explícita (no solo "¿hay al menos MIN_CANDLES?"): velas
+    // malformadas, desordenadas o con la última muestra obsoleta se
+    // tratan exactamente igual que "sin datos" — nunca se calcula un
+    // indicador sobre un histórico que no ha pasado esta puerta.
+    const validation = validateCandles(candles.mainTrend, { timeframeKind: '4h' });
+    if (validation.ok) {
+      return buildRealDataResult(candles, { symbol, timeframe, mainTrendNote: 'Velas de 4h de los últimos 30 días (CoinGecko).', dataQualityNote: validation.dataQualityNote });
     }
-    // Símbolo con cobertura real pero, ahora mismo, sin velas (red no
-    // disponible, CoinGecko caído...): nunca se inventan velas — se cae
-    // honestamente al camino visual, dejando constancia del motivo.
-    noRealDataNote = `No se pudieron obtener datos de mercado en tiempo real para ${symbol} en este momento; este análisis es una lectura visual de la imagen, no está verificado con datos numéricos.`;
+    // Símbolo con cobertura real pero, ahora mismo, sin velas utilizables
+    // (red no disponible, CoinGecko caído, datos corruptos u obsoletos):
+    // nunca se inventan velas — se cae honestamente al camino visual,
+    // dejando constancia del motivo EXACTO (no un genérico "algo falló").
+    noRealDataNote = `No se pudieron obtener datos de mercado en tiempo real verificables para ${symbol} en este momento (${validation.reason}). Este análisis es una lectura visual de la imagen, no está verificado con datos numéricos.`;
   } else if (symbol && stooq.hasRealDataFor(symbol)) {
     const candles = await stooq.getMultiTimeframeCandles(symbol);
-    if (candles.mainTrend && candles.mainTrend.length >= MIN_CANDLES) {
-      return buildRealDataResult(candles, { symbol, timeframe, mainTrendNote: 'Velas diarias de cierre de los últimos ~12 meses (Stooq).' });
+    const validation = validateCandles(candles.mainTrend, { timeframeKind: 'daily' });
+    if (validation.ok) {
+      return buildRealDataResult(candles, { symbol, timeframe, mainTrendNote: 'Velas diarias de cierre de los últimos ~12 meses (Stooq).', dataQualityNote: validation.dataQualityNote });
     }
-    // Igual que con cripto: sin velas reales disponibles ahora mismo, se
+    // Igual que con cripto: sin velas reales verificables ahora mismo, se
     // cae honestamente al camino visual en vez de inventar nada.
-    noRealDataNote = `No se pudieron obtener datos de mercado en tiempo real para ${symbol} en este momento; este análisis es una lectura visual de la imagen, no está verificado con datos numéricos.`;
+    noRealDataNote = `No se pudieron obtener datos de mercado en tiempo real verificables para ${symbol} en este momento (${validation.reason}). Este análisis es una lectura visual de la imagen, no está verificado con datos numéricos.`;
   }
 
   const mode = resolveMode();
